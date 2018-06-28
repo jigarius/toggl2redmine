@@ -1,0 +1,3 @@
+= toggl2redmine
+
+Imports time entries from Toggl to Redmine over REST API.

@@ -1,3 +1,66 @@
 <h2>Toggle 2 Redmine</h2>
 
-<p>TODO: Someone forgot to add the code!</p>
+<form id="config-form">
+  <div class="form-item">
+    <label for="redmine-url">Redmine URL</label>
+    <input id="redmine-url" type="text" maxlength="128" required="required" />
+  </div>
+  <div class="form-item">
+    <label for="redmine-api-key">Redmine API Key</label>
+    <input id="redmine-api-key" type="text" maxlength="64" required="required" />
+  </div>
+  <div class="form-item">
+    <label for="toggl-api-key">Toggle API Key</label>
+    <input id="toggl-api-key" type="text" maxlength="64" required="required" />
+  </div>
+  <div class="form-item">
+    <label for="date">Date</label>
+    <input id="date" type="date" required="required" />
+  </div>
+  <div class="form-actions">
+    <button type="submit" id="btn-preview">Preview</button>
+  </div>
+</form>
+
+<div id="redmine-report-container">
+  <h2>Entries from Redmine</h2>
+  <table id="redmine-report">
+    <thead>
+    <tr>
+      <th>Issue #</th>
+      <th>Subject</th>
+      <th>Comments</th>
+      <th>Activity</th>
+      <th>Time</th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+</div>
+
+<form id="publish-form">
+  <h2>Entries from Toggl</h2>
+  <table id="toggl-report" class="list odd-even">
+    <thead>
+      <tr>
+        <th>Export?</th>
+        <th>Issue #</th>
+        <th>Subject</th>
+        <th>Comments</th>
+        <th>Activity</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <div class="form-actions">
+    <button id="btn-publish" type="submit">Post to Redmine</button>
+  </div>
+</form>
+
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 't2r', :plugin => 'toggl2redmine' %>
+  <%= javascript_include_tag "t2r.js", :plugin => 'toggl2redmine' %>
+<% end %>

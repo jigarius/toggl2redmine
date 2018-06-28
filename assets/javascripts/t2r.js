@@ -30,7 +30,7 @@ T2RHelper.cache = function (key, value = null) {
 
 T2RHelper.initConfigForm = function() {
   // Populate current date on date fields.
-  $('#date').each(function() {
+  $('#config-form #date').each(function() {
     var date = new Date();
     date = date.toISOString();
     this.value = date.substr(0, 10);
@@ -40,7 +40,7 @@ T2RHelper.initConfigForm = function() {
   $('#toggl-api-key').val(T2RConfig.get('toggl.key'));
 
   // Handle config form submission.
-  $('#config-form').submit(T2RHelper.handleConfigForm);
+  $('#config-form').submit(T2RHelper.handleConfigForm).trigger('submit');
 };
 
 T2RHelper.handleConfigForm = function() {
@@ -130,6 +130,14 @@ T2RHelper.updateTogglReport = function () {
     var markup = T2RRenderer.render('TogglRow', entry);
     $table.find('tbody').append(markup);
   }
+
+  // Display empty table message, if required.
+  if (0 === entries.length) {
+    var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
+        + 'There are no items to display here. Did you log your time on Toggl?'
+      + '</td></tr>';
+    $table.find('tbody').append(markup);
+  }
 };
 
 T2RHelper.getTimeRange = function () {
@@ -207,7 +215,7 @@ T2RHelper.getNormalizedTogglTimeEntries = function (opts) {
     };
     var entry = entries[i];
 
-    var match = entry.description.match(/^#(\d+) (.*)$/);
+    var match = entry.description.match(/^.*#(\d+) (.*)$/);
     if (match) {
       record.issueId = parseInt(match[1]);
       record.comments = match[2];

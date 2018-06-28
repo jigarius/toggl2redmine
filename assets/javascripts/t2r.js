@@ -1,9 +1,14 @@
 'use strict';
 
 /**
- * Toggl em Red Helper.
+ * Toggl 2 Redmine Helper.
  */
 var T2RHelper = {};
+
+/**
+ * TODO: Fetch Redmine base URL as per installation.
+ */
+T2RHelper.REDMINE_URL = '';
 
 T2RHelper.cacheData = {};
 
@@ -25,26 +30,22 @@ T2RHelper.cache = function (key, value = null) {
 
 T2RHelper.initConfigForm = function() {
   // Populate current date on date fields.
-  jQuery('#date').each(function() {
+  $('#date').each(function() {
     var date = new Date();
     date = date.toISOString();
     this.value = date.substr(0, 10);
   });
 
   // Populate stored config.
-  jQuery('#redmine-url').val(T2RConfig.get('redmine.url'));
-  jQuery('#redmine-api-key').val(T2RConfig.get('redmine.key'));
-  jQuery('#toggl-api-key').val(T2RConfig.get('toggl.key'));
+  $('#toggl-api-key').val(T2RConfig.get('toggl.key'));
 
   // Handle config form submission.
-  jQuery('#config-form').submit(T2RHelper.handleConfigForm);
+  $('#config-form').submit(T2RHelper.handleConfigForm);
 };
 
 T2RHelper.handleConfigForm = function() {
-  T2RConfig.set('redmine.url', jQuery('#redmine-url').val());
-  T2RConfig.set('redmine.key', jQuery('#redmine-api-key').val());
-  T2RConfig.set('toggl.key', jQuery('#toggl-api-key').val());
-  T2RConfig.set('date', jQuery('input#date').val());
+  T2RConfig.set('toggl.key', $('#toggl-api-key').val());
+  T2RConfig.set('date', $('input#date').val());
   setTimeout(T2RHelper.updateTogglReport, 100);
   setTimeout(T2RHelper.updateRedmineReport, 100);
   return false;
@@ -52,7 +53,7 @@ T2RHelper.handleConfigForm = function() {
 
 T2RHelper.initPublishForm = function () {
   // Handle data submission to Redmine.
-  jQuery('#publish-form').submit(T2RHelper.handlePublishForm);
+  $('#publish-form').submit(T2RHelper.handlePublishForm);
 };
 
 T2RHelper.handlePublishForm = function() {
@@ -61,9 +62,9 @@ T2RHelper.handlePublishForm = function() {
 };
 
 T2RHelper.publishToRedmine = function () {
-  jQuery('#btn-publish').attr('disabled', 'disabled');
-  jQuery('#toggl-report tbody tr').each(function () {
-    var $tr = jQuery(this);
+  $('#btn-publish').attr('disabled', 'disabled');
+  $('#toggl-report tbody tr').each(function () {
+    var $tr = $(this);
 
     // If the item is not marked for export, ignore it.
     if (!$tr.find('[data-property="export"]').prop('checked')) {
@@ -107,7 +108,7 @@ T2RHelper.updateTogglReport = function () {
   var entries = T2RHelper.getNormalizedTogglTimeEntries(opts);
 
   // Render the entries on the table.
-  var $table = jQuery('#toggl-report');
+  var $table = $('#toggl-report');
   $table.find('tbody').html('');
 
   // Display entries eligible for export.
@@ -116,7 +117,7 @@ T2RHelper.updateTogglReport = function () {
     if (!entry.issueId) {
       continue;
     }
-    var markup = TerRenderer.render('TogglRow', entry);
+    var markup = T2RRenderer.render('TogglRow', entry);
     $table.find('tbody').append(markup);
   }
 
@@ -126,7 +127,7 @@ T2RHelper.updateTogglReport = function () {
     if (entry.issueId) {
       continue;
     }
-    var markup = TerRenderer.render('TogglRow', entry);
+    var markup = T2RRenderer.render('TogglRow', entry);
     $table.find('tbody').append(markup);
   }
 };
@@ -177,7 +178,7 @@ T2RHelper.getTogglTimeEntries = function (opts) {
 
   var headers = T2RHelper.getTogglAuthHeaders();
   var output = false;
-  jQuery.ajax({
+  $.ajax({
     async: false,
     url: 'https://www.toggl.com/api/v8/time_entries',
     data: opts,
@@ -195,6 +196,7 @@ T2RHelper.getNormalizedTogglTimeEntries = function (opts) {
 
   var entries = T2RHelper.getTogglTimeEntries(opts);
   var output = {};
+  var issueIds = [];
 
   for (var i in entries) {
     var record = {
@@ -211,7 +213,7 @@ T2RHelper.getNormalizedTogglTimeEntries = function (opts) {
       record.comments = match[2];
     }
     else {
-      record.issueId = 0;
+      record.issueId = false;
       record.comments = entry.description;
     }
 
@@ -225,6 +227,11 @@ T2RHelper.getNormalizedTogglTimeEntries = function (opts) {
       continue;
     }
 
+    // Collect this issue ID.
+    if (record.issueId && issueIds.indexOf(record.issueId) < 0) {
+      issueIds.push(record.issueId);
+    }
+
     // Create record if not exists.
     if ('undefined' === typeof output[record.key]) {
       output[record.key] = record;
@@ -236,10 +243,11 @@ T2RHelper.getNormalizedTogglTimeEntries = function (opts) {
   }
 
   // Add issue subjects to all entries.
+  var issues = T2RHelper.getRedmineIssues(issueIds);
   for (var i in output) {
     var record = output[i];
-    if (record.issueId > 0) {
-      var issue = T2RHelper.getRedmineIssue(record.issueId);
+    if (record.issueId !== false && 'undefined' !== typeof issues[record.issueId]) {
+      var issue = issues[record.issueId];
       record.subject = issue ? issue.subject : '-';
     }
     else {
@@ -251,8 +259,9 @@ T2RHelper.getNormalizedTogglTimeEntries = function (opts) {
 };
 
 T2RHelper.getRedmineTimeEntries = function (opts) {
+  return;
   opts = opts || {};
-  var output = TarHelper.redmineRequest({
+  var output = T2RHelper.redmineRequest({
     async: false,
     url: '/time_entries.json',
     data: {
@@ -298,33 +307,43 @@ T2RHelper.getRedmineIssues = function (ids) {
     return output;
   }
   // Fetch issue info and key them by issue ID.
-  T2RHelper.redmineRequest({
-    async: false,
-    url: '/issues.json',
-    data: {
-      issue_id: ids.join(',')
-    },
-    success: function (data, status, xhr) {
-      var issues = ('undefined' === data.issues) ? [] : data.issues;
-      for (var i in issues) {
-        var issue = issues[i];
-        output[issue.id] = issue;
-      }
-    }
-  });
+  try {
+    T2RHelper.redmineRequest({
+      async: false,
+      cache: true,
+      timeout: 1000,
+      url: '/issues.json',
+      data: {
+        issue_id: ids.join(',')
+      },
+      success: function (data, status, xhr) {
+        var issues = ('undefined' === data.issues) ? [] : data.issues;
+        for (var i in issues) {
+          var issue = issues[i];
+          output[issue.id] = issue;
+        }
+      },
+      error: function (data, status, xhr) {}
+    });
+  } catch(e) {
+    console.log('Error: ' + e);
+  }
   return output;
 };
 
 T2RHelper.redmineRequest = function (opts) {
-  opts.url = T2RConfig.get('redmine.url') + opts.url;
+  opts.timeout = opts.timeout || 3000;
+  opts.url = T2RHelper.REDMINE_URL + opts.url;
   opts.headers = {
-    'X-Redmine-API-Key': T2RConfig.get('redmine.key')
+    // 'X-Redmine-API-Key': 'redmine-api-key-goes-here'
   };
-  jQuery.ajax(opts);
+  $.ajax(opts);
 };
 
 /**
  * Ter Config.
+ *
+ * TODO: Manage config on server side and manage date as a filter.
  */
 var T2RConfig = {};
 
@@ -358,10 +377,10 @@ T2RConfig.set = function (key, value) {
 /**
  * Toggl em Red Renderer.
  */
-var TerRenderer = {};
+var T2RRenderer = {};
 
-TerRenderer.renderDropdown = function (data) {
-  var $el = jQuery('<select />');
+T2RRenderer.renderDropdown = function (data) {
+  var $el = $('<select />');
   if ('undefined' !== typeof data.placeholder) {
     $el.append('<option value="">' + data.placeholder + '</option>');
   }
@@ -372,10 +391,10 @@ TerRenderer.renderDropdown = function (data) {
     var label = data.options[value];
     $el.append('<option value="' + value + '">' + label + '</option>');
   }
-  return jQuery('<div />').append($el).html();
+  return $('<div />').append($el).html();
 };
 
-TerRenderer.renderRedmineActivityDropdown = function (data) {
+T2RRenderer.renderRedmineActivityDropdown = function (data) {
   data = data || {};
   data.options = {};
   var activities = T2RHelper.getRedmineActivities();
@@ -383,10 +402,10 @@ TerRenderer.renderRedmineActivityDropdown = function (data) {
     var activity = activities[i];
     data.options[activity.id] = activity.name;
   }
-  return TerRenderer.render('Dropdown', data);
+  return T2RRenderer.render('Dropdown', data);
 };
 
-TerRenderer.renderDuration = function (data) {
+T2RRenderer.renderDuration = function (data) {
   data = Math.ceil(data / 60);
   var h = Math.floor(data / 60);
   var output = h;
@@ -395,43 +414,47 @@ TerRenderer.renderDuration = function (data) {
   return output;
 };
 
-TerRenderer.renderTogglRow = function (data) {
-  var id = data.id;
+T2RRenderer.renderTogglRow = function (data) {
+  var issueUrl = data.issueId ? '/issue/' + data.issueId : '#';
   var markup = '<tr>'
-    + '<td><input data-property="export" type="checkbox" value="1" /></td>'
-    + '<td><input data-property="issue_id" type="hidden" value="' + data.issueId + '" />' + data.issueId + '</td>'
-    + '<td>' + data.subject + '</td>'
-    + '<td><input data-property="comments" type="text" value="' + data.comments + '" maxlength="255" /></td>'
-    + '<td>' + TerRenderer.render('RedmineActivityDropdown', {
+    + '<td class="checkbox"><input data-property="export" type="checkbox" value="1" /></td>'
+    + '<td class="id">'
+      + '<input data-property="issue_id" type="hidden" value="' + data.issueId + '" />'
+      + (data.issueId ? '<a href="' + issueUrl + '" target="_blank">' + data.issueId + '</a>' : '-')
+    + '</td>'
+    + '<td class="project">-</td>'
+    + '<td class="subject">' + data.subject + '</td>'
+    + '<td class="comments"><input data-property="comments" type="text" value="' + data.comments + '" maxlength="255" /></td>'
+    + '<td class="activity">' + T2RRenderer.render('RedmineActivityDropdown', {
       placeholder: '-',
       attributes: {
         'data-property': 'activity_id',
         'required': 'required'
       }
     }) + '</td>'
-    + '<td><input data-property="hours" type="hidden" value="' + (data.duration / 3600) + '" maxlength="5" />' + TerRenderer.render('Duration', data.duration) + '</td>'
+    + '<td class="hours"><input data-property="hours" type="hidden" value="' + (data.duration / 3600) + '" maxlength="5" />' + T2RRenderer.render('Duration', data.duration) + '</td>'
     + '</tr>';
   var $tr = $(markup);
   if (!data.issueId) {
-    $tr.addClass('ui-state-error');
+    $tr.addClass('error');
     $tr.find(':input').attr({
       'disabled': 'disabled'
     });
   }
-  return jQuery('<div />').append($tr).html();
+  return $('<div />').append($tr).html();
 };
 
-TerRenderer.render = function (template, data) {
+T2RRenderer.render = function (template, data) {
   var method = 'render' + template;
-  if ('undefined' == typeof TerRenderer) {
-    throw 'Error: To render "' + template + '" please define "TerRenderer.' + method;
+  if ('undefined' == typeof T2RRenderer) {
+    throw 'Error: To render "' + template + '" please define "T2RRenderer.' + method;
   }
-  return TerRenderer[method](data);
+  return T2RRenderer[method](data);
 };
 
 /**
  * Init script.
  */
-jQuery(document.body).ready(function() {
+$(document.body).ready(function() {
   T2RHelper.initialize();
 });

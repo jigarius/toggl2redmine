@@ -2,14 +2,6 @@
 
 <form id="config-form">
   <div class="form-item">
-    <label for="redmine-url">Redmine URL</label>
-    <input id="redmine-url" type="text" maxlength="128" required="required" />
-  </div>
-  <div class="form-item">
-    <label for="redmine-api-key">Redmine API Key</label>
-    <input id="redmine-api-key" type="text" maxlength="64" required="required" />
-  </div>
-  <div class="form-item">
     <label for="toggl-api-key">Toggle API Key</label>
     <input id="toggl-api-key" type="text" maxlength="64" required="required" />
   </div>
@@ -24,14 +16,15 @@
 
 <div id="redmine-report-container">
   <h2>Entries from Redmine</h2>
-  <table id="redmine-report">
+  <table id="redmine-report" class="list odd-even t2r-report">
     <thead>
     <tr>
-      <th>Issue #</th>
-      <th>Subject</th>
-      <th>Comments</th>
-      <th>Activity</th>
-      <th>Time</th>
+      <th class="id">Issue #</th>
+      <th class="project">Project</th>
+      <th class="subject">Subject</th>
+      <th class="comments">Comments</th>
+      <th class="activity">Activity</th>
+      <th class="hours">Hours</th>
     </tr>
     </thead>
     <tbody>
@@ -41,15 +34,16 @@
 
 <form id="publish-form">
   <h2>Entries from Toggl</h2>
-  <table id="toggl-report" class="list odd-even">
+  <table id="toggl-report" class="list odd-even t2r-table">
     <thead>
       <tr>
-        <th>Export?</th>
-        <th>Issue #</th>
-        <th>Subject</th>
-        <th>Comments</th>
-        <th>Activity</th>
-        <th>Time</th>
+        <th class="checkbox">Export?</th>
+        <th class="id">Issue #</th>
+        <th class="project">Project</th>
+        <th class="subject">Subject</th>
+        <th class="comments">Comments</th>
+        <th class="activity">Activity</th>
+        <th class="hours">Hours</th>
       </tr>
     </thead>
     <tbody>

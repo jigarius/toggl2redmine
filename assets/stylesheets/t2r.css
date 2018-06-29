@@ -17,7 +17,7 @@
 }
 .t2r-table th,
 .t2r-table td {
-  text-align: left;
+  text-align: left !important;
 }
 .t2r-table td.activity {
   width: 150px;

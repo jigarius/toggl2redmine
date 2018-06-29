@@ -15,10 +15,10 @@
 
 <div id="redmine-report-container">
   <h2>Entries from Redmine</h2>
-  <table id="redmine-report" class="list odd-even t2r-report">
+  <table id="redmine-report" class="list odd-even t2r-table">
     <thead>
     <tr>
-      <th class="id">Issue #</th>
+      <th class="id">Issue ID</th>
       <th class="project">Project</th>
       <th class="subject">Subject</th>
       <th class="comments">Comments</th>
@@ -37,7 +37,7 @@
     <thead>
       <tr>
         <th class="checkbox">Import?</th>
-        <th class="id">Issue #</th>
+        <th class="id">Issue ID</th>
         <th class="project">Project</th>
         <th class="subject">Subject</th>
         <th class="comments">Comments</th>
@@ -56,4 +56,7 @@
 <% content_for :header_tags do %>
   <%= stylesheet_link_tag 't2r', :plugin => 'toggl2redmine' %>
   <%= javascript_include_tag "t2r.js", :plugin => 'toggl2redmine' %>
+  <script>
+    T2RHelper.REDMINE_API_KEY = '<%= @redmine_api_key %>';
+  </script>
 <% end %>

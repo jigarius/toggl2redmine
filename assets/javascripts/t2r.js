@@ -3,12 +3,14 @@
 /**
  * Toggl 2 Redmine Helper.
  */
-var T2RHelper = {};
+var T2RHelper = T2RHelper || {};
 
 /**
  * TODO: Fetch Redmine base URL as per installation.
  */
 T2RHelper.REDMINE_URL = '';
+
+T2RHelper.REDMINE_API_KEY = T2RHelper.REDMINE_API_KEY || false;
 
 T2RHelper.cacheData = {};
 
@@ -156,10 +158,15 @@ T2RHelper.getTogglAuthHeaders = function (username, password) {
   return output;
 };
 
-T2RHelper.dateStringToObject = function (string) {
+T2RHelper.dateStringToObject = function (string, removeTzOffset = false) {
   try {
     string = Date.parse(string);
     var object = new Date(string);
+    // Handle timezone offset to get proper ISO date.
+    if (removeTzOffset) {
+      var offset = object.getTimezoneOffset();
+      object = new Date(object.getTime() + offset * 60 * 1000);
+    }
     return object;
   }
   catch (e) {
@@ -170,14 +177,14 @@ T2RHelper.dateStringToObject = function (string) {
 T2RHelper.getTogglTimeEntries = function (opts) {
   opts = opts || {};
 
-  opts.start_date = T2RHelper.dateStringToObject(opts.from);
+  opts.start_date = T2RHelper.dateStringToObject(opts.from, true);
   if (!opts.start_date) {
     alert('Error: Invalid start date!');
     return false;
   }
   opts.start_date = opts.start_date.toISOString();
 
-  opts.end_date = T2RHelper.dateStringToObject(opts.till);
+  opts.end_date = T2RHelper.dateStringToObject(opts.till, true);
   if (!opts.end_date) {
     alert('Error: Invalid end date!');
     return false;
@@ -189,7 +196,10 @@ T2RHelper.getTogglTimeEntries = function (opts) {
   $.ajax({
     async: false,
     url: 'https://www.toggl.com/api/v8/time_entries',
-    data: opts,
+    data: {
+      start_date: opts.start_date,
+      end_date: opts.end_date
+    },
     headers: headers,
     success: function(data, status, xhr) {
       output = data;
@@ -267,23 +277,101 @@ T2RHelper.getNormalizedTogglTimeEntries = function (opts) {
 };
 
 T2RHelper.getRedmineTimeEntries = function (opts) {
-  return;
   opts = opts || {};
-  var output = T2RHelper.redmineRequest({
-    async: false,
-    url: '/time_entries.json',
-    data: {
-      spent_on: opts.from + '|' + opts.till
-    },
-    success: function (data, status, xhr) {
-      console.log(data);
-    }
-  });
+  var output = [];
+  try {
+    T2RHelper.redmineRequest({
+      async: false,
+      method: 'get',
+      url: '/time_entries.json',
+      data: {
+        spent_on: opts.from + '|' + opts.till,
+        user_id: 'me',
+        include: 'issue'
+      },
+      success: function (data, status, xhr) {
+        output = 'undefined' !== typeof data.time_entries
+          ? data.time_entries : [];
+      }
+    });
+  } catch (e) {
+    output = [];
+  }
+  return output;
 };
 
-T2RHelper.updateRedmineReport = function () {
-  var opts = T2RHelper.getTimeRange();
+T2RHelper.getNormalizedRedmineTimeEntries = function (opts) {
+  opts = opts || {};
+
   var entries = T2RHelper.getRedmineTimeEntries(opts);
+  var output = {};
+  var issueIds = [];
+
+  for (var i in entries) {
+    var entry = entries[i];
+
+    // Ensure an issue ID.
+    entry.issue = entry.issue ? entry.issue : { id: false };
+
+    // Generate duration in seconds.
+    entry.duration = Math.floor(parseFloat(entry.hours) * 3600);
+
+    // Collect issue IDs.
+    if (issueIds.indexOf(entry.issue.id) < 0) {
+      issueIds.push(entry.issue.id);
+    }
+  }
+
+  // Add issue subjects to all entries.
+  var issues = T2RHelper.getRedmineIssues(issueIds);
+  for (var i in entries) {
+    var entry = entries[i];
+    if (entry.issue.id && 'undefined' !== typeof issues[entry.issue.id]) {
+      var issue = issues[entry.issue.id];
+      if (issue) {
+        entry.issue = issue;
+      }
+
+      // Include the entry in the output.
+      output[entry.id] = entry;
+    }
+  }
+
+  return output;
+}
+
+T2RHelper.updateRedmineReport = function () {
+  // Determine Redmine API friendly date range.
+  var till = T2RConfig.get('date');
+  till = T2RHelper.dateStringToObject(till, true);
+  var from = new Date();
+  from.setDate(till.getDate() - 1);
+
+  // Fetch time entries from Redmine.
+  var opts = {
+    from: from.toISOString().split('T')[0],
+    till: till.toISOString().split('T')[0]
+  };
+  var entries = T2RHelper.getNormalizedRedmineTimeEntries(opts) || [];
+
+  // Render the entries on the table.
+  var $table = $('#redmine-report');
+  $table.find('tbody').html('');
+
+  // Display entries from Redmine.
+  for (var key in entries) {
+    var entry = entries[key];
+    var markup = T2RRenderer.render('RedmineRow', entry);
+    $table.find('tbody').append(markup);
+  }
+
+  // Display empty table message, if required.
+  if (0 === entries.length) {
+    var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
+      + 'There are no items to display here.'
+      + '</td></tr>';
+    $table.find('tbody').html(markup);
+  }
 };
 
 T2RHelper.getRedmineActivities = function () {
@@ -339,11 +427,38 @@ T2RHelper.getRedmineIssues = function (ids) {
   return output;
 };
 
+/**
+ * Returns CSRF Token data generated by Redmine.
+ *
+ * @returns object
+ *   An object containing "param" and "token".
+ */
+T2RHelper.getRedmineCsrfToken = function () {
+  var key = 'redmine.token';
+  var output = T2RHelper.cache(key);
+  if (!output) {
+    // Redmine issues CSRF tokens as META elements on the page.
+    var $param = $('meta[name="csrf-param"]');
+    var $token = $('meta[name="csrf-token"]');
+    if ($param.length === 1 && $token.length === 1) {
+      output = {
+        param: $param.attr('content'),
+        token: $token.attr('content')
+      };
+      T2RHelper.cache(key, output);
+    }
+  }
+  return output;
+};
+
 T2RHelper.redmineRequest = function (opts) {
   opts.timeout = opts.timeout || 3000;
   opts.url = T2RHelper.REDMINE_URL + opts.url;
+
+  // TODO: Use CSRF Token instead of API Key?
+  // For some reason Redmine throws 401 Unauthroized despite a CSRF Token.
   opts.headers = {
-    // 'X-Redmine-API-Key': 'redmine-api-key-goes-here'
+    'X-Redmine-API-Key': T2RHelper.REDMINE_API_KEY
   };
   $.ajax(opts);
 };
@@ -452,6 +567,31 @@ T2RRenderer.renderTogglRow = function (data) {
   return $('<div />').append($tr).html();
 };
 
+
+T2RRenderer.renderRedmineRow = function (data) {
+  console.log(data);
+  var issueUrl = data.issue.id ? '/issue/' + data.issue.id : '#';
+  var markup = '<tr>'
+    + '<td class="id">'
+      + '<input data-property="issue_id" type="hidden" value="' + data.issue.id + '" />'
+      + (data.issue.id ? '<a href="' + issueUrl + '" target="_blank">' + data.issue.id + '</a>' : '-')
+    + '</td>'
+    + '<td class="project">' + data.project.name + '</td>'
+    + '<td class="subject">' + (data.issue.subject || '-') + '</td>'
+    + '<td class="comments">' + data.comments + '</td>'
+    + '<td class="activity">' + data.activity.name + '</td>'
+    + '<td class="hours">' + T2RRenderer.render('Duration', data.duration) + '</td>'
+    + '</tr>';
+  var $tr = $(markup);
+  if (!data.issueId) {
+    $tr.addClass('error');
+    $tr.find(':input').attr({
+      'disabled': 'disabled'
+    });
+  }
+  return $('<div />').append($tr).html();
+};
+
 T2RRenderer.render = function (template, data) {
   var method = 'render' + template;
   if ('undefined' == typeof T2RRenderer) {
@@ -463,6 +603,6 @@ T2RRenderer.render = function (template, data) {
 /**
  * Init script.
  */
-$(document.body).ready(function() {
+$(document).ready(function() {
   T2RHelper.initialize();
 });

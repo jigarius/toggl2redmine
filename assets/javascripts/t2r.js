@@ -296,10 +296,15 @@ T2RHelper.getNormalizedTogglTimeEntries = function (opts) {
     }
   }
 
-  // Add issue subjects to all entries.
+  // Further massaging and refinements.
   var issues = T2RHelper.getRedmineIssues(issueIds);
   for (var i in output) {
     var record = output[i];
+
+    // Include "hours" in Redmine format.
+    record.hours = (record.duration / 3600).toFixed(2);
+
+    // Attach issue data.
     if (record.issueId !== false && 'undefined' !== typeof issues[record.issueId]) {
       var issue = issues[record.issueId];
       record.subject = issue ? issue.subject : '-';
@@ -602,7 +607,7 @@ T2RRenderer.renderTogglRow = function (data) {
         'required': 'required'
       }
     }) + '</td>'
-    + '<td class="hours"><input data-property="hours" type="hidden" value="' + (data.duration / 3600) + '" maxlength="5" />' + T2RRenderer.render('Duration', data.duration) + '</td>'
+    + '<td class="hours"><input data-property="hours" type="hidden" value="' + data.hours + '" maxlength="5" />' + T2RRenderer.render('Duration', data.duration) + '</td>'
     + '</tr>';
   var $tr = $(markup);
   if (!data.issueId) {

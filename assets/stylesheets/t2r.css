@@ -9,22 +9,19 @@
   display: none;
 }
 
+.t2r-error {
+  background-color: #E6BBBA;
+}
+.t2r-success {
+  background-color: #C6EB86;
+}
+
 .t2r-form {
-  margin-bottom: 1em;
-}
-.t2r-form .form-item,
-.t2r-form .form-actions {
-  margin-bottom: 4px;
-  padding: 2px 0;
-}
-.t2r-form .form-item label {
-  display: block;
-  font-weight: bold;
-  width: 150px;
+  margin-bottom: 2em;
 }
 
 .t2r-table {
-  margin-bottom: 1em;
+  margin-bottom: 2em;
 }
 .t2r-table th,
 .t2r-table td {

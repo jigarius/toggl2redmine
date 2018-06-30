@@ -57,23 +57,44 @@ T2RHelper.handleFilterForm = function() {
   return false;
 };
 
+/**
+ * Publish form initializer.
+ */
 T2RHelper.initPublishForm = function () {
-  // Handle data submission to Redmine.
   $('#publish-form').submit(T2RHelper.handlePublishForm);
 };
 
+/**
+ * Publish form submission handler.
+ */
 T2RHelper.handlePublishForm = function() {
-  setTimeout(T2RHelper.publishToRedmine);
+  if (confirm('This action cannot be undone. Do you really want to continue?')) {
+    setTimeout(T2RHelper.publishToRedmine);
+  }
   return false;
 };
 
+/**
+ * Publishes selected Toggl data to Redmine.
+ */
 T2RHelper.publishToRedmine = function () {
-  $('#btn-publish').attr('disabled', 'disabled');
+  var $button = $('#btn-publish').attr('disabled', 'disabled');
+
+  // Check for eligible entries.
+  var $checkboxes = $('#toggl-report tbody tr input.cb-import');
+  if ($checkboxes.filter(':checked').length <= 0) {
+    alert('Please select the entries which you want to import into Redmine.');
+    $button.removeAttr('disabled');
+    return;
+  }
+
+  // Post eligible entries to Redmine.
   $('#toggl-report tbody tr').each(function () {
     var $tr = $(this);
+    var $checkbox = $tr.find('input.cb-import');
 
-    // If the item is not marked for export, ignore it.
-    if (!$tr.find('[data-property="export"]').prop('checked')) {
+    // If the item is not marked for import, ignore it.
+    if (!$checkbox.prop('checked')) {
       return;
     }
 
@@ -88,25 +109,32 @@ T2RHelper.publishToRedmine = function () {
     };
 
     // Push the data to Redmine.
-    // I think I'm writing too many comments!
     T2RHelper.redmineRequest({
+      async: false,
       url: '/time_entries.json',
       method: 'post',
+      context: $tr,
       data: {
         time_entry: entry
       },
       dataType: 'json',
       success: function(data, status, xhr) {
-        $tr.addClass('ui-state-success');
+        var $tr = $(this);
+        $tr.addClass('t2r-success');
+        $checkbox.removeAttr('checked');
+        $tr.find(':input').attr('disabled', 'disabled');
       },
       error: function(data, status, xhr) {
+        var $tr = $(this);
+        $tr.addClass('t2r-error');
         console.log("Error: Couldn't log '" + entry.issue_id + ': ' + entry.comments + "'");
       }
     });
   });
 
-  // Todo: Refresh the Redmine and the Toggl reports.
+  // Refresh the Redmine report and show success message.
   alert('Yay! The selected time entries were posted to Redmine!');
+  T2RHelper.updateRedmineReport();
 };
 
 /**
@@ -261,6 +289,7 @@ T2RHelper.getNormalizedTogglTimeEntries = function (opts) {
     };
     var entry = entries[i];
 
+    entry.description = entry.description || '';
     var match = entry.description.match(/^.*#(\d+) (.*)$/);
     if (match) {
       record.issueId = parseInt(match[1]);
@@ -307,11 +336,12 @@ T2RHelper.getNormalizedTogglTimeEntries = function (opts) {
     // Attach issue data.
     if (record.issueId !== false && 'undefined' !== typeof issues[record.issueId]) {
       var issue = issues[record.issueId];
-      record.subject = issue ? issue.subject : '-';
-      record.project = issue ? issue.project.name : '-';
+      record.subject = issue ? issue.subject : false;
+      record.project = issue ? issue.project.name : false;
     }
     else {
-      record.subject = '-';
+      record.subject = false;
+      record.project = false;
     }
   }
 
@@ -593,12 +623,14 @@ T2RRenderer.renderDuration = function (data) {
 T2RRenderer.renderTogglRow = function (data) {
   var issueUrl = data.issueId ? '/issue/' + data.issueId : '#';
   var markup = '<tr>'
-    + '<td class="checkbox"><input data-property="export" type="checkbox" value="1" /></td>'
+    + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" /></td>'
     + '<td class="id">'
       + '<input data-property="issue_id" type="hidden" value="' + data.issueId + '" />'
       + (data.issueId ? '<a href="' + issueUrl + '" target="_blank">' + data.issueId + '</a>' : '-')
     + '</td>'
-    + '<td class="subject">' + data.project + ': ' + data.subject + '</td>'
+    + '<td class="subject">'
+      + (data.project || 'Unknown') + ': ' + (data.subject || 'Unknown')
+    + '</td>'
     + '<td class="comments"><input data-property="comments" type="text" value="' + data.comments + '" maxlength="255" /></td>'
     + '<td class="activity">' + T2RRenderer.render('RedmineActivityDropdown', {
       placeholder: '-',
@@ -611,7 +643,7 @@ T2RRenderer.renderTogglRow = function (data) {
     + '</tr>';
   var $tr = $(markup);
   if (!data.issueId) {
-    $tr.addClass('error');
+    $tr.addClass('t2r-error');
     $tr.find(':input').attr({
       'disabled': 'disabled'
     });
@@ -627,7 +659,9 @@ T2RRenderer.renderRedmineRow = function (data) {
       + '<input data-property="issue_id" type="hidden" value="' + data.issue.id + '" />'
       + (data.issue.id ? '<a href="' + issueUrl + '" target="_blank">' + data.issue.id + '</a>' : '-')
     + '</td>'
-    + '<td class="subject">' + data.project.name + ': ' + (data.issue.subject || '-') + '</td>'
+    + '<td class="subject">'
+      + (data.project.name || 'Unknown') + ': ' + (data.issue.subject || 'Unknown')
+    + '</td>'
     + '<td class="comments">' + data.comments + '</td>'
     + '<td class="activity">' + data.activity.name + '</td>'
     + '<td class="hours">' + T2RRenderer.render('Duration', data.duration) + '</td>'

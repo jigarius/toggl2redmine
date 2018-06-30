@@ -1,17 +1,21 @@
 <h2>Toggle 2 Redmine</h2>
 
 <form id="filter-form" class="t2r-form">
-  <div class="form-item">
-    <label for="date">Date</label>
-    <input id="date" type="date" required="required" />
-  </div>
-  <div class="form-actions">
+  <fieldset class="box tabular">
+    <legend>Options</legend>
+    <p class="form-item">
+      <label for="date">Date</label>
+      <span class="required"> *</span>
+      <input id="date" type="date" required="required" />
+    </p>
+  </fieldset>
+  <p class="mobile-hide form-actions">
     <button type="submit" id="btn-preview">View Time Entries</button>
-  </div>
+  </p>
 </form>
 
 <div id="redmine-report-container">
-  <h2>Entries from Redmine</h2>
+  <h3>Entries from Redmine</h3>
   <table id="redmine-report" class="list odd-even t2r-table">
     <thead>
     <tr>
@@ -28,7 +32,7 @@
 </div>
 
 <form id="publish-form">
-  <h2>Entries from Toggl</h2>
+  <h3>Entries from Toggl</h3>
   <table id="toggl-report" class="list odd-even t2r-table">
     <thead>
       <tr>
@@ -56,3 +60,5 @@
     T2RHelper.TOGGL_API_KEY = '<%= @toggl_api_key %>';
   </script>
 <% end %>
+
+<% html_title "Toggl 2 Redmine" %>

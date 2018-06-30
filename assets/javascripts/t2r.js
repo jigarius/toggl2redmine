@@ -6,21 +6,53 @@
 var T2RHelper = T2RHelper || {};
 
 /**
- * TODO: Fetch Redmine base URL as per installation.
+ * Redmine Base URL.
+ *
+ * @type {string}
  */
 T2RHelper.REDMINE_URL = '';
 
+/**
+ * Redmine API Key.
+ *
+ * @type {string}
+ */
 T2RHelper.REDMINE_API_KEY = T2RHelper.REDMINE_API_KEY || false;
 
+/**
+ * Toggl API Key.
+ *
+ * @type {string}
+ */
 T2RHelper.TOGGL_API_KEY = T2RHelper.TOGGL_API_KEY || false;
 
+/**
+ * Cached data.
+ *
+ * @type {Object}
+ */
 T2RHelper.cacheData = {};
 
+/**
+ * This is where it starts.
+ */
 T2RHelper.initialize = function () {
   T2RHelper.initFilterForm();
   T2RHelper.initPublishForm();
 };
 
+/**
+ * Get or set objects from or to the cache.
+ *
+ * @param {string} key
+ *   Cache key.
+ *
+ * @param {*} value
+ *   Cache value. Ignore this argument for "get" requests.
+ *
+ * @returns {*}
+ *   Cached value if found.
+ */
 T2RHelper.cache = function (key, value = null) {
   if (2 === arguments.length) {
     T2RHelper.cacheData[key] = value;
@@ -180,6 +212,9 @@ T2RHelper.updateTogglReport = function () {
   $table.removeClass('t2r-loading');
 };
 
+/**
+ * Gets time range as per "date" filter.
+ */
 T2RHelper.getTimeRange = function () {
   var date = T2RConfig.get('date');
   return {
@@ -191,9 +226,9 @@ T2RHelper.getTimeRange = function () {
 /**
  * Returns basic auth headers for the username:password combination.
  *
- * @param username
+ * @param {string} username
  *   The username.
- * @param password
+ * @param {string} password
  *   The password.
  *
  * @returns object
@@ -206,6 +241,16 @@ T2RHelper.getBasicAuthHeader = function (username, password) {
   };
 };
 
+/**
+ * Converts a date string into a Date object.
+ * @param {string} string
+ *   The string to parse as a date.
+ * @param {boolean} removeTzOffset
+ *   Whether to cancel the local timezone offset.
+ *
+ * @returns {Date}
+ *   The date as an object.
+ */
 T2RHelper.dateStringToObject = function (string, removeTzOffset = false) {
   try {
     string = Date.parse(string);
@@ -240,6 +285,15 @@ T2RHelper.togglRequest = function (opts) {
   $.ajax(opts);
 };
 
+/**
+ * Retrieves raw time entry data from Toggl.
+ *
+ * @param opts
+ *   Applied filters.
+ *
+ * @returns {Object|boolean}
+ *   Data on success or false otherwise.
+ */
 T2RHelper.getTogglTimeEntries = function (opts) {
   opts = opts || {};
 
@@ -273,10 +327,19 @@ T2RHelper.getTogglTimeEntries = function (opts) {
   return output;
 };
 
+/**
+ * Retrieves normalized time entry data from Toggl.
+ *
+ * @param opts
+ *   Applied filters.
+ *
+ * @returns {Object|boolean}
+ *   Data on success or false otherwise.
+ */
 T2RHelper.getNormalizedTogglTimeEntries = function (opts) {
   opts = opts || {};
 
-  var entries = T2RHelper.getTogglTimeEntries(opts);
+  var entries = T2RHelper.getTogglTimeEntries(opts) || {};
   var output = {};
   var issueIds = [];
 
@@ -348,6 +411,15 @@ T2RHelper.getNormalizedTogglTimeEntries = function (opts) {
   return output;
 };
 
+/**
+ * Retrieves raw time entry data from Redmine.
+ *
+ * @param opts
+ *   Applied filters.
+ *
+ * @returns {Object|boolean}
+ *   Data on success or false otherwise.
+ */
 T2RHelper.getRedmineTimeEntries = function (opts) {
   opts = opts || {};
   var output = [];
@@ -372,6 +444,15 @@ T2RHelper.getRedmineTimeEntries = function (opts) {
   return output;
 };
 
+/**
+ * Retrieves normalized time entry data from Redmine.
+ *
+ * @param opts
+ *   Applied filters.
+ *
+ * @returns {Object|boolean}
+ *   Data on success or false otherwise.
+ */
 T2RHelper.getNormalizedRedmineTimeEntries = function (opts) {
   opts = opts || {};
 
@@ -412,6 +493,9 @@ T2RHelper.getNormalizedRedmineTimeEntries = function (opts) {
   return output;
 }
 
+/**
+ * Updates the Redmine time entry report.
+ */
 T2RHelper.updateRedmineReport = function () {
   // Determine Redmine API friendly date range.
   var till = T2RConfig.get('date');
@@ -449,6 +533,12 @@ T2RHelper.updateRedmineReport = function () {
   $table.removeClass('t2r-loading');
 };
 
+/**
+ * Gets a list of Redmine time entry activities.
+ *
+ * @returns {Object}
+ *   Activities indexed by ID.
+ */
 T2RHelper.getRedmineActivities = function () {
   var key = 'redmine.activities';
   if (!T2RHelper.cache(key)) {
@@ -466,11 +556,29 @@ T2RHelper.getRedmineActivities = function () {
   return T2RHelper.cache(key);
 };
 
+/**
+ * Fetches data about a given Redmine issue.
+ *
+ * @param id
+ *   Redmine issue ID.
+ *
+ * @returns {Object|boolean}
+ *   Redmine issue data on success or false otherwise.
+ */
 T2RHelper.getRedmineIssue = function (id) {
   var output = T2RHelper.getRedmineIssues([id]);
   return ('undefined' == typeof output[id]) ? false : output[id];
 }
 
+/**
+ * Fetches data about multiple Redmine issues.
+ *
+ * @param {Array} id
+ *   Redmine issue IDs.
+ *
+ * @returns {Object|boolean}
+ *   Redmine issues indexed by ID or false otherwise.
+ */
 T2RHelper.getRedmineIssues = function (ids) {
   var output = {};
   // Do nothing if no IDs are sent.
@@ -547,9 +655,9 @@ T2RHelper.redmineRequest = function (opts) {
 };
 
 /**
- * Ter Config.
+ * T2R Config Handler.
  *
- * TODO: Manage config on server side and manage date as a filter.
+ * TODO: Merge into T2RHelper as a "config" method.
  */
 var T2RConfig = {};
 
@@ -577,8 +685,6 @@ T2RConfig.set = function (key, value) {
   }
   return value;
 };
-
-
 
 /**
  * Toggl em Red Renderer.
@@ -651,7 +757,6 @@ T2RRenderer.renderTogglRow = function (data) {
   return $('<div />').append($tr).html();
 };
 
-
 T2RRenderer.renderRedmineRow = function (data) {
   var issueUrl = data.issue.id ? '/issue/' + data.issue.id : '#';
   var markup = '<tr>'
@@ -676,6 +781,17 @@ T2RRenderer.renderRedmineRow = function (data) {
   return $('<div />').append($tr).html();
 };
 
+/**
+ * Renders data with a mentioned template.
+ *
+ * @param {string} template
+ *   Template ID.
+ * @param {*} data
+ *   The data to render.
+ *
+ * @returns {string}
+ *   Rendered output.
+ */
 T2RRenderer.render = function (template, data) {
   var method = 'render' + template;
   if ('undefined' == typeof T2RRenderer) {

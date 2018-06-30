@@ -308,6 +308,7 @@ T2RHelper.getNormalizedTogglTimeEntries = function (opts) {
     if (record.issueId !== false && 'undefined' !== typeof issues[record.issueId]) {
       var issue = issues[record.issueId];
       record.subject = issue ? issue.subject : '-';
+      record.project = issue ? issue.project.name : '-';
     }
     else {
       record.subject = '-';
@@ -597,8 +598,7 @@ T2RRenderer.renderTogglRow = function (data) {
       + '<input data-property="issue_id" type="hidden" value="' + data.issueId + '" />'
       + (data.issueId ? '<a href="' + issueUrl + '" target="_blank">' + data.issueId + '</a>' : '-')
     + '</td>'
-    + '<td class="project">-</td>'
-    + '<td class="subject">' + data.subject + '</td>'
+    + '<td class="subject">' + data.project + ': ' + data.subject + '</td>'
     + '<td class="comments"><input data-property="comments" type="text" value="' + data.comments + '" maxlength="255" /></td>'
     + '<td class="activity">' + T2RRenderer.render('RedmineActivityDropdown', {
       placeholder: '-',
@@ -627,8 +627,7 @@ T2RRenderer.renderRedmineRow = function (data) {
       + '<input data-property="issue_id" type="hidden" value="' + data.issue.id + '" />'
       + (data.issue.id ? '<a href="' + issueUrl + '" target="_blank">' + data.issue.id + '</a>' : '-')
     + '</td>'
-    + '<td class="project">' + data.project.name + '</td>'
-    + '<td class="subject">' + (data.issue.subject || '-') + '</td>'
+    + '<td class="subject">' + data.project.name + ': ' + (data.issue.subject || '-') + '</td>'
     + '<td class="comments">' + data.comments + '</td>'
     + '<td class="activity">' + data.activity.name + '</td>'
     + '<td class="hours">' + T2RRenderer.render('Duration', data.duration) + '</td>'

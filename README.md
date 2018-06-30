@@ -48,8 +48,13 @@ they are grouped by the issue ID and the description.
 
 ## To-do
 
-* Add a filter for Toggl Workspace
-* Disable sync for entries where issue subject cannot be fetched from Redmine
-  * Use `record.valid = false` to achieve this?
+* Add a _Default activity_ option
+* Add a _Remarks_ column to show issue status
+  * Imported successfully
+  * Error: Missing issue ID
+  * Error: Issue not found on Redmine
+* Add a filter for _Toggl Workspace_
+* Add indicator for timers which are currently running
+* Post time to Redmine as hours and minutes to avoid rounding off to decimal
 * Show total time logged and to be logged
 * Use [JS Doc](http://usejsdoc.org/index.html) specs for documentation.

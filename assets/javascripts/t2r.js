@@ -757,6 +757,7 @@ T2RRenderer.renderDuration = function (data) {
 
 T2RRenderer.renderTogglRow = function (data) {
   var issueUrl = data.issueId ? '/issue/' + data.issueId : '#';
+
   var markup = '<tr>'
     + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" /></td>'
     + '<td class="id">'
@@ -776,13 +777,16 @@ T2RRenderer.renderTogglRow = function (data) {
     }) + '</td>'
     + '<td class="hours"><input data-property="hours" type="hidden" value="' + data.hours + '" maxlength="5" />' + T2RRenderer.render('Duration', data.duration) + '</td>'
     + '</tr>';
+
+  // If the entry is invalid, disable it.
   var $tr = $(markup);
-  if (!data.issueId) {
+  if (!data.issueId || !data.subject) {
     $tr.addClass('t2r-error');
     $tr.find(':input').attr({
       'disabled': 'disabled'
     });
   }
+
   return $('<div />').append($tr).html();
 };
 

@@ -12,6 +12,8 @@ T2RHelper.REDMINE_URL = '';
 
 T2RHelper.REDMINE_API_KEY = T2RHelper.REDMINE_API_KEY || false;
 
+T2RHelper.TOGGL_API_KEY = T2RHelper.TOGGL_API_KEY || false;
+
 T2RHelper.cacheData = {};
 
 T2RHelper.initialize = function () {
@@ -38,15 +40,11 @@ T2RHelper.initConfigForm = function() {
     this.value = date.substr(0, 10);
   });
 
-  // Populate stored config.
-  $('#toggl-api-key').val(T2RConfig.get('toggl.key'));
-
   // Handle config form submission.
   $('#config-form').submit(T2RHelper.handleConfigForm).trigger('submit');
 };
 
 T2RHelper.handleConfigForm = function() {
-  T2RConfig.set('toggl.key', $('#toggl-api-key').val());
   T2RConfig.set('date', $('input#date').val());
   setTimeout(T2RHelper.updateTogglReport, 100);
   setTimeout(T2RHelper.updateRedmineReport, 100);
@@ -150,12 +148,22 @@ T2RHelper.getTimeRange = function () {
   };
 };
 
-T2RHelper.getTogglAuthHeaders = function (username, password) {
-  var userpass = T2RConfig.get('toggl.key') + ':' + 'api_token';
-  var output = {
+/**
+ * Returns basic auth headers for the username:password combination.
+ *
+ * @param username
+ *   The username.
+ * @param password
+ *   The password.
+ *
+ * @returns object
+ *   Basic auth headers.
+ */
+T2RHelper.getBasicAuthHeader = function (username, password) {
+  var userpass = username + ':' + password;
+  return {
     Authorization: 'Basic ' + btoa(userpass)
   };
-  return output;
 };
 
 T2RHelper.dateStringToObject = function (string, removeTzOffset = false) {
@@ -172,6 +180,25 @@ T2RHelper.dateStringToObject = function (string, removeTzOffset = false) {
   catch (e) {
     return false;
   }
+};
+
+/**
+ * Sends an AJAX request to Toggl with the given options.
+ *
+ * Automatically injects auth headers.
+ *
+ * @param opts
+ *   Request options.
+ */
+T2RHelper.togglRequest = function (opts) {
+  opts = opts || {};
+
+  // Add auth headers.
+  opts.headers = opts.headers || {};
+  $.extend(opts.headers, T2RHelper.getBasicAuthHeader(T2RHelper.TOGGL_API_KEY, 'api_token'));
+  console.log(opts.headers);
+
+  $.ajax(opts);
 };
 
 T2RHelper.getTogglTimeEntries = function (opts) {
@@ -191,16 +218,14 @@ T2RHelper.getTogglTimeEntries = function (opts) {
   }
   opts.end_date = opts.end_date.toISOString();
 
-  var headers = T2RHelper.getTogglAuthHeaders();
   var output = false;
-  $.ajax({
+  T2RHelper.togglRequest({
     async: false,
     url: 'https://www.toggl.com/api/v8/time_entries',
     data: {
       start_date: opts.start_date,
       end_date: opts.end_date
     },
-    headers: headers,
     success: function(data, status, xhr) {
       output = data;
     }
@@ -451,6 +476,14 @@ T2RHelper.getRedmineCsrfToken = function () {
   return output;
 };
 
+/**
+ * Sends an AJAX request to Redmine with the given options.
+ *
+ * Automatically injects auth headers.
+ *
+ * @param opts
+ *   Request options.
+ */
 T2RHelper.redmineRequest = function (opts) {
   opts.timeout = opts.timeout || 3000;
   opts.url = T2RHelper.REDMINE_URL + opts.url;

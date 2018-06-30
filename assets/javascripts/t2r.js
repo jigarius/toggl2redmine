@@ -34,11 +34,48 @@ T2RHelper.TOGGL_API_KEY = T2RHelper.TOGGL_API_KEY || false;
 T2RHelper.cacheData = {};
 
 /**
+ * Local storage data.
+ *
+ * @type {Object}
+ */
+T2RHelper.storageData = {};
+
+/**
  * This is where it starts.
  */
 T2RHelper.initialize = function () {
   T2RHelper.initFilterForm();
   T2RHelper.initPublishForm();
+};
+
+/**
+ * Get or set objects from or to the local storage.
+ *
+ * @param {string} key
+ *   Storage key.
+ *
+ * @param {*} value
+ *   Storage value. Ignore this argument for "get" requests.
+ *
+ * @returns {*}
+ *   Stored value if found.
+ */
+T2RHelper.storage = function (key, value) {
+  var output = null;
+
+  // Set data.
+  if (2 === arguments.length) {
+    T2RHelper.storageData[key] = value;
+    output = value;
+  }
+  // Get data.
+  else {
+    if ('undefined' !== typeof T2RHelper.storageData[key]) {
+      output = T2RHelper.storageData[key];
+    }
+  }
+
+  return output;
 };
 
 /**
@@ -75,7 +112,7 @@ T2RHelper.initFilterForm = function() {
     this.value = date.substr(0, 10);
   });
 
-  // Handle config form submission.
+  // Handle filter form submission.
   $('#filter-form').submit(T2RHelper.handleFilterForm).trigger('submit');
 };
 
@@ -83,9 +120,11 @@ T2RHelper.initFilterForm = function() {
  * Filter form submission handler.
  */
 T2RHelper.handleFilterForm = function() {
-  T2RConfig.set('date', $('input#date').val());
-  setTimeout(T2RHelper.updateTogglReport, 100);
-  setTimeout(T2RHelper.updateRedmineReport, 100);
+  T2RHelper.storage('date', $('input#date').val());
+  setTimeout(function() {
+    T2RHelper.updateRedmineReport();
+    T2RHelper.updateTogglReport();
+  }, 100);
   return false;
 };
 
@@ -132,7 +171,7 @@ T2RHelper.publishToRedmine = function () {
 
     // Prepare the data to be pushed to Redmine.
     var entry = {
-      spent_on: T2RConfig.get('date'),
+      spent_on: T2RHelper.storage('date'),
       issue_id: $tr.find('[data-property="issue_id"]').val(),
       comments: $tr.find('[data-property="comments"]').val(),
       activity_id: $tr.find('[data-property="activity_id"]').val(),
@@ -216,7 +255,7 @@ T2RHelper.updateTogglReport = function () {
  * Gets time range as per "date" filter.
  */
 T2RHelper.getTimeRange = function () {
-  var date = T2RConfig.get('date');
+  var date = T2RHelper.storage('date');
   return {
     from: date + ' 00:00:00',
     till: date + ' 23:59:59'
@@ -498,7 +537,7 @@ T2RHelper.getNormalizedRedmineTimeEntries = function (opts) {
  */
 T2RHelper.updateRedmineReport = function () {
   // Determine Redmine API friendly date range.
-  var till = T2RConfig.get('date');
+  var till = T2RHelper.storage('date');
   till = T2RHelper.dateStringToObject(till, true);
   var from = new Date();
   from.setDate(till.getDate() - 1);
@@ -652,38 +691,6 @@ T2RHelper.redmineRequest = function (opts) {
     'X-Redmine-API-Key': T2RHelper.REDMINE_API_KEY
   };
   $.ajax(opts);
-};
-
-/**
- * T2R Config Handler.
- *
- * TODO: Merge into T2RHelper as a "config" method.
- */
-var T2RConfig = {};
-
-T2RConfig.data = {};
-
-T2RConfig.get = function (key) {
-  key = 'ter.' + key;
-  var output = null;
-  if (typeof Storage !== 'undefined') {
-    output = localStorage.getItem(key);
-  }
-  else if ('undefined' != typeof T2RConfig.data[key]) {
-    output = T2RConfig.data[key];
-  }
-  return output;
-};
-
-T2RConfig.set = function (key, value) {
-  key = 'ter.' + key;
-  if (typeof Storage !== 'undefined') {
-    localStorage.setItem(key, value);
-  }
-  else {
-    T2RConfig.data[key] = value;
-  }
-  return value;
 };
 
 /**

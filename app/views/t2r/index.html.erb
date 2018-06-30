@@ -56,8 +56,8 @@
   <%= stylesheet_link_tag 't2r', :plugin => 'toggl2redmine' %>
   <%= javascript_include_tag "t2r.js", :plugin => 'toggl2redmine' %>
   <script>
-    T2RHelper.REDMINE_API_KEY = '<%= @redmine_api_key %>';
-    T2RHelper.TOGGL_API_KEY = '<%= @toggl_api_key %>';
+    T2R.REDMINE_API_KEY = '<%= @redmine_api_key %>';
+    T2R.TOGGL_API_KEY = '<%= @toggl_api_key %>';
   </script>
 <% end %>
 

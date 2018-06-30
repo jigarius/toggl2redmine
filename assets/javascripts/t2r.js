@@ -125,6 +125,10 @@ T2R.handleFilterForm = function() {
     T2R.updateRedmineReport();
     T2R.updateTogglReport();
   }, 100);
+
+  // Unlock the publish form if it was previously locked.
+  T2R.unlockPublishForm();
+
   return false;
 };
 
@@ -133,6 +137,24 @@ T2R.handleFilterForm = function() {
  */
 T2R.initPublishForm = function () {
   $('#publish-form').submit(T2R.handlePublishForm);
+};
+
+/**
+ * Locks the publish form.
+ *
+ * This disallows the user to submit the form.
+ */
+T2R.lockPublishForm = function () {
+  $('#publish-form #btn-publish').attr('disabled', 'disabled');
+};
+
+/**
+ * Unlocks the publish form.
+ *
+ * This allows the user to submit it.
+ */
+T2R.unlockPublishForm = function () {
+  $('#publish-form #btn-publish').removeAttr('disabled');
 };
 
 /**
@@ -149,13 +171,13 @@ T2R.handlePublishForm = function() {
  * Publishes selected Toggl data to Redmine.
  */
 T2R.publishToRedmine = function () {
-  var $button = $('#btn-publish').attr('disabled', 'disabled');
+  T2R.lockPublishForm();
 
   // Check for eligible entries.
   var $checkboxes = $('#toggl-report tbody tr input.cb-import');
   if ($checkboxes.filter(':checked').length <= 0) {
     alert('Please select the entries which you want to import into Redmine.');
-    $button.removeAttr('disabled');
+    T2R.unlockPublishForm();
     return;
   }
 

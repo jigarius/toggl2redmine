@@ -1,3 +1,4 @@
+/* UI States */
 .t2r-loading {
   background-image: url("../images/loader.gif");
   background-repeat: no-repeat;
@@ -8,7 +9,6 @@
 .t2r-loading * {
   display: none;
 }
-
 .t2r-error {
   background-color: #E6BBBA;
 }
@@ -16,12 +16,16 @@
   background-color: #C6EB86;
 }
 
+/* Forms */
 .t2r-form {
+  display: block;
   margin-bottom: 2em;
 }
 
+/* Tables */
 .t2r-table {
-  margin-bottom: 2em;
+  display: block;
+  margin-bottom: 2em !important;
 }
 .t2r-table th,
 .t2r-table td {

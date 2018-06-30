@@ -17,7 +17,7 @@ T2RHelper.TOGGL_API_KEY = T2RHelper.TOGGL_API_KEY || false;
 T2RHelper.cacheData = {};
 
 T2RHelper.initialize = function () {
-  T2RHelper.initConfigForm();
+  T2RHelper.initFilterForm();
   T2RHelper.initPublishForm();
 };
 
@@ -32,19 +32,25 @@ T2RHelper.cache = function (key, value = null) {
   }
 };
 
-T2RHelper.initConfigForm = function() {
+/**
+ * Filter form initializer.
+ */
+T2RHelper.initFilterForm = function() {
   // Populate current date on date fields.
-  $('#config-form #date').each(function() {
+  $('#filter-form #date').each(function() {
     var date = new Date();
     date = date.toISOString();
     this.value = date.substr(0, 10);
   });
 
   // Handle config form submission.
-  $('#config-form').submit(T2RHelper.handleConfigForm).trigger('submit');
+  $('#filter-form').submit(T2RHelper.handleFilterForm).trigger('submit');
 };
 
-T2RHelper.handleConfigForm = function() {
+/**
+ * Filter form submission handler.
+ */
+T2RHelper.handleFilterForm = function() {
   T2RConfig.set('date', $('input#date').val());
   setTimeout(T2RHelper.updateTogglReport, 100);
   setTimeout(T2RHelper.updateRedmineReport, 100);

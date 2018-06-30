@@ -109,12 +109,15 @@ T2RHelper.publishToRedmine = function () {
   alert('Yay! The selected time entries were posted to Redmine!');
 };
 
+/**
+ * Refresh the Toggl report table.
+ */
 T2RHelper.updateTogglReport = function () {
   var opts = T2RHelper.getTimeRange();
   var entries = T2RHelper.getNormalizedTogglTimeEntries(opts);
 
   // Render the entries on the table.
-  var $table = $('#toggl-report');
+  var $table = $('#toggl-report').addClass('t2r-loading');
   $table.find('tbody').html('');
 
   // Display entries eligible for export.
@@ -144,6 +147,9 @@ T2RHelper.updateTogglReport = function () {
       + '</td></tr>';
     $table.find('tbody').append(markup);
   }
+
+  // Remove loader.
+  $table.removeClass('t2r-loading');
 };
 
 T2RHelper.getTimeRange = function () {
@@ -202,7 +208,6 @@ T2RHelper.togglRequest = function (opts) {
   // Add auth headers.
   opts.headers = opts.headers || {};
   $.extend(opts.headers, T2RHelper.getBasicAuthHeader(T2RHelper.TOGGL_API_KEY, 'api_token'));
-  console.log(opts.headers);
 
   $.ajax(opts);
 };
@@ -386,7 +391,7 @@ T2RHelper.updateRedmineReport = function () {
   var entries = T2RHelper.getNormalizedRedmineTimeEntries(opts) || [];
 
   // Render the entries on the table.
-  var $table = $('#redmine-report');
+  var $table = $('#redmine-report').addClass('t2r-loading');
   $table.find('tbody').html('');
 
   // Display entries from Redmine.
@@ -403,6 +408,9 @@ T2RHelper.updateRedmineReport = function () {
       + '</td></tr>';
     $table.find('tbody').html(markup);
   }
+
+  // Remove loader.
+  $table.removeClass('t2r-loading');
 };
 
 T2RHelper.getRedmineActivities = function () {
@@ -608,7 +616,6 @@ T2RRenderer.renderTogglRow = function (data) {
 
 
 T2RRenderer.renderRedmineRow = function (data) {
-  console.log(data);
   var issueUrl = data.issue.id ? '/issue/' + data.issue.id : '#';
   var markup = '<tr>'
     + '<td class="id">'

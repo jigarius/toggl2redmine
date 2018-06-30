@@ -1,3 +1,14 @@
+.t2r-loading {
+  background-image: url("../images/loader.gif");
+  background-repeat: no-repeat;
+  background-position: center center;
+  min-height: 20px;
+  min-width: 50px;
+}
+.t2r-loading * {
+  display: none;
+}
+
 .t2r-form {
   margin-bottom: 1em;
 }

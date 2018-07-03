@@ -469,7 +469,13 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
     }
   }
 
-  return output;
+  // Convert output to an array and return the array.
+  var array = [];
+  for (var i in output) {
+    array.push(output[i]);
+  }
+
+  return array;
 };
 
 /**
@@ -518,7 +524,7 @@ T2R.getNormalizedRedmineTimeEntries = function (opts) {
   opts = opts || {};
 
   var entries = T2R.getRedmineTimeEntries(opts);
-  var output = {};
+  var output = [];
   var issueIds = [];
 
   for (var i in entries) {
@@ -547,7 +553,7 @@ T2R.getNormalizedRedmineTimeEntries = function (opts) {
       }
 
       // Include the entry in the output.
-      output[entry.id] = entry;
+      output.push(entry);
     }
   }
 

@@ -45,16 +45,3 @@ they are grouped by the issue ID and the description.
 * You will see a success (or failure) message
   * Entries which imported successfully will be marked in green.
   * Entries which failed to import will be marked in red.
-
-## To-do
-
-* Add a _Default activity_ option
-* Add a _Remarks_ column to show issue status
-  * Imported successfully
-  * Error: Missing issue ID
-  * Error: Issue not found on Redmine
-* Add a filter for _Toggl Workspace_
-* Add indicator for timers which are currently running
-* Post time to Redmine as hours and minutes to avoid rounding off to decimal
-* Show total time logged and to be logged
-* Use [JS Doc](http://usejsdoc.org/index.html) specs for documentation.

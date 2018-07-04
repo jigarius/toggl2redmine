@@ -635,7 +635,7 @@ T2R.getRedmineActivities = function () {
 T2R.getRedmineIssue = function (id) {
   var output = T2R.getRedmineIssues([id]);
   return ('undefined' == typeof output[id]) ? false : output[id];
-}
+};
 
 /**
  * Fetches data about multiple Redmine issues.
@@ -722,6 +722,24 @@ T2R.redmineRequest = function (opts) {
 };
 
 /**
+ * Returns the URL to a Redmine issue.
+ *
+ * @param {string} id
+ *   Redmine issue ID.
+ *
+ * @return {string|boolean}
+ *   Redmine issue URL if the issue ID is a valid number. False otherwise.
+ */
+T2R.redmineIssueURL = function (id) {
+  id = parseInt(id);
+  var output = false;
+  if (!isNaN(id) && id > 0) {
+    output = T2R.REDMINE_URL + '/issues/' + id;
+  }
+  return output;
+};
+
+/**
  * Toggl em Red Renderer.
  */
 var T2RRenderer = {};
@@ -762,7 +780,7 @@ T2RRenderer.renderDuration = function (data) {
 };
 
 T2RRenderer.renderTogglRow = function (data) {
-  var issueUrl = data.issueId ? '/issue/' + data.issueId : '#';
+  var issueUrl = data.issueId ? T2R.redmineIssueURL(data.issueId) : '#';
 
   var markup = '<tr>'
     + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" /></td>'
@@ -797,7 +815,7 @@ T2RRenderer.renderTogglRow = function (data) {
 };
 
 T2RRenderer.renderRedmineRow = function (data) {
-  var issueUrl = data.issue.id ? '/issue/' + data.issue.id : '#';
+  var issueUrl = data.issue.id ? T2R.redmineIssueURL(data.issue.id) : '#';
   var markup = '<tr>'
     + '<td class="id">'
       + '<input data-property="issue_id" type="hidden" value="' + data.issue.id + '" />'

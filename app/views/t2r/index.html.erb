@@ -14,7 +14,7 @@
 </form>
 
 <div id="redmine-report-container">
-  <h3>Entries from Redmine</h3>
+  <h3>Time logged on <a href="<%= @redmine_url %>" target="_blank">Redmine</a></h3>
   <table id="redmine-report" class="list odd-even t2r-table">
     <thead>
       <tr>
@@ -31,7 +31,7 @@
 </div>
 
 <form id="publish-form">
-  <h3>Entries from Toggl</h3>
+  <h3>Time logged on <a href="https://toggl.com/app/timer" target="_blank">Toggl</a></h3>
   <table id="toggl-report" class="list odd-even t2r-table">
     <thead>
       <tr>
@@ -57,6 +57,7 @@
   <script>
     T2R.REDMINE_API_KEY = '<%= @redmine_api_key %>';
     T2R.TOGGL_API_KEY = '<%= @toggl_api_key %>';
+    T2R.REDMINE_URL = '<%= @redmine_url %>';
   </script>
 <% end %>
 

@@ -10,7 +10,7 @@ var T2R = T2R || {};
  *
  * @type {string}
  */
-T2R.REDMINE_URL = '';
+T2R.REDMINE_URL = T2R.REDMINE_URL || '';
 
 /**
  * Redmine API Key.

@@ -261,13 +261,7 @@ T2R.getBasicAuthHeader = function (username, password) {
 T2R.dateStringToObject = function (string, removeTzOffset = false) {
   try {
     string = Date.parse(string);
-    var object = new Date(string);
-    // Handle timezone offset to get proper ISO date.
-    if (removeTzOffset) {
-      var offset = object.getTimezoneOffset();
-      object = new Date(object.getTime() + offset * 60 * 1000);
-    }
-    return object;
+    return new Date(string);
   }
   catch (e) {
     return false;
@@ -493,8 +487,7 @@ T2R.getRedmineTimeEntries = function (opts) {
       url: '/time_entries.json',
       data: {
         spent_on: opts.from + '|' + opts.till,
-        user_id: 'me',
-        include: 'issue'
+        user_id: 'me'
       },
       success: function (data, status, xhr) {
         output = 'undefined' !== typeof data.time_entries
@@ -562,9 +555,8 @@ T2R.getNormalizedRedmineTimeEntries = function (opts) {
 T2R.updateRedmineReport = function () {
   // Determine Redmine API friendly date range.
   var till = T2R.storage('date');
-  till = T2R.dateStringToObject(till, true);
-  var from = new Date();
-  from.setDate(till.getDate() - 1);
+  till = T2R.dateStringToObject(till);
+  var from = new Date(till.getTime() - 60 * 60 * 24);
 
   // Fetch time entries from Redmine.
   var opts = {

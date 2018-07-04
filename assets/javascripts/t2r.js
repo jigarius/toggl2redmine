@@ -231,49 +231,6 @@ T2R.publishToRedmine = function () {
 };
 
 /**
- * Refresh the Toggl report table.
- */
-T2R.updateTogglReport = function () {
-  var opts = T2R.getTimeRange();
-  var entries = T2R.getNormalizedTogglTimeEntries(opts);
-
-  // Render the entries on the table.
-  var $table = $('#toggl-report').addClass('t2r-loading');
-  $table.find('tbody').html('');
-
-  // Display entries eligible for export.
-  for (var key in entries) {
-    var entry = entries[key];
-    if (!entry.issueId) {
-      continue;
-    }
-    var markup = T2RRenderer.render('TogglRow', entry);
-    $table.find('tbody').append(markup);
-  }
-
-  // Display entries not eligible for export.
-  for (var key in entries) {
-    var entry = entries[key];
-    if (entry.issueId) {
-      continue;
-    }
-    var markup = T2RRenderer.render('TogglRow', entry);
-    $table.find('tbody').append(markup);
-  }
-
-  // Display empty table message, if required.
-  if (0 === entries.length) {
-    var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
-        + 'There are no items to display here. Did you log your time on Toggl?'
-      + '</td></tr>';
-    $table.find('tbody').append(markup);
-  }
-
-  // Remove loader.
-  $table.removeClass('t2r-loading');
-};
-
-/**
  * Gets time range as per "date" filter.
  */
 T2R.getTimeRange = function () {
@@ -407,6 +364,7 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
   for (var i in entries) {
     var record = {
       duration: 0,
+      valid: true,
       // Todo: Track original Toggl ID.
       togglEntryId: [],
       togglEntry: []
@@ -422,6 +380,7 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
     else {
       record.issueId = false;
       record.comments = entry.description;
+      record.valid = false;
     }
 
     // Unique key for the record.
@@ -466,6 +425,7 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
     else {
       record.subject = false;
       record.project = false;
+      record.valid = false;
     }
   }
 
@@ -476,6 +436,47 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
   }
 
   return array;
+};
+
+/**
+ * Refresh the Toggl report table.
+ */
+T2R.updateTogglReport = function () {
+  var opts = T2R.getTimeRange();
+  var entries = T2R.getNormalizedTogglTimeEntries(opts);
+
+  // Render the entries on the table.
+  var $table = $('#toggl-report').addClass('t2r-loading');
+  $table.find('tbody').html('');
+
+  // Display entries eligible for export.
+  for (var key in entries) {
+    var entry = entries[key];
+    if (entry.valid) {
+      var markup = T2RRenderer.render('TogglRow', entry);
+      $table.find('tbody').append(markup);
+    }
+  }
+
+  // Display entries not eligible for export.
+  for (var key in entries) {
+    var entry = entries[key];
+    if (!entry.valid) {
+      var markup = T2RRenderer.render('TogglRow', entry);
+      $table.find('tbody').append(markup);
+    }
+  }
+
+  // Display empty table message, if required.
+  if (0 === entries.length) {
+    var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
+      + 'There are no items to display here. Did you log your time on Toggl?'
+      + '</td></tr>';
+    $table.find('tbody').append(markup);
+  }
+
+  // Remove loader.
+  $table.removeClass('t2r-loading');
 };
 
 /**

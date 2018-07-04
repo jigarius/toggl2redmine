@@ -231,17 +231,6 @@ T2R.publishToRedmine = function () {
 };
 
 /**
- * Gets time range as per "date" filter.
- */
-T2R.getTimeRange = function () {
-  var date = T2R.storage('date');
-  return {
-    from: date + ' 00:00:00',
-    till: date + ' 23:59:59'
-  };
-};
-
-/**
  * Returns basic auth headers for the username:password combination.
  *
  * @param {string} username
@@ -315,14 +304,14 @@ T2R.togglRequest = function (opts) {
 T2R.getTogglTimeEntries = function (opts) {
   opts = opts || {};
 
-  opts.start_date = T2R.dateStringToObject(opts.from, true);
+  opts.start_date = T2R.dateStringToObject(opts.from);
   if (!opts.start_date) {
     alert('Error: Invalid start date!');
     return false;
   }
   opts.start_date = opts.start_date.toISOString();
 
-  opts.end_date = T2R.dateStringToObject(opts.till, true);
+  opts.end_date = T2R.dateStringToObject(opts.till);
   if (!opts.end_date) {
     alert('Error: Invalid end date!');
     return false;
@@ -442,7 +431,13 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
  * Refresh the Toggl report table.
  */
 T2R.updateTogglReport = function () {
-  var opts = T2R.getTimeRange();
+  var date = T2R.storage('date');
+  var opts = {
+    from: date + ' 00:00:00',
+    till: date + ' 23:59:59'
+  };
+
+  // Fetch time entries from Toggl.
   var entries = T2R.getNormalizedTogglTimeEntries(opts);
 
   // Render the entries on the table.

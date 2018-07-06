@@ -120,15 +120,35 @@ T2R.getRedmineTable = function () {
  * Filter form initializer.
  */
 T2R.initFilterForm = function() {
+  var $form = $('#filter-form');
+
   // Populate current date on date fields.
-  $('#filter-form #date').each(function() {
+  $form.find('#date').each(function() {
     var date = new Date();
     date = date.toISOString();
     this.value = date.substr(0, 10);
   });
 
+  // Initialize buttons (which are actually links).
+  $form.find('#btn-apply-filters').click(function () {
+    $form.submit();
+    return false;
+  });
+
+  $form.find('#btn-reset-filters').click(function () {
+    T2R.resetFilterForm();
+    return false;
+  });
+
   // Handle filter form submission.
-  $('#filter-form').submit(T2R.handleFilterForm).trigger('submit');
+  $form.submit(T2R.handleFilterForm).trigger('submit');
+};
+
+/**
+ * Filter form resetter.
+ */
+T2R.resetFilterForm = function () {
+  $form.find(':input').val('');
 };
 
 /**

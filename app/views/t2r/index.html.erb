@@ -1,19 +1,34 @@
 <h2>Toggle 2 Redmine</h2>
 
 <form id="filter-form" class="t2r-form">
-  <fieldset class="box tabular">
-    <legend>Options</legend>
-    <p class="form-item">
-      <label for="default-activity">Default Activity</label>
-      <select id="default-activity" data-t2r-widget="ActivityDropdown"></select>
-    </p>
-    <p class="form-item">
-      <label for="date">Date <span class="required"> *</span></label>
-      <input id="date" type="date" required="required" />
-    </p>
+  <fieldset class="collapsible" id="filters">
+    <legend onclick="toggleFieldset(this);">Options</legend>
+    <div>
+      <table id="filters-table">
+        <tbody>
+          <tr class="filter">
+            <td class="field">
+              <label for="default-activity">Default Activity</label>
+            </td>
+            <td class="values">
+              <select id="default-activity" data-t2r-widget="ActivityDropdown" class="value"></select>
+            </td>
+          </tr>
+          <tr class="filter">
+            <td class="field">
+              <label for="date">Date<span class="required"> *</span></label>
+            </td>
+            <td class="values">
+              <input id="date" type="date" required="required" class="value date_value" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </fieldset>
-  <p class="form-actions">
-    <button type="submit" id="btn-preview">View Time Entries</button>
+  <p class="buttons">
+    <a aria-role="button" href="#" id="btn-apply-filters" class="icon icon-checked">Apply</a>
+    <a aria-role="button" href="#" id="btn-reload-filters" class="icon icon-reload">Reset</a>
   </p>
 </form>
 

@@ -158,6 +158,11 @@ T2R.handleFilterForm = function() {
   T2R.storage('date', $('input#date').val());
   T2R.storage('default-activity', $('select#default-activity').val());
 
+  // Show date in the headings.
+  var sDate = T2R.storage('date');
+  var oDate = T2R.dateStringToObject(sDate);
+  $('h2 .date').html('(' + oDate.toLocaleDateString() + ')');
+
   // Update both the Redmine and Toggl reports.
   setTimeout(function() {
     T2R.updateRedmineReport();

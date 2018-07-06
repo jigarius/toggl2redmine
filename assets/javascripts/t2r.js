@@ -44,6 +44,7 @@ T2R.storageData = {};
  * This is where it starts.
  */
 T2R.initialize = function () {
+  T2RWidget.initialize();
   T2R.initFilterForm();
   T2R.initPublishForm();
 };
@@ -102,6 +103,20 @@ T2R.cache = function (key, value = null) {
 };
 
 /**
+ * Returns the Toggl report table.
+ */
+T2R.getTogglTable = function () {
+  return $('#toggl-report');
+};
+
+/**
+ * Returns the Redmine report table.
+ */
+T2R.getRedmineTable = function () {
+  return $('#redmine-report');
+};
+
+/**
  * Filter form initializer.
  */
 T2R.initFilterForm = function() {
@@ -121,6 +136,9 @@ T2R.initFilterForm = function() {
  */
 T2R.handleFilterForm = function() {
   T2R.storage('date', $('input#date').val());
+  T2R.storage('default-activity', $('select#default-activity').val());
+
+  // Update both the Redmine and Toggl reports.
   setTimeout(function() {
     T2R.updateRedmineReport();
     T2R.updateTogglReport();
@@ -435,7 +453,7 @@ T2R.updateTogglReport = function () {
   var entries = T2R.getNormalizedTogglTimeEntries(opts);
 
   // Render the entries on the table.
-  var $table = $('#toggl-report').addClass('t2r-loading');
+  var $table = T2R.getTogglTable().addClass('t2r-loading');
   $table.find('tbody').html('');
 
   // Display entries eligible for export.
@@ -454,6 +472,18 @@ T2R.updateTogglReport = function () {
       var markup = T2RRenderer.render('TogglRow', entry);
       $table.find('tbody').append(markup);
     }
+  }
+
+  // Pre-select default activities.
+  var defaultActivity = T2R.storage('default-activity');
+  if (defaultActivity) {
+    $table.find('tbody [data-property="activity_id"]').each(function() {
+      var $select = $(this);
+      // Populate default value if no value is set.
+      if ('' === $select.val()) {
+        $select.val(defaultActivity);
+      }
+    });
   }
 
   // Display empty table message, if required.
@@ -566,7 +596,7 @@ T2R.updateRedmineReport = function () {
   var entries = T2R.getNormalizedRedmineTimeEntries(opts) || [];
 
   // Render the entries on the table.
-  var $table = $('#redmine-report').addClass('t2r-loading');
+  var $table = T2R.getRedmineTable().addClass('t2r-loading');
   $table.find('tbody').html('');
 
   // Display entries from Redmine.
@@ -728,7 +758,62 @@ T2R.redmineIssueURL = function (id) {
 };
 
 /**
- * Toggl em Red Renderer.
+ * Toggl 2 Redmine widget manager.
+ */
+var T2RWidget = {};
+
+/**
+ * Initializes all widgets in the given element.
+ *
+ * @param {Object} el
+ */
+T2RWidget.initialize = function (el) {
+  el = ('undefined' === typeof el) ? document.body : $(el);
+  $(el).find('[data-t2r-widget]').each(function() {
+    var el = this, $el = $(this);
+    var widget = $el.attr('data-t2r-widget');
+    var widgetClass = 't2r-widget-' + widget;
+    // Initialize the widget, if required.
+    if (!$el.hasClass(widgetClass)) {
+      var method = 'init' + widget;
+      if ('undefined' !== typeof T2RWidget[method]) {
+        T2RWidget[method](el);
+        $el.addClass(widgetClass);
+      }
+      else {
+        throw 'Error: To initialize "' + widget + '" please define "T2RWidget.' + method;
+      }
+    }
+  });
+};
+
+T2RWidget.initActivityDropdown = function (el) {
+  var $el = $(el);
+  var activities = T2R.getRedmineActivities();
+  var options = [];
+
+  // Determine placeholder.
+  var placeholder = $el.attr('placeholder');
+  if ('undefined' !== typeof placeholder) {
+    options.push('<option value="">' + placeholder + '</option>');
+  }
+
+  // Prepare and insert options.
+  for (var i in activities) {
+    var activity = activities[i];
+    options.push('<option value="' + activity.id + '">' + activity.name + '</option>');
+  }
+  $el.html(options.join(''));
+
+  // Mark selection.
+  var value = $el.attr('data-selected');
+  if ('undefined' !== typeof value) {
+    $el.val(value);
+  }
+};
+
+/**
+ * Toggl 2 Redmine Renderer.
  */
 var T2RRenderer = {};
 
@@ -745,17 +830,6 @@ T2RRenderer.renderDropdown = function (data) {
     $el.append('<option value="' + value + '">' + label + '</option>');
   }
   return $('<div />').append($el).html();
-};
-
-T2RRenderer.renderRedmineActivityDropdown = function (data) {
-  data = data || {};
-  data.options = {};
-  var activities = T2R.getRedmineActivities();
-  for (var i in activities) {
-    var activity = activities[i];
-    data.options[activity.id] = activity.name;
-  }
-  return T2RRenderer.render('Dropdown', data);
 };
 
 T2RRenderer.renderDuration = function (data) {
@@ -780,18 +854,17 @@ T2RRenderer.renderTogglRow = function (data) {
       + (data.project || 'Unknown') + ': ' + (data.subject || 'Unknown')
     + '</td>'
     + '<td class="comments"><input data-property="comments" type="text" value="' + data.comments + '" maxlength="255" /></td>'
-    + '<td class="activity">' + T2RRenderer.render('RedmineActivityDropdown', {
-      placeholder: '-',
-      attributes: {
-        'data-property': 'activity_id',
-        'required': 'required'
-      }
-    }) + '</td>'
+    + '<td class="activity">'
+      + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="ActivityDropdown"></select>'
+    + '</td>'
     + '<td class="hours"><input data-property="hours" type="hidden" value="' + data.hours + '" maxlength="5" />' + T2RRenderer.render('Duration', data.duration) + '</td>'
     + '</tr>';
+  var $tr = $(markup);
+
+  // Initialize widgets.
+  T2RWidget.initialize($tr);
 
   // If the entry is invalid, disable it.
-  var $tr = $(markup);
   if (!data.issueId || !data.subject) {
     $tr.addClass('t2r-error');
     $tr.find(':input').attr({

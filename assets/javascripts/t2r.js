@@ -122,6 +122,31 @@ T2R.getRedmineTable = function () {
 T2R.initFilterForm = function() {
   var $form = $('#filter-form');
 
+  // Initialize apply filters button.
+  $form.find('#btn-apply-filters').click(function () {
+    $form.submit();
+    return false;
+  });
+
+  // Initialize reset filters button.
+  $form.find('#btn-reset-filters').click(function () {
+    T2R.resetFilterForm();
+    return false;
+  });
+
+  // Handle filter form submission.
+  $form.submit(T2R.handleFilterForm);
+
+  // Reset the form to set default values.
+  T2R.resetFilterForm();
+};
+
+/**
+ * Filter form resetter.
+ */
+T2R.resetFilterForm = function () {
+  var $form = $('#filter-form');
+
   // Populate current date on date fields.
   $form.find('#date').each(function() {
     var date = new Date();
@@ -129,26 +154,13 @@ T2R.initFilterForm = function() {
     this.value = date.substr(0, 10);
   });
 
-  // Initialize buttons (which are actually links).
-  $form.find('#btn-apply-filters').click(function () {
-    $form.submit();
-    return false;
-  });
+  // Select the first default activity.
+  $form.find('#default-activity').val('');
+  var $defaultActivity = $form.find('#default-activity');
+  var value = $defaultActivity.find('option:first').attr('value');
+  $defaultActivity.val(value);
 
-  $form.find('#btn-reset-filters').click(function () {
-    T2R.resetFilterForm();
-    return false;
-  });
-
-  // Handle filter form submission.
-  $form.submit(T2R.handleFilterForm).trigger('submit');
-};
-
-/**
- * Filter form resetter.
- */
-T2R.resetFilterForm = function () {
-  $form.find(':input').val('');
+  $form.submit();
 };
 
 /**

@@ -1,6 +1,123 @@
 'use strict';
 
 /**
+ * Toggl to Redmine time duration.
+ *
+ * @param {string}
+ *   A duration as hh:mm or seconds.
+ */
+var T2RDuration = function (duration = null) {
+  // Number of hours.
+  this.hours = 0;
+
+  // Number of minutes.
+  this.minutes = 0;
+
+  // Pass arguments to the constructor.
+  if (arguments.length > 0) {
+    this.setValue(duration);
+  }
+
+  return this;
+};
+
+/**
+ * Duration constructor.
+ *
+ * @param {string} duration
+ *   A duration as hh:mm or seconds.
+ */
+T2RDuration.prototype.setValue = function(duration) {
+  // Seconds as an integer.
+  if ('number' === typeof duration) {
+    this.setSeconds(duration);
+  }
+  // Seconds as a string.
+  else if ('string' === typeof duration && duration.match(/^\d+$/)) {
+    this.setSeconds(duration);
+  }
+  // Duration as hh:mm.
+  else if ('string' === typeof duration && duration.indexOf(':') > 0) {
+    this.setHHMM(duration);
+  }
+  // Not a valid format, throw error.
+  else {
+    throw 'Error: "' + duration + '" is not a number or an an hh:mm string.';
+  }
+};
+
+/**
+ * Sets duration from seconds.
+ *
+ * @param {integer} seconds
+ */
+T2RDuration.prototype.setSeconds = function (seconds) {
+  // Set duration form seconds.
+  seconds += '';
+  if (!seconds.match(/^\d+$/)) {
+    throw 'Error: ' + seconds + ' is not a valid number.';
+  }
+  seconds = parseInt(seconds);
+  this.minutes = Math.ceil(seconds / 60);
+  this.hours = Math.floor(this.minutes / 60);
+  this.minutes = this.minutes % 60;
+};
+
+/**
+ * Sets duration from hh:mm.
+ *
+ * @param {string} hhmm
+ */
+T2RDuration.prototype.setHHMM = function (hhmm) {
+  // Validate string format.
+  if (hhmm.indexOf(':') < 0) {
+    throw 'Error: ' + hhmm + ' is not in hh:mm format.';
+  }
+
+  // Determine hours and minutes.
+  var parts = hhmm.split(':');
+  if (parts.length != 2) {
+    throw 'Error: ' + hhmm + ' is not in hh:mm format.';
+  }
+
+  // Validate hours and minutes.
+  parts[0] = (parts[0].length == 0) ? 0 : parseInt(parts[0]);
+  parts[1] = (parts[1].length == 0) ? 0 : parseInt(parts[1]);
+  if (isNaN(parts[0]) || isNaN(parts[1])) {
+    throw 'Error: ' + hhmm + ' is not in hh:mm format.';
+  }
+
+  // Initialize values.
+  this.hours = parts[0];
+  this.minutes = parts[1];
+};
+
+/**
+ * Gets the duration as hh:mm.
+ */
+T2RDuration.prototype.getHHMM = function () {
+  return this.hours + ':' + ('00' + this.minutes).substr(-2);
+};
+
+/**
+ * Add a duration.
+ *
+ * @param {*} duration
+ */
+T2RDuration.prototype.add = function(duration) {
+  var oDuration = ('object' === typeof duration)
+    ? duration : new T2RDuration(duration);
+  // Update hours and minutes.
+  this.hours += oDuration.hours;
+  this.minutes += oDuration.minutes;
+  // Adjustment for total minutes exceeding 60.
+  if (this.minutes > 59) {
+    this.hours += Math.floor(this.minutes / 60);
+    this.minutes = this.minutes % 60;
+  }
+};
+
+/**
  * Toggl 2 Redmine Helper.
  */
 var T2R = T2R || {};
@@ -691,8 +808,30 @@ T2R.updateRedmineReport = function () {
     $table.find('tbody').html(markup);
   }
 
+  // Update totals.
+  T2R.updateRedmineTotals();
+
   // Remove loader.
   $table.removeClass('t2r-loading');
+};
+
+/**
+ * Updates the total in the Redmine report footer.
+ */
+T2R.updateRedmineTotals = function () {
+  var $table = T2R.getRedmineTable();
+  var total = new T2RDuration();
+
+  // Iterate over all rows and add the hours.
+  $table.find('tbody tr .hours').each(function (i) {
+    var hours = $(this).text().trim();
+    if (hours.length > 0) {
+      total.add(hours);
+    }
+  });
+
+  // Show the total in the table footer.
+  $table.find('[data-property="total-hours"]').html(total.getHHMM());
 };
 
 /**

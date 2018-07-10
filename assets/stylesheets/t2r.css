@@ -35,7 +35,7 @@
 }
 .t2r-table th.hours,
 .t2r-table td.hours {
-  text-align: right;
+  text-align: right !important;
   width: 50px;
 }
 .t2r-table td input,
@@ -43,4 +43,6 @@
   max-width: 100%;
   width: 100%;
 }
-
+.t2r-table tfoot {
+  border-top: 1px solid #e4e4e4;
+}

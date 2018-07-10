@@ -147,18 +147,15 @@ T2R.initFilterForm = function() {
 T2R.resetFilterForm = function () {
   var $form = $('#filter-form');
 
+  // Mark all inputs as empty.
+  $form.find(':input').val('');
+
   // Populate current date on date fields.
   $form.find('#date').each(function() {
     var date = new Date();
     date = date.toISOString();
     this.value = date.substr(0, 10);
   });
-
-  // Select the first default activity.
-  $form.find('#default-activity').val('');
-  var $defaultActivity = $form.find('#default-activity');
-  var value = $defaultActivity.find('option:first').attr('value');
-  $defaultActivity.val(value);
 
   $form.submit();
 };
@@ -169,6 +166,7 @@ T2R.resetFilterForm = function () {
 T2R.handleFilterForm = function() {
   T2R.storage('date', $('input#date').val());
   T2R.storage('default-activity', $('select#default-activity').val());
+  T2R.storage('toggl-workspace', $('select#toggl-workspace').val());
 
   // Show date in the headings.
   var sDate = T2R.storage('date');
@@ -334,11 +332,40 @@ T2R.dateStringToObject = function (string, removeTzOffset = false) {
 T2R.togglRequest = function (opts) {
   opts = opts || {};
 
+  // Prepare Toggl API location.
+  opts.url = 'https://www.toggl.com' + opts.url;
+
   // Add auth headers.
   opts.headers = opts.headers || {};
   $.extend(opts.headers, T2R.getBasicAuthHeader(T2R.TOGGL_API_KEY, 'api_token'));
 
   $.ajax(opts);
+};
+
+/**
+ * Gets all workspaces from Toggl.
+ *
+ * @param {Object} opts
+ */
+T2R.getTogglWorkspaces = function (opts) {
+  var key = 'toggl.workspaces';
+  if (!T2R.cache(key)) {
+    var output = {};
+    T2R.togglRequest({
+      async: false,
+      url: '/api/v8/workspaces',
+      success: function(data, status, xhr) {
+        output = data;
+      },
+      error: function (data, status, xhr) {
+        console.log('Error: Could not fetch Toggl Workspaces');
+      }
+    });
+    if (output) {
+      T2R.cache(key, output);
+    }
+  }
+  return T2R.cache(key);
 };
 
 /**
@@ -352,31 +379,43 @@ T2R.togglRequest = function (opts) {
  */
 T2R.getTogglTimeEntries = function (opts) {
   opts = opts || {};
+  var data = {};
 
+  // Determine start date.
   opts.start_date = T2R.dateStringToObject(opts.from);
   if (!opts.start_date) {
     alert('Error: Invalid start date!');
     return false;
   }
-  opts.start_date = opts.start_date.toISOString();
+  data.start_date = opts.start_date.toISOString();
 
+  // Determine end date.
   opts.end_date = T2R.dateStringToObject(opts.till);
   if (!opts.end_date) {
     alert('Error: Invalid end date!');
     return false;
   }
-  opts.end_date = opts.end_date.toISOString();
+  data.end_date = opts.end_date.toISOString();
 
   var output = false;
   T2R.togglRequest({
     async: false,
-    url: 'https://www.toggl.com/api/v8/time_entries',
-    data: {
-      start_date: opts.start_date,
-      end_date: opts.end_date
-    },
+    url: '/api/v8/time_entries',
+    data: data,
     success: function(data, status, xhr) {
       output = data;
+      // The workspace filter is only supported on certain versions of the
+      // Toggl API. Thus, it is easier to filter out such records manually.
+      if ('undefined' !== typeof opts.workspace && false !== opts.workspace) {
+        var temp = output;
+        output = [];
+        for (var i in temp) {
+          var entry = temp[i];
+          if (entry.wid == opts.workspace) {
+            output.push(entry);
+          }
+        }
+      }
     }
   });
 
@@ -483,7 +522,8 @@ T2R.updateTogglReport = function () {
   var date = T2R.storage('date');
   var opts = {
     from: date + ' 00:00:00',
-    till: date + ' 23:59:59'
+    till: date + ' 23:59:59',
+    workspace: T2R.storage('toggl-workspace') || false
   };
 
   // Fetch time entries from Toggl.
@@ -824,7 +864,7 @@ T2RWidget.initialize = function (el) {
   });
 };
 
-T2RWidget.initActivityDropdown = function (el) {
+T2RWidget.initRedmineActivityDropdown = function (el) {
   var $el = $(el);
   var activities = T2R.getRedmineActivities();
   var options = [];
@@ -839,6 +879,31 @@ T2RWidget.initActivityDropdown = function (el) {
   for (var i in activities) {
     var activity = activities[i];
     options.push('<option value="' + activity.id + '">' + activity.name + '</option>');
+  }
+  $el.html(options.join(''));
+
+  // Mark selection.
+  var value = $el.attr('data-selected');
+  if ('undefined' !== typeof value) {
+    $el.val(value);
+  }
+};
+
+T2RWidget.initTogglWorkspaceDropdown = function (el) {
+  var $el = $(el);
+  var workspaces = T2R.getTogglWorkspaces();
+  var options = [];
+
+  // Determine placeholder.
+  var placeholder = $el.attr('placeholder');
+  if ('undefined' !== typeof placeholder) {
+    options.push('<option value="">' + placeholder + '</option>');
+  }
+
+  // Prepare and insert options.
+  for (var i in workspaces) {
+    var workspace = workspaces[i];
+    options.push('<option value="' + workspace.id + '">' + workspace.name + '</option>');
   }
   $el.html(options.join(''));
 
@@ -892,7 +957,7 @@ T2RRenderer.renderTogglRow = function (data) {
     + '</td>'
     + '<td class="comments"><input data-property="comments" type="text" value="' + data.comments + '" maxlength="255" /></td>'
     + '<td class="activity">'
-      + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="ActivityDropdown"></select>'
+      + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown"></select>'
     + '</td>'
     + '<td class="hours"><input data-property="hours" type="hidden" value="' + data.hours + '" maxlength="5" />' + T2RRenderer.render('Duration', data.duration) + '</td>'
     + '</tr>';

@@ -688,6 +688,9 @@ T2R.updateTogglReport = function () {
     $table.find('tbody').append(markup);
   }
 
+  // Initialize widgets.
+  T2RWidget.initialize($table);
+
   // Remove loader.
   $table.removeClass('t2r-loading');
 };
@@ -984,7 +987,7 @@ var T2RWidget = {};
  * @param {Object} el
  */
 T2RWidget.initialize = function (el) {
-  el = ('undefined' === typeof el) ? document.body : $(el);
+  el = ('undefined' === typeof el) ? document.body : el;
   $(el).find('[data-t2r-widget]').each(function() {
     var el = this, $el = $(this);
     var widget = $el.attr('data-t2r-widget');
@@ -999,6 +1002,22 @@ T2RWidget.initialize = function (el) {
       else {
         throw 'Error: To initialize "' + widget + '" please define "T2RWidget.' + method;
       }
+    }
+  });
+};
+
+T2RWidget.initDurationInput = function (el) {
+  var $el = $(el);
+  el = $el[0];
+
+  // Bind input listeners for constant validation.
+  $el.bind('input', function() {
+    var val = $el.val();
+    try {
+      var duration = new T2RDuration(val);
+      el.setCustomValidity('');
+    } catch (e) {
+      el.setCustomValidity(e);
     }
   });
 };
@@ -1084,11 +1103,12 @@ T2RRenderer.renderDuration = function (data) {
 
 T2RRenderer.renderTogglRow = function (data) {
   var issueUrl = data.issueId ? T2R.redmineIssueURL(data.issueId) : '#';
+  var duration = new T2RDuration(data.duration);
 
-  var markup = '<tr>'
+  var markup = '<tr data-t2r-widget="TogglRow">'
     + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" /></td>'
     + '<td class="id">'
-      + '<input data-property="issue_id" type="hidden" value="' + data.issueId + '" />'
+      + '<input data-property="issue_id" type="hidden" data-value="' + data.issueId + '" value="' + data.issueId + '" />'
       + (data.issueId ? '<a href="' + issueUrl + '" target="_blank">' + data.issueId + '</a>' : '-')
     + '</td>'
     + '<td class="subject">'
@@ -1098,12 +1118,11 @@ T2RRenderer.renderTogglRow = function (data) {
     + '<td class="activity">'
       + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown"></select>'
     + '</td>'
-    + '<td class="hours"><input data-property="hours" type="hidden" value="' + data.hours + '" maxlength="5" />' + T2RRenderer.render('Duration', data.duration) + '</td>'
+    + '<td class="hours">'
+      + '<input data-property="hours" data-t2r-widget="DurationInput" type="text" title="Time in the format hh:mm. Example: 1:50 means 1 hour 50 minutes." value="' + duration.getHHMM() + '" size="6" maxlength="5" />'
+    + '</td>'
     + '</tr>';
   var $tr = $(markup);
-
-  // Initialize widgets.
-  T2RWidget.initialize($tr);
 
   // If the entry is invalid, disable it.
   if (!data.issueId || !data.subject) {

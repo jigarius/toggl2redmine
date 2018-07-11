@@ -577,15 +577,17 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
       record.valid = false;
     }
 
+    // Handle timers which are currently running.
+    record.running = false;
+    if (entry.duration < 0) {
+      entry.duration = 0;
+      record.running = true;
+      record.comments += ' - Timer running';
+    }
+
     // Unique key for the record.
     record.key = record.issueId + ':' + record.comments;
     record.duration = entry.duration;
-
-    // Ignore active timers.
-    if (record.duration < 0) {
-      console.log('The active time entry was skipped.');
-      continue;
-    }
 
     // Collect this issue ID.
     if (record.issueId && issueIds.indexOf(record.issueId) < 0) {
@@ -649,6 +651,16 @@ T2R.updateTogglReport = function () {
   // Render the entries on the table.
   var $table = T2R.getTogglTable().addClass('t2r-loading');
   $table.find('tbody').html('');
+
+  // Display currently running entries.
+  for (var key in entries) {
+    var entry = entries[key];
+    if (entry.running) {
+      var markup = T2RRenderer.render('TogglRow', entry);
+      $table.find('tbody').append(markup);
+      delete entries[key];
+    }
+  }
 
   // Display entries eligible for export.
   for (var key in entries) {
@@ -1105,7 +1117,7 @@ T2RRenderer.renderTogglRow = function (data) {
   var issueUrl = data.issueId ? T2R.redmineIssueURL(data.issueId) : '#';
   var duration = new T2RDuration(data.duration);
 
-  var markup = '<tr data-t2r-widget="TogglRow">'
+  var markup = '<tr>'
     + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" /></td>'
     + '<td class="id">'
       + '<input data-property="issue_id" type="hidden" data-value="' + data.issueId + '" value="' + data.issueId + '" />'
@@ -1127,6 +1139,14 @@ T2RRenderer.renderTogglRow = function (data) {
   // If the entry is invalid, disable it.
   if (!data.issueId || !data.subject) {
     $tr.addClass('t2r-error');
+    $tr.find(':input').attr({
+      'disabled': 'disabled'
+    });
+  }
+
+  // If the entry is running, disable it.
+  if (data.running) {
+    $tr.addClass('t2r-running');
     $tr.find(':input').attr({
       'disabled': 'disabled'
     });

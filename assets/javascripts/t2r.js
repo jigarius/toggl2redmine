@@ -703,8 +703,43 @@ T2R.updateTogglReport = function () {
   // Initialize widgets.
   T2RWidget.initialize($table);
 
+  // Update totals.
+  T2R.updateTogglTotals();
+
   // Remove loader.
   $table.removeClass('t2r-loading');
+};
+
+/**
+ * Updates the total in the Redmine report footer.
+ */
+T2R.updateTogglTotals = function () {
+  var $table = T2R.getTogglTable();
+  var total = new T2RDuration();
+
+  // Iterate over all rows and add the hours.
+  $table.find('tbody tr').each(function (i) {
+    var $tr = $(this);
+
+    // Ignore erroneous rows.
+    if ($tr.hasClass('t2r-error')) {
+      return;
+    }
+
+    // Ignore unchecked rows.
+    if (!$tr.find('.cb-import').is(':checked')) {
+      return;
+    }
+
+    var hours = $tr.find('[data-property="hours"]').val();
+    try {
+      var duration = new T2RDuration(hours);
+      total.add(duration);
+    } catch(e) {}
+  });
+
+  // Show the total in the table footer.
+  $table.find('[data-property="total-hours"]').html(total.getHHMM());
 };
 
 /**
@@ -1018,9 +1053,18 @@ T2RWidget.initialize = function (el) {
   });
 };
 
+T2RWidget.initTogglRow = function(el) {
+  var $el = $(el);
+
+  // If checkbox changes, update totals.
+  $el.find('.cb-import').change(T2R.updateTogglTotals);
+
+  // If hours change, update totals.
+  $el.find('[data-property="hours"]').bind('input', T2R.updateTogglTotals);
+};
+
 T2RWidget.initDurationInput = function (el) {
   var $el = $(el);
-  el = $el[0];
 
   // Bind input listeners for constant validation.
   $el.bind('input', function() {
@@ -1117,7 +1161,7 @@ T2RRenderer.renderTogglRow = function (data) {
   var issueUrl = data.issueId ? T2R.redmineIssueURL(data.issueId) : '#';
   var duration = new T2RDuration(data.duration);
 
-  var markup = '<tr>'
+  var markup = '<tr data-t2r-widget="TogglRow">'
     + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" /></td>'
     + '<td class="id">'
       + '<input data-property="issue_id" type="hidden" data-value="' + data.issueId + '" value="' + data.issueId + '" />'

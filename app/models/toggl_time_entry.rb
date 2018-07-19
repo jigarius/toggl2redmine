@@ -4,4 +4,6 @@ class TogglTimeEntry < ActiveRecord::Base
   validates :time_entry, presence: true
   validates :toggl_id, presence: true
 
+  attr_protected :id
+
 end

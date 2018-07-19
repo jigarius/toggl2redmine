@@ -354,6 +354,7 @@ T2R.publishToRedmine = function () {
   // Post eligible entries to Redmine.
   $('#toggl-report tbody tr').each(function () {
     var $tr = $(this);
+    var entry = $tr.data('t2r.entry');
     var $checkbox = $tr.find('input.cb-import');
 
     // If the item is not marked for import, ignore it.
@@ -362,25 +363,26 @@ T2R.publishToRedmine = function () {
     }
 
     // Prepare the data to be pushed to Redmine.
-    var entry = {
+    var data = {
+      time_entry: {
       spent_on: T2R.storage('date'),
       issue_id: $tr.find('[data-property="issue_id"]').val(),
       comments: $tr.find('[data-property="comments"]').val(),
       activity_id: $tr.find('[data-property="activity_id"]').val(),
       hours: $tr.find('[data-property="hours"]').val(),
       user_id: 1
+      },
+      toggl_ids: entry.togglIds
     };
 
     // Push the data to Redmine.
     T2R.redmineRequest({
       async: false,
-      url: '/time_entries.json',
+      url: '/toggl2redmine/import',
       method: 'post',
       context: $tr,
-      data: {
-        time_entry: entry
-      },
-      dataType: 'json',
+      data: JSON.stringify(data),
+      contentType: 'application/json',
       success: function(data, status, xhr) {
         var $tr = $(this);
         $tr.addClass('t2r-success');
@@ -559,9 +561,8 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
     var record = {
       duration: 0,
       valid: true,
-      // Todo: Track original Toggl ID.
-      togglEntryId: [],
-      togglEntry: []
+      togglIds: [],
+      togglEntries: []
     };
     var entry = entries[i];
 
@@ -602,6 +603,10 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
     else {
       output[record.key].duration += record.duration;
     }
+
+    // Track original Toggl data.
+    output[record.key].togglEntries.push(entry);
+    output[record.key].togglIds.push(entry.id);
   }
 
   // Further massaging and refinements.
@@ -656,8 +661,10 @@ T2R.updateTogglReport = function () {
   for (var key in entries) {
     var entry = entries[key];
     if (entry.running) {
-      var markup = T2RRenderer.render('TogglRow', entry);
-      $table.find('tbody').append(markup);
+      var $tr = T2RRenderer.render('TogglRow', entry);
+      var entry = $tr.data('t2r.entry');
+      console.log(entry);
+      $table.find('tbody').append($tr);
       delete entries[key];
     }
   }
@@ -666,8 +673,8 @@ T2R.updateTogglReport = function () {
   for (var key in entries) {
     var entry = entries[key];
     if (entry.valid) {
-      var markup = T2RRenderer.render('TogglRow', entry);
-      $table.find('tbody').append(markup);
+      var $tr = T2RRenderer.render('TogglRow', entry);
+      $table.find('tbody').append($tr);
     }
   }
 
@@ -675,8 +682,8 @@ T2R.updateTogglReport = function () {
   for (var key in entries) {
     var entry = entries[key];
     if (!entry.valid) {
-      var markup = T2RRenderer.render('TogglRow', entry);
-      $table.find('tbody').append(markup);
+      var $tr = T2RRenderer.render('TogglRow', entry);
+      $table.find('tbody').append($tr);
     }
   }
 
@@ -999,9 +1006,8 @@ T2R.redmineRequest = function (opts) {
 
   // TODO: Use CSRF Token instead of API Key?
   // For some reason Redmine throws 401 Unauthroized despite a CSRF Token.
-  opts.headers = {
-    'X-Redmine-API-Key': T2R.REDMINE_API_KEY
-  };
+  opts.headers = opts.headers || {};
+  opts.headers['X-Redmine-API-Key'] = T2R.REDMINE_API_KEY;
   $.ajax(opts);
 };
 
@@ -1180,6 +1186,9 @@ T2RRenderer.renderTogglRow = function (data) {
     + '</tr>';
   var $tr = $(markup);
 
+  // Attach the entry for reference.
+  $tr.data('t2r.entry', data);
+
   // If the entry is invalid, disable it.
   if (!data.issueId || !data.subject) {
     $tr.addClass('t2r-error');
@@ -1196,7 +1205,7 @@ T2RRenderer.renderTogglRow = function (data) {
     });
   }
 
-  return $('<div />').append($tr).html();
+  return $tr;
 };
 
 T2RRenderer.renderRedmineRow = function (data) {
@@ -1220,7 +1229,7 @@ T2RRenderer.renderRedmineRow = function (data) {
       'disabled': 'disabled'
     });
   }
-  return $('<div />').append($tr).html();
+  return $tr;
 };
 
 /**
@@ -1231,7 +1240,7 @@ T2RRenderer.renderRedmineRow = function (data) {
  * @param {*} data
  *   The data to render.
  *
- * @returns {string}
+ * @returns {Object}
  *   Rendered output.
  */
 T2RRenderer.render = function (template, data) {

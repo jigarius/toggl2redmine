@@ -7,6 +7,8 @@ Redmine::Plugin.register :toggl2redmine do
   url 'https://github.com/evolvingweb/toggl2redmine'
   author_url 'https://www.linkedin.com/in/jigarius'
 
+  # TODO: Implement permissions.
+
   # Menu items.
   menu :application_menu, :toggl2redmine, { :controller => 't2r', :action => 'index' }, :caption => 'Toggl 2 Redmine'
 end

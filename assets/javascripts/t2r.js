@@ -293,7 +293,7 @@ T2R.handleFilterForm = function() {
   setTimeout(function() {
     T2R.updateRedmineReport();
     T2R.updateTogglReport();
-  }, 100);
+  }, 250);
 
   // Unlock the publish form if it was previously locked.
   T2R.unlockPublishForm();
@@ -664,6 +664,10 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
  * Refresh the Toggl report table.
  */
 T2R.updateTogglReport = function () {
+  // Prepare the table for update.
+  var $table = T2R.getTogglTable().addClass('t2r-loading');
+  $table.find('tbody').html('');
+
   var date = T2R.storage('date');
   var opts = {
     from: date + ' 00:00:00',
@@ -673,10 +677,6 @@ T2R.updateTogglReport = function () {
 
   // Fetch time entries from Toggl.
   var entries = T2R.getNormalizedTogglTimeEntries(opts);
-
-  // Render the entries on the table.
-  var $table = T2R.getTogglTable().addClass('t2r-loading');
-  $table.find('tbody').html('');
 
   // Display currently running entries.
   for (var key in entries) {
@@ -855,6 +855,10 @@ T2R.getNormalizedRedmineTimeEntries = function (opts) {
  * Updates the Redmine time entry report.
  */
 T2R.updateRedmineReport = function () {
+  // Prepare the table for update.
+  var $table = T2R.getRedmineTable().addClass('t2r-loading');
+  $table.find('tbody').html('');
+
   // Determine Redmine API friendly date range.
   var till = T2R.storage('date');
   till = T2R.dateStringToObject(till);
@@ -866,10 +870,6 @@ T2R.updateRedmineReport = function () {
     till: till.toISOString().split('T')[0]
   };
   var entries = T2R.getNormalizedRedmineTimeEntries(opts) || [];
-
-  // Render the entries on the table.
-  var $table = T2R.getRedmineTable().addClass('t2r-loading');
-  $table.find('tbody').html('');
 
   // Display entries from Redmine.
   for (var key in entries) {

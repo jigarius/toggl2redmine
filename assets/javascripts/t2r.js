@@ -269,8 +269,7 @@ T2R.resetFilterForm = function () {
 
   // Populate current date on date fields.
   $form.find('#date').each(function() {
-    var date = new Date();
-    date = date.toISOString();
+    var date = T2R.dateFormatYYYYMMDD();
     this.value = date.substr(0, 10);
   });
 
@@ -438,6 +437,28 @@ T2R.dateStringToObject = function (string, removeTzOffset = false) {
   catch (e) {
     return false;
   }
+};
+
+/**
+ * Formats date as YYYY-MM-DD.
+ *
+ * @param {Date} date
+ *   The date object. Defaults to current date.
+ *
+ * @returns {String}
+ *   The date in YYYY-MM-DD format.
+ */
+T2R.dateFormatYYYYMMDD = function (date) {
+  date = date || new Date();
+
+  // Prepare date parts.
+  var yyyy = date.getFullYear();
+  var m = date.getMonth() + 1;
+  var mm = ('00' + m).substr(-2);
+  var d = date.getDate();
+  var dd = ('00' + d).substr(-2);
+
+  return yyyy + '-' + mm + '-' + dd;
 };
 
 /**

@@ -33,12 +33,15 @@ class T2rController < ApplicationController
       TimeEntry.transaction do
         @time_entry.save!
         params[:toggl_ids].each do |toggl_id|
-          @toggl_time_entry = TogglTimeEntry.create!(time_entry: @time_entry, toggl_id: toggl_id)
+          @toggl_time_entry = TogglTimeEntry.create(time_entry: @time_entry, toggl_id: toggl_id)
+          @toggl_time_entry.save!
         end
       end
       render :json => { :time_entry => @time_entry }, :status => 201
     rescue
-      render :json => { :errors => @time_entry.errors.full_messages }, :status => 400
+      errors = @time_entry.errors.full_messages
+      errors += @toggl_time_entry.errors.full_messages if defined? @toggl_time_entry
+      render :json => { :errors => errors }, :status => 400
     end
   end
 

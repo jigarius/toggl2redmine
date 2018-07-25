@@ -5,8 +5,11 @@ class TogglTimeEntry < ActiveRecord::Base
     presence: true
   validates :toggl_id,
     presence: true,
-    numericality: true,
-    uniqueness: { message: "cannot be re-imported" }
+    numericality: {
+      only_integer: true,
+      greater_than: 0
+    },
+    uniqueness: { message: "has already been imported" }
 
   attr_protected :id
 

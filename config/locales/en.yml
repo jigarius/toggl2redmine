@@ -1,3 +1,9 @@
 # English strings go here for Rails i18n
 en:
+  activerecord:
+    models:
+      toggl_time_entry: Dude
+    attributes:
+      toggl_time_entry:
+        toggl_id: "Toggl ID"
   # my_label: "My label"

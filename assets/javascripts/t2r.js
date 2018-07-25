@@ -1239,7 +1239,6 @@ T2RRenderer.renderTogglRow = function (data) {
     + '<td class="hours">'
       + '<input data-property="hours" data-t2r-widget="DurationInput" type="text" title="Time in the format hh:mm. Example: 1:50 means 1 hour 50 minutes." value="' + duration.getHHMM() + '" size="6" maxlength="5" />'
     + '</td>'
-    + '<td class="buttons">&nbsp;</td>'
     + '</tr>';
   var $tr = $(markup);
 

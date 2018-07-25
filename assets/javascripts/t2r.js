@@ -220,6 +220,38 @@ T2R.cache = function (key, value = null) {
 };
 
 /**
+ * Displays a rails-style flash message.
+ *
+ * @todo Use rails' way of doing flash messages on the client-side.
+ *
+ * @param {String} message
+ *   The message.
+ * @param {String} type
+ *   [optional] One of "notice", "error", "warning". Defaults to "notice".
+ * @param {Number} timeout
+ *   [optional] Timeout in seconds.
+ */
+T2R.flash = function (message, type = 'notice', timeout = false) {
+  type = type || 'notice';
+  timeout = ('number' === typeof timeout) ? timeout : false;
+  var $message = $('<div class="flash t2r ' + type + '">' + message.trim() + '</div>');
+  $('#content').prepend($message);
+  // Remove the message after timeout.
+  if (timeout) {
+    setTimeout(function() {
+      $message.remove();
+    }, timeout * 1000);
+  }
+};
+
+/**
+ * Removes all flash messages previously set.
+ */
+T2R.clearFlashMessages = function () {
+  $('.t2r.flash').remove();
+};
+
+/**
  * Returns the Toggl report table.
  */
 T2R.getTogglTable = function () {
@@ -342,10 +374,13 @@ T2R.handlePublishForm = function() {
 T2R.publishToRedmine = function () {
   T2R.lockPublishForm();
 
+  // Clear flash messages.
+  T2R.clearFlashMessages();
+
   // Check for eligible entries.
   var $checkboxes = $('#toggl-report tbody tr input.cb-import');
   if ($checkboxes.filter(':checked').length <= 0) {
-    alert('Please select the entries which you want to import into Redmine.');
+    T2R.flash('Please select the entries which you want to import to Redmine.', 'error');
     T2R.unlockPublishForm();
     return;
   }
@@ -391,13 +426,13 @@ T2R.publishToRedmine = function () {
       error: function(data, status, xhr) {
         var $tr = $(this);
         $tr.addClass('t2r-error');
-        console.log("Error: Couldn't log '" + entry.issue_id + ': ' + entry.comments + "'");
+        T2R.flash("Couldn't log '" + entry.issue_id + ': ' + entry.comments + "'", 'error');
       }
     });
   });
 
   // Refresh the Redmine report and show success message.
-  alert('Yay! The selected time entries were posted to Redmine!');
+  T2R.flash('Yay! The selected time entries were imported to Redmine!', 'notice', 15);
   T2R.updateRedmineReport();
 };
 

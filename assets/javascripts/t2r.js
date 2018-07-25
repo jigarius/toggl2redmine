@@ -318,7 +318,7 @@ T2R.handleFilterForm = function() {
 
   // Show date in the headings.
   var sDate = T2R.storage('date');
-  var oDate = T2R.dateStringToObject(sDate);
+  var oDate = T2R.dateStringToObject(sDate + ' 00:00:00');
   $('h2 .date').html('(' + oDate.toLocaleDateString() + ')');
 
   // Update both the Redmine and Toggl reports.
@@ -456,15 +456,14 @@ T2R.getBasicAuthHeader = function (username, password) {
 
 /**
  * Converts a date string into a Date object.
+ *
  * @param {string} string
  *   The string to parse as a date.
- * @param {boolean} removeTzOffset
- *   Whether to cancel the local timezone offset.
  *
  * @returns {Date}
  *   The date as an object.
  */
-T2R.dateStringToObject = function (string, removeTzOffset = false) {
+T2R.dateStringToObject = function (string) {
   try {
     string = Date.parse(string);
     return new Date(string);

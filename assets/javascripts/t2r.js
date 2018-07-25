@@ -388,7 +388,7 @@ T2R.publishToRedmine = function () {
   // Post eligible entries to Redmine.
   $('#toggl-report tbody tr').each(function () {
     var $tr = $(this);
-    var entry = $tr.data('t2r.entry');
+    var toggl_entry = $tr.data('t2r.entry');
     var $checkbox = $tr.find('input.cb-import');
 
     // If the item is not marked for import, ignore it.
@@ -397,16 +397,16 @@ T2R.publishToRedmine = function () {
     }
 
     // Prepare the data to be pushed to Redmine.
-    var data = {
-      time_entry: {
+    var redmine_entry = {
       spent_on: T2R.storage('date'),
-      issue_id: $tr.find('[data-property="issue_id"]').val(),
+      issue_id: parseInt($tr.find('[data-property="issue_id"]').val()),
       comments: $tr.find('[data-property="comments"]').val(),
-      activity_id: $tr.find('[data-property="activity_id"]').val(),
+      activity_id: parseInt($tr.find('[data-property="activity_id"]').val()),
       hours: $tr.find('[data-property="hours"]').val(),
-      user_id: 1
-      },
-      toggl_ids: entry.togglIds
+    };
+    var data = {
+      time_entry: redmine_entry,
+      toggl_ids: toggl_entry.togglIds
     };
 
     // Push the data to Redmine.
@@ -426,7 +426,7 @@ T2R.publishToRedmine = function () {
       error: function(data, status, xhr) {
         var $tr = $(this);
         $tr.addClass('t2r-error');
-        T2R.flash("Couldn't log '" + entry.issue_id + ': ' + entry.comments + "'", 'error');
+        T2R.flash("Couldn't log '" + redmine_entry.issue_id + ': ' + redmine_entry.comments + "'", 'error');
       }
     });
   });
@@ -616,7 +616,8 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
   for (var i in entries) {
     var record = {
       duration: 0,
-      valid: true,
+      issue: false,
+      valid: false,
       togglIds: [],
       togglEntries: []
     };
@@ -676,13 +677,8 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
     // Attach issue data.
     if (record.issueId !== false && 'undefined' !== typeof issues[record.issueId]) {
       var issue = issues[record.issueId];
-      record.subject = issue ? issue.subject : false;
-      record.project = issue ? issue.project.name : false;
-    }
-    else {
-      record.subject = false;
-      record.project = false;
-      record.valid = false;
+      record.issue = issue;
+      record.valid = true;
     }
   }
 
@@ -1220,17 +1216,22 @@ T2RRenderer.renderDuration = function (data) {
 };
 
 T2RRenderer.renderTogglRow = function (data) {
-  var issueUrl = data.issueId ? T2R.redmineIssueURL(data.issueId) : '#';
+  var issue = data.issue ? data.issue : false;
+  var issueUrl = issue ? T2R.redmineIssueURL(issue.id) : '#';
   var duration = new T2RDuration(data.duration);
 
   var markup = '<tr data-t2r-widget="TogglRow">'
     + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" /></td>'
-    + '<td class="id">'
-      + '<input data-property="issue_id" type="hidden" data-value="' + data.issueId + '" value="' + data.issueId + '" />'
-      + (data.issueId ? '<a href="' + issueUrl + '" target="_blank">' + data.issueId + '</a>' : '-')
+    + '<td class="project">'
+      + (issue ? issue.project.name : '-')
     + '</td>'
-    + '<td class="subject">'
-      + (data.project || 'Unknown') + ': ' + (data.subject || 'Unknown')
+    + '<td class="issue">'
+      + '<input data-property="issue_id" type="hidden" data-value="' + issue.id + '" value="' + issue.id + '" />'
+      + '<a href="' + issueUrl + '" target="_blank">'
+        + (issue ? issue.tracker.name : '-')
+        + (issue ? ' #' + issue.id : '')
+      + '</a>'
+      + (issue.subject ? ': ' + issue.subject : '')
     + '</td>'
     + '<td class="comments"><input data-property="comments" type="text" value="' + data.comments + '" maxlength="255" /></td>'
     + '<td class="activity">'
@@ -1239,6 +1240,7 @@ T2RRenderer.renderTogglRow = function (data) {
     + '<td class="hours">'
       + '<input data-property="hours" data-t2r-widget="DurationInput" type="text" title="Time in the format hh:mm. Example: 1:50 means 1 hour 50 minutes." value="' + duration.getHHMM() + '" size="6" maxlength="5" />'
     + '</td>'
+    + '<td class="buttons">&nbsp;</td>'
     + '</tr>';
   var $tr = $(markup);
 
@@ -1246,7 +1248,7 @@ T2RRenderer.renderTogglRow = function (data) {
   $tr.data('t2r.entry', data);
 
   // If the entry is invalid, disable it.
-  if (!data.issueId || !data.subject) {
+  if (!issue) {
     $tr.addClass('t2r-error');
     $tr.find(':input').attr({
       'disabled': 'disabled'
@@ -1265,18 +1267,26 @@ T2RRenderer.renderTogglRow = function (data) {
 };
 
 T2RRenderer.renderRedmineRow = function (data) {
-  var issueUrl = data.issue.id ? T2R.redmineIssueURL(data.issue.id) : '#';
+  var issue = data.issue.id ? data.issue : false;
+  var issueUrl = issue ? T2R.redmineIssueURL(issue.id) : '#';
+  var entryUrl = T2R.REDMINE_URL + '/time_entries/' + data.id + '/edit';
   var markup = '<tr>'
     + '<td class="id">'
-      + '<input data-property="issue_id" type="hidden" value="' + data.issue.id + '" />'
-      + (data.issue.id ? '<a href="' + issueUrl + '" target="_blank">' + data.issue.id + '</a>' : '-')
+      + (data.project.name || 'Unknown')
     + '</td>'
     + '<td class="subject">'
-      + (data.project.name || 'Unknown') + ': ' + (data.issue.subject || 'Unknown')
+      + '<a href="' + issueUrl + '" target="_blank">'
+        + (issue ? issue.tracker.name : 'Unknown')
+        + (issue ? ' #' + issue.id : '')
+      + '</a>'
+      + ': ' + (issue.subject || 'Unknown')
     + '</td>'
     + '<td class="comments">' + data.comments + '</td>'
     + '<td class="activity">' + data.activity.name + '</td>'
     + '<td class="hours">' + T2RRenderer.render('Duration', data.duration) + '</td>'
+    + '<td class="buttons">'
+      + '<a href="' + entryUrl + '" title="Edit" class="icon-only icon-edit" target="_blank">Edit</a>'
+    + '</td>'
     + '</tr>';
   var $tr = $(markup);
   if (!data.issueId) {

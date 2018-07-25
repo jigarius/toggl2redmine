@@ -38,9 +38,6 @@
   text-align: right !important;
   width: 50px;
 }
-.t2r-table td.hours input {
-  text-align: right;
-}
 .t2r-table td input,
 .t2r-table td select {
   max-width: 100%;

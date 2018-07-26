@@ -427,7 +427,7 @@ T2R.publishToRedmine = function () {
         // Display success message.
         var $message = T2RRenderer.render('StatusLabel', {
           label: 'Imported',
-          description: 'Successfully imported to Redmine.'
+          description: 'Successfully imported to Redmine.',
         });
         $tr.find('td.status').html($message);
       },
@@ -1353,10 +1353,10 @@ T2RRenderer.renderRedmineRow = function (data) {
  */
 T2RRenderer.renderStatusLabel = function (data) {
   // Fallback to defaults.
-  jQuery.extend({
+  data = jQuery.extend({
     label: 'Unknown',
     description: '',
-    icon: 'check'
+    icon: 'checked'
   }, data);
 
   // Prepare a label.

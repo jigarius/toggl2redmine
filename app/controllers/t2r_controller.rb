@@ -18,7 +18,7 @@ class T2rController < ApplicationController
 
     # User must have permission to log time on the project.
     if @time_entry.project && !User.current.allowed_to?(:log_time, @time_entry.project)
-      render_403
+      render :json => { :errors => "You are not a member of this project" }, :status => 403
       return
     end
 

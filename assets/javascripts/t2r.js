@@ -443,11 +443,13 @@ T2R.publishToRedmine = function () {
         try {
           var oR = jQuery.parseJSON(sR);
           var errors = ('undefined' === typeof oR.errors)
-            ? ['Unknown error'] : oR.errors;
+            ? 'Unknown error' : oR.errors;
         } catch (e) {
-          var errors = ['The server returned non-JSON response'];
+          var errors = 'The server returned non-JSON response';
         }
         if (errors) {
+          errors = ('string' === typeof errors)
+            ? [errors] : errors;
           status.description = errors.join("\n");
         }
         var $message = T2RRenderer.render('StatusLabel', status);

@@ -33,14 +33,23 @@
 .t2r-table td.activity {
   width: 150px;
 }
+.t2r-table th.status,
+.t2r-table td.status {
+  text-align: center !important;
+  width: 30px;
+}
+.t2r-table td.status span {
+  cursor: help;
+}
 .t2r-table th.hours,
 .t2r-table td.hours {
-  text-align: right !important;
   width: 50px;
 }
 .t2r-table td input,
 .t2r-table td select {
   max-width: 100%;
+}
+.t2r-table td.comments input {
   width: 100%;
 }
 .t2r-table tfoot {

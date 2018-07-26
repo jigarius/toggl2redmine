@@ -418,15 +418,40 @@ T2R.publishToRedmine = function () {
       data: JSON.stringify(data),
       contentType: 'application/json',
       success: function(data, status, xhr) {
-        var $tr = $(this);
-        $tr.addClass('t2r-success');
+        var $tr = $(this).addClass('t2r-success');
+
+        // Disable checkboxes.
         $checkbox.removeAttr('checked');
         $tr.find(':input').attr('disabled', 'disabled');
+
+        // Display success message.
+        var $message = T2RRenderer.render('StatusLabel', {
+          label: 'Imported',
+          description: 'Successfully imported to Redmine.'
+        });
+        $tr.find('td.status').html($message);
       },
-      error: function(data, status, xhr) {
-        var $tr = $(this);
-        $tr.addClass('t2r-error');
-        T2R.flash("Couldn't log '" + redmine_entry.issue_id + ': ' + redmine_entry.comments + "'", 'error');
+      error: function(xhr, textStatus) {
+        var $tr = $(this).addClass('t2r-error');
+
+        // Prepare and display error message.
+        var status = {
+          label: 'Failed',
+          icon: 'error'
+        };
+        var sR = xhr.responseText || 'false';
+        try {
+          var oR = jQuery.parseJSON(sR);
+          var errors = ('undefined' === typeof oR.errors)
+            ? ['Unknown error'] : oR.errors;
+        } catch (e) {
+          var errors = ['The server returned non-JSON response'];
+        }
+        if (errors) {
+          status.description = errors.join("\n");
+        }
+        var $message = T2RRenderer.render('StatusLabel', status);
+        $tr.find('td.status').html($message);
       }
     });
   });
@@ -531,8 +556,8 @@ T2R.getTogglWorkspaces = function (opts) {
       success: function(data, status, xhr) {
         output = data;
       },
-      error: function (data, status, xhr) {
-        console.log('Error: Could not fetch Toggl Workspaces');
+      error: function (xhr, textStatus) {
+        T2R.flash('Could not fetch Toggl Workspaces. Please refresh the page to try again.', 'error');
       }
     });
     if (output) {
@@ -616,7 +641,7 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
     var record = {
       duration: 0,
       issue: false,
-      valid: false,
+      errors: [],
       togglIds: [],
       togglEntries: []
     };
@@ -631,7 +656,7 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
     else {
       record.issueId = false;
       record.comments = entry.description;
-      record.valid = false;
+      record.errors.push('Could not determine issue ID.');
     }
 
     // Handle timers which are currently running.
@@ -677,7 +702,10 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
     if (record.issueId !== false && 'undefined' !== typeof issues[record.issueId]) {
       var issue = issues[record.issueId];
       record.issue = issue;
-      record.valid = true;
+    }
+    // Mark the record as invalid.
+    else {
+      record.errors.push('Issue not found on Redmine.');
     }
   }
 
@@ -714,7 +742,6 @@ T2R.updateTogglReport = function () {
     if (entry.running) {
       var $tr = T2RRenderer.render('TogglRow', entry);
       var entry = $tr.data('t2r.entry');
-      console.log(entry);
       $table.find('tbody').append($tr);
       delete entries[key];
     }
@@ -723,7 +750,7 @@ T2R.updateTogglReport = function () {
   // Display entries eligible for export.
   for (var key in entries) {
     var entry = entries[key];
-    if (entry.valid) {
+    if (entry.errors.length === 0) {
       var $tr = T2RRenderer.render('TogglRow', entry);
       $table.find('tbody').append($tr);
     }
@@ -732,7 +759,7 @@ T2R.updateTogglReport = function () {
   // Display entries not eligible for export.
   for (var key in entries) {
     var entry = entries[key];
-    if (!entry.valid) {
+    if (entry.errors.length > 0) {
       var $tr = T2RRenderer.render('TogglRow', entry);
       $table.find('tbody').append($tr);
     }
@@ -957,7 +984,7 @@ T2R.getRedmineActivities = function () {
       success: function (data, status, xhr) {
         T2R.cache(key, data.time_entry_activities);
       },
-      error: function (data, status, xhr) {
+      error: function (xhr, textStatus) {
         T2R.cache(key, []);
       }
     });
@@ -1011,7 +1038,7 @@ T2R.getRedmineIssues = function (ids) {
           output[issue.id] = issue;
         }
       },
-      error: function (data, status, xhr) {}
+      error: function (xhr, textStatus) {}
     });
   } catch(e) {
     console.log('Error: ' + e);
@@ -1221,6 +1248,7 @@ T2RRenderer.renderTogglRow = function (data) {
 
   var markup = '<tr data-t2r-widget="TogglRow">'
     + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" /></td>'
+    + '<td class="status"></td>'
     + '<td class="project">'
       + (issue ? issue.project.name : '-')
     + '</td>'
@@ -1246,11 +1274,19 @@ T2RRenderer.renderTogglRow = function (data) {
   $tr.data('t2r.entry', data);
 
   // If the entry is invalid, disable it.
-  if (!issue) {
+  if (!issue || data.errors.length > 0) {
     $tr.addClass('t2r-error');
     $tr.find(':input').attr({
       'disabled': 'disabled'
     });
+
+    // Display status.
+    var $message = T2RRenderer.render('StatusLabel', {
+      label: 'Invalid',
+      description: data.errors.join("\n"),
+      icon: 'error'
+    });
+    $tr.find('td.status').html($message);
   }
 
   // If the entry is running, disable it.
@@ -1259,6 +1295,14 @@ T2RRenderer.renderTogglRow = function (data) {
     $tr.find(':input').attr({
       'disabled': 'disabled'
     });
+
+    // Display status.
+    var $message = T2RRenderer.render('StatusLabel', {
+      label: 'Active',
+      description: 'Entry cannot be imported because the timer is still running on Toggl.',
+      icon: 'warning'
+    });
+    $tr.find('td.status').html($message);
   }
 
   return $tr;
@@ -1294,6 +1338,34 @@ T2RRenderer.renderRedmineRow = function (data) {
     });
   }
   return $tr;
+};
+
+/**
+ * Renders and returns a status label with an optional message.
+ *
+ * @param {*} data
+ *   An object containing the following indices:
+ *   - label: A status text. Example: Failed.
+ *   - description: A status message. Example: Time entry is not valid.
+ *   - icon: The icon to display. Example: check, error, warning.
+ */
+T2RRenderer.renderStatusLabel = function (data) {
+  // Fallback to defaults.
+  jQuery.extend({
+    label: 'Unknown',
+    description: '',
+    icon: 'check'
+  }, data);
+
+  // Prepare a label.
+  var $message = $('<span>' + data.label + '</span>')
+    .addClass('icon icon-' + data.icon);
+  // Add detailed message as tooltip.
+  if (data.description) {
+    $message.attr('title', data.description);
+  }
+
+  return $message.tooltip();
 };
 
 /**

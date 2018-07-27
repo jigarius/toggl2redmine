@@ -701,13 +701,16 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
     record.hours = (record.duration / 3600).toFixed(2);
 
     // Attach issue data.
-    if (record.issueId !== false && 'undefined' !== typeof issues[record.issueId]) {
-      var issue = issues[record.issueId];
-      record.issue = issue;
-    }
-    // Mark the record as invalid.
-    else {
-      record.errors.push('Issue not found on Redmine.');
+    if (record.issueId !== false) {
+      // If an issue was found, attach it.
+      if ('undefined' !== typeof issues[record.issueId]) {
+        var issue = issues[record.issueId];
+        record.issue = issue;
+      }
+      // Otherwise, mark the record as invalid.
+      else {
+        record.errors.push('Issue not found on Redmine.');
+      }
     }
   }
 

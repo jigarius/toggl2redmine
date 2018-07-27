@@ -1178,7 +1178,7 @@ T2RWidget.initTogglRow = function(el) {
         $tr.find(':input').not('.cb-import').attr('disabled', 'disabled');
       }
     })
-    .trigger('change');
+   . trigger('change');
 
   // If hours change, update totals.
   $el.find('[data-property="hours"]').bind('input', T2R.updateTogglTotals);

@@ -274,7 +274,9 @@ T2R.initTogglReport = function () {
   T2R.getTogglTable().find('input.check-all').change(function () {
     var checked = $(this).prop('checked');
     var $table = T2R.getTogglTable();
-    $table.find('tbody input.cb-import:enabled').prop('checked', checked);
+    $table.find('tbody input.cb-import:enabled')
+      .prop('checked', checked)
+      .trigger('change');
   });
 };
 
@@ -1159,7 +1161,24 @@ T2RWidget.initTogglRow = function(el) {
   var $el = $(el);
 
   // If checkbox changes, update totals.
-  $el.find('.cb-import').change(T2R.updateTogglTotals);
+  $el.find('.cb-import')
+    .change(T2R.updateTogglTotals)
+    // Make all inputs required.
+    .change(function () {
+      var $checkbox = $(this);
+      var checked = $checkbox.is(':checked');
+      var $tr = $checkbox.closest('tr');
+
+      // If the row is marked for import, make fields required.
+      if (checked) {
+        $tr.find(':input').not('.cb-import').removeAttr('disabled');
+      }
+      // Otherwise, the fields are disabled.
+      else {
+        $tr.find(':input').not('.cb-import').attr('disabled', 'disabled');
+      }
+    })
+    .trigger('change');
 
   // If hours change, update totals.
   $el.find('[data-property="hours"]').bind('input', T2R.updateTogglTotals);
@@ -1283,7 +1302,7 @@ T2RRenderer.renderTogglRow = function (data) {
       + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.storage('default-activity') + '"></select>'
     + '</td>'
     + '<td class="hours">'
-      + '<input data-property="hours" data-t2r-widget="DurationInput" type="text" title="Time in the format hh:mm. Example: 1:50 means 1 hour 50 minutes." value="' + duration.getHHMM() + '" size="6" maxlength="5" />'
+      + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Time in the format hh:mm. Example: 1:50 means 1 hour 50 minutes." value="' + duration.getHHMM() + '" size="6" maxlength="5" />'
     + '</td>'
     + '</tr>';
   var $tr = $(markup);

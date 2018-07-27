@@ -162,6 +162,7 @@ T2R.storageData = {};
  */
 T2R.initialize = function () {
   T2RWidget.initialize();
+  T2R.initTogglReport();
   T2R.initFilterForm();
   T2R.initPublishForm();
 };
@@ -266,9 +267,21 @@ T2R.getRedmineTable = function () {
 };
 
 /**
+ * Initializes the Toggl report.
+ */
+T2R.initTogglReport = function () {
+  // Initialize the check-all heading.
+  T2R.getTogglTable().find('input.check-all').change(function () {
+    var checked = $(this).prop('checked');
+    var $table = T2R.getTogglTable();
+    $table.find('tbody input.cb-import:enabled').prop('checked', checked);
+  });
+};
+
+/**
  * Filter form initializer.
  */
-T2R.initFilterForm = function() {
+T2R.initFilterForm = function () {
   var $form = $('#filter-form');
 
   // Initialize apply filters button.

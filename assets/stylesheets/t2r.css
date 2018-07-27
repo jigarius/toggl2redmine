@@ -30,6 +30,10 @@
 .t2r-table td {
   text-align: left !important;
 }
+.t2r-table th.checkbox,
+.t2r-table td.checkbox {
+  text-align: center !important;
+}
 .t2r-table td.activity {
   width: 150px;
 }

@@ -1,8 +1,9 @@
 class T2rController < ApplicationController
 
   menu_item :toggl2redmine
+  before_action :require_login, :require_toggl_api_key
 
-  #accept_api_auth :import
+  # TODO: Check for user permissions.
 
   def index
     @toggl_api_key = User.current.custom_field_value(UserCustomField.find_by_name('Toggl API Key'))
@@ -42,6 +43,14 @@ class T2rController < ApplicationController
       errors = @time_entry.errors.full_messages
       errors += @toggl_time_entry.errors.full_messages if defined? @toggl_time_entry
       render :json => { :errors => errors }, :status => 400
+    end
+  end
+
+  def require_toggl_api_key
+    toggl_api_key = User.current.custom_field_value(UserCustomField.find_by_name('Toggl API Key'))
+    if toggl_api_key.nil? || toggl_api_key.empty?
+      flash[:error] = 'To import time entries from Toggl, please add a Toggl API key to your account.'
+      redirect_to :controller => 'my', :action => 'account'
     end
   end
 

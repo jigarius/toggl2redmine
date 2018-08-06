@@ -1278,10 +1278,32 @@ T2RRenderer.renderDuration = function (data) {
   return output;
 };
 
+T2RRenderer.renderRedmineIssueLabel = function (data) {
+  // If the issue is invalid, do nothing.
+  var issue = data;
+  if (!issue || !issue.id) {
+    return false;
+  }
+
+  // Render a clickable issue label.
+  var markup = '<a href="' + T2R.redmineIssueURL(issue.id) + '" target="_blank">'
+    + (issue ? issue.tracker.name : '-')
+    + (issue ? ' #' + issue.id : '')
+    + (issue.subject ? ': ' + issue.subject : '')
+  + '</a>';
+  return markup;
+};
+
 T2RRenderer.renderTogglRow = function (data) {
   var issue = data.issue ? data.issue : false;
   var issueUrl = issue ? T2R.redmineIssueURL(issue.id) : '#';
   var duration = new T2RDuration(data.duration);
+
+  // Build a label for the issue.
+  var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : false;
+  if (!issueLabel) {
+    issueLabel = data.issueId ? data.issueId : '-';
+  }
 
   var markup = '<tr data-t2r-widget="TogglRow">'
     + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" /></td>'
@@ -1290,12 +1312,8 @@ T2RRenderer.renderTogglRow = function (data) {
       + (issue ? issue.project.name : '-')
     + '</td>'
     + '<td class="issue">'
-      + '<input data-property="issue_id" type="hidden" data-value="' + issue.id + '" value="' + issue.id + '" />'
-      + '<a href="' + issueUrl + '" target="_blank">'
-        + (issue ? issue.tracker.name : '-')
-        + (issue ? ' #' + issue.id : '')
-      + '</a>'
-      + (issue.subject ? ': ' + issue.subject : '')
+      + '<input data-property="issue_id" type="hidden" data-value="' + (issue ? issue.id : '') + '" value="' + issue.id + '" />'
+      + issueLabel
     + '</td>'
     + '<td class="comments"><input data-property="comments" type="text" value="' + data.comments + '" maxlength="255" /></td>'
     + '<td class="activity">'

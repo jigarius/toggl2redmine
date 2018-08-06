@@ -1049,7 +1049,8 @@ T2R.getRedmineIssues = function (ids) {
       timeout: 1000,
       url: '/issues.json',
       data: {
-        issue_id: ids.join(',')
+        issue_id: ids.join(','),
+        status_id: '*'
       },
       success: function (data, status, xhr) {
         var issues = ('undefined' === data.issues) ? [] : data.issues;

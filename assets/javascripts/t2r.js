@@ -668,12 +668,12 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
     var match = entry.description.match(/^.*#(\d+) (.*)$/);
     if (match) {
       record.issueId = parseInt(match[1]);
-      record.comments = match[2];
+      record.comments = match[2].trim();
     }
     else {
       record.issueId = false;
       record.comments = entry.description;
-      record.errors.push('Could not determine issue ID.');
+      record.errors.push('Could not determine issue ID. Please mention the Redmine issue ID in your Toggl task description. Example: "#1919 Feed the bunny wabbit"');
     }
 
     // Handle timers which are currently running.

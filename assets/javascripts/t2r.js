@@ -198,6 +198,31 @@ T2R.storage = function (key, value) {
 };
 
 /**
+ * Get or set objects from or to the browser storage.
+ *
+ * @param {string} key
+ *   Cache key.
+ *
+ * @param {*} value
+ *   Cache value. Ignore this argument for "get" requests.
+ *
+ * @returns {*}
+ *   Cached value if found.
+ */
+T2R.browserStorage = function (key, value) {
+  if (2 === arguments.length) {
+    if ('undefined' !== window.localStorage) {
+      window.localStorage.setItem(key, value);
+    }
+    return value;
+  }
+  else {
+    return ('undefined' !== window.localStorage)
+      ? window.localStorage.getItem(key) : value;
+  }
+};
+
+/**
  * Get or set objects from or to the cache.
  *
  * @param {string} key
@@ -332,6 +357,9 @@ T2R.resetFilterForm = function () {
     this.value = date.substr(0, 10);
   });
 
+  // Populate default activity from browser storage.
+  $form.find('#default-activity').val(T2R.browserStorage('t2r.default-activity'));
+
   $form.submit();
 };
 
@@ -342,6 +370,9 @@ T2R.handleFilterForm = function() {
   T2R.storage('date', $('input#date').val());
   T2R.storage('default-activity', $('select#default-activity').val());
   T2R.storage('toggl-workspace', $('select#toggl-workspace').val());
+
+  // Store default activity to browser storage.
+  T2R.browserStorage('t2r.default-activity', T2R.storage('default-activity'));
 
   // Show date in the headings.
   var sDate = T2R.storage('date');

@@ -307,6 +307,12 @@ T2R.initFilterForm = function () {
   // Handle filter form submission.
   $form.submit(T2R.handleFilterForm);
 
+  // Hide workspace filter if there is only one Toggl workspace.
+  var $workspace = $form.find('#toggl-workspace');
+  if ($workspace.find('option').length <= 2) {
+    $workspace.closest('tr').hide();
+  }
+
   // Reset the form to set default values.
   T2R.resetFilterForm();
 };

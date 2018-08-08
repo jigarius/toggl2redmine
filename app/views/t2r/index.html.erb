@@ -11,7 +11,7 @@
               <label for="default-activity">Default Activity</label>
             </td>
             <td class="values">
-              <select id="default-activity" data-t2r-widget="RedmineActivityDropdown" placeholder="-" class="value"></select>
+              <select id="default-activity" data-t2r-widget="RedmineActivityDropdown" placeholder="-" class="value" title="This activity will be applied to all time entries by default. You will still be able the activity for individual items before importing."></select>
             </td>
           </tr>
           <tr class="filter">
@@ -19,7 +19,7 @@
               <label for="toggl-workspace">Toggl Workspace</label>
             </td>
             <td class="values">
-              <select id="toggl-workspace" data-t2r-widget="TogglWorkspaceDropdown" placeholder="-" class="value"></select>
+              <select id="toggl-workspace" data-t2r-widget="TogglWorkspaceDropdown" placeholder="-" class="value" title="Choose a Toggl workspace or leave blank to use all workspaces. If you don't use separate workspaces in Toggl, you can ignore this field."></select>
             </td>
           </tr>
           <tr class="filter">
@@ -27,7 +27,7 @@
               <label for="date">Date<span class="required"> *</span></label>
             </td>
             <td class="values">
-              <input id="date" type="date" required="required" class="value date_value" />
+              <input id="date" type="date" required="required" class="value date_value" title="Choose the date for which you want to import time entries into Redmine. Make sure your timezone is set correctly for your Redmine and Toggl accounts." />
             </td>
           </tr>
         </tbody>
@@ -35,8 +35,9 @@
     </div>
   </fieldset>
   <p class="buttons">
-    <a aria-role="button" href="#" id="btn-apply-filters" class="icon icon-checked">Apply</a>
+    <a aria-role="button" href="#" id="btn-apply-filters" class="icon icon-checked" title="This will reload the tables below with the filters you've selected.">Apply</a>
     <a aria-role="button" href="#" id="btn-reset-filters" class="icon icon-reload">Reset</a>
+    <a aria-role="button" href="https://github.com/jigarius/toggl2redmine#usage" target="_blank" id="btn-help" class="icon icon-help" title="Confused? Get started by reading the user guide.">Help</a>
   </p>
 </form>
 
@@ -74,7 +75,7 @@
     <thead>
       <tr>
         <th class="checkbox">
-          <input type="checkbox" class="check-all" value="" class="toggle-selection" title="Check all/Uncheck all">
+          <input type="checkbox" class="check-all" value="" class="toggle-selection" title="Check all / Uncheck all">
         </th>
         <th class="status">Status</th>
         <th class="project">Project</th>

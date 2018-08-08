@@ -271,13 +271,16 @@ T2R.getRedmineTable = function () {
  */
 T2R.initTogglReport = function () {
   // Initialize the check-all heading.
-  T2R.getTogglTable().find('input.check-all').change(function () {
-    var checked = $(this).prop('checked');
-    var $table = T2R.getTogglTable();
-    $table.find('tbody input.cb-import:enabled')
-      .prop('checked', checked)
-      .trigger('change');
-  });
+  T2R.getTogglTable()
+    .find('input.check-all')
+    .tooltip()
+    .change(function () {
+      var checked = $(this).prop('checked');
+      var $table = T2R.getTogglTable();
+      $table.find('tbody input.cb-import:enabled')
+        .prop('checked', checked)
+        .trigger('change');
+    });
 };
 
 /**
@@ -297,6 +300,9 @@ T2R.initFilterForm = function () {
     T2R.resetFilterForm();
     return false;
   });
+
+  // Initialize tooltips for form fields.
+  $form.find('[title]').tooltip();
 
   // Handle filter form submission.
   $form.submit(T2R.handleFilterForm);
@@ -1179,10 +1185,13 @@ T2RWidget.initTogglRow = function(el) {
         $tr.find(':input').not('.cb-import').attr('disabled', 'disabled');
       }
     })
-   . trigger('change');
+    .trigger('change');
 
   // If hours change, update totals.
   $el.find('[data-property="hours"]').bind('input', T2R.updateTogglTotals);
+
+  // Initialize tooltips for all inputs.
+  $el.find(':input').tooltip();
 };
 
 T2RWidget.initDurationInput = function (el) {
@@ -1307,7 +1316,7 @@ T2RRenderer.renderTogglRow = function (data) {
   }
 
   var markup = '<tr data-t2r-widget="TogglRow">'
-    + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" /></td>'
+    + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" title="Check this box if you want to import this entry." /></td>'
     + '<td class="status"></td>'
     + '<td class="project">'
       + (issue ? issue.project.name : '-')

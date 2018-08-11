@@ -6,25 +6,25 @@ class T2rController < ApplicationController
   # TODO: Check for user permissions.
 
   def index
-    @toggl_api_key = User.current.custom_field_value(UserCustomField.find_by_name('Toggl API Key'))
-    @redmine_api_key = User.current.api_key
+    @toggl_api_key = @user.custom_field_value(UserCustomField.find_by_name('Toggl API Key'))
+    @redmine_api_key = @user.api_key
   end
 
   def import
     # Prepare a Redmine time entry.
     @time_entry = TimeEntry.new(params[:time_entry])
-    @time_entry.user = User.current
+    @time_entry.user = @user
     @time_entry.project = @time_entry.issue.project if @time_entry.issue.present?
 
     # User must have permission to log time on the project.
-    if @time_entry.project && !User.current.allowed_to?(:log_time, @time_entry.project)
-      render :json => { :errors => "You are not a member of this project" }, :status => 403
+    if !@time_entry.project.nil? && !@user.allowed_to?(:log_time, @time_entry.project)
+      render :json => { :errors => "You are not allowed to log time on this project." }, :status => 403
       return
     end
 
     # Toggl IDs must be present.
     if !params['toggl_ids'].present?
-      render :json => { :errors => "Parameter 'toggl_ids' must be present" }, :status => 400
+      render :json => { :errors => "Parameter 'toggl_ids' must be present." }, :status => 400
       return
     end
 

@@ -517,7 +517,7 @@ T2R.publishToRedmine = function () {
   });
 
   // Refresh the Redmine report and show success message.
-  T2R.flash('Yay! The selected time entries were imported to Redmine!', 'notice', 15);
+  T2R.unlockPublishForm();
   T2R.updateRedmineReport();
 };
 

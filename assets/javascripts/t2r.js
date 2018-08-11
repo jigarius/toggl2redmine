@@ -767,7 +767,7 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
       }
       // Otherwise, mark the record as invalid.
       else {
-        record.errors.push('Issue not found on Redmine.');
+        record.errors.push('Issue not found on Redmine. Make sure you\'re using the correct issue ID.');
       }
     }
   }

@@ -1442,6 +1442,10 @@ T2RRenderer.renderRedmineRow = function (data) {
       'disabled': 'disabled'
     });
   }
+
+  // Initialize tooltips.
+  $tr.find('[title]').tooltip();
+
   return $tr;
 };
 

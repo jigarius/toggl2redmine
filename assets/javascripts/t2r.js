@@ -851,6 +851,9 @@ T2R.updateTogglReport = function () {
   // Initialize widgets.
   T2RWidget.initialize($table);
 
+  // Uncheck the "check all" checkbox.
+  $table.find('.check-all').prop('checked', false);
+
   // Update totals.
   T2R.updateTogglTotals();
 

@@ -1,7 +1,7 @@
 class T2rController < ApplicationController
 
   menu_item :toggl2redmine
-  before_action :require_login, :require_toggl_api_key
+  before_action :require_login, :validate_user
 
   # TODO: Check for user permissions.
 
@@ -45,10 +45,19 @@ class T2rController < ApplicationController
     end
   end
 
-  def require_toggl_api_key
-    toggl_api_key = User.current.custom_field_value(UserCustomField.find_by_name('Toggl API Key'))
+  def validate_user
+    @user = User.current
+
+    # Must have a Toggl API key.
+    toggl_api_key = @user.custom_field_value(UserCustomField.find_by_name('Toggl API Key'))
     if toggl_api_key.nil? || toggl_api_key.empty?
       flash[:error] = 'To import time entries from Toggl, please add a Toggl API key to your account.'
+      redirect_to :controller => 'my', :action => 'account'
+    end
+
+    # Must have a timezone preference.
+    if @user.preference.time_zone.empty?
+      flash[:error] = 'For time reports to show correctly, please configure your time zone.'
       redirect_to :controller => 'my', :action => 'account'
     end
   end

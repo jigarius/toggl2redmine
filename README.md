@@ -31,6 +31,7 @@ caused by the use of this plugin. In short, use it at your own risk.
 * Go to the _My Account_ page on Redmine (`/my/account`).
 * Paste in your Toggl API Key and save your profile.
   * You can find this in your Toggl _profile settings_ page.
+* Select your time zone - this makes your time reports show correctly.
 
 ### Regular Usage
 
@@ -43,8 +44,8 @@ Tracker #1919 Feed the bunny wabbit.
   * You can use the Toggl browser extension to make this easier.
   * `#1919` is the Redmine issue ID
   * `Feed the bunny wabbit` is the comment
-* When you're done working for the day, visit the _My Timesheet_ page and visit
-  the _Toggle 2 Redmine_ tab on Redmine (`/toggl2redmine`)
+* When you're done working for the day, visit the _My Timesheet_ page and click
+  on the _Toggl_ tab on Redmine (`/toggl2redmine`)
   * You should see the time you've already logged on Redmine (if any)
   * You should see the time you've logged on Toggl
 * Check the entries you want to import into Redmine

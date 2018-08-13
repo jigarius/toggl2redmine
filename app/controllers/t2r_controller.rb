@@ -39,6 +39,9 @@ class T2rController < ApplicationController
       end
       render :json => { :time_entry => @time_entry }, :status => 201
     rescue
+      # Explicitly delete the time entry if it was created.
+      # TODO: Why doesn't the time entry if the transaction fails?
+      @time_entry.delete unless @time_entry.id.nil?
       errors = @time_entry.errors.full_messages
       errors += @toggl_time_entry.errors.full_messages if defined? @toggl_time_entry
       render :json => { :errors => errors }, :status => 400

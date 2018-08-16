@@ -15,11 +15,21 @@ class T2rController < ApplicationController
     @time_entry = TimeEntry.new(params[:time_entry])
     @time_entry.user = @user
     @time_entry.project = @time_entry.issue.project if @time_entry.issue.present?
+    @project = @time_entry.project
 
-    # User must have permission to log time on the project.
-    if !@time_entry.project.nil? && !@user.allowed_to?(:log_time, @time_entry.project)
-      render :json => { :errors => "You are not allowed to log time on this project." }, :status => 403
-      return
+    # If project associated to the time entry could be identified.
+    if !@project.nil?
+      # Check if the user is a member of the project.
+      if !@project.members.pluck(:user_id).include?(@user.id)
+        render :json => { :errors => "You are not a member of this project." }, :status => 403
+        return
+      end
+
+      # Check if the user has permission to log time on the project.
+      if !@user.allowed_to?(:log_time, @time_entry.project)
+        render :json => { :errors => "You are not allowed to log time on this project." }, :status => 403
+        return
+      end
     end
 
     # Toggl IDs must be present.

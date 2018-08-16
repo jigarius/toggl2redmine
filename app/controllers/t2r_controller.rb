@@ -28,24 +28,43 @@ class T2rController < ApplicationController
       return
     end
 
+    # Check if any of the Toggl entries has already been imported.
+    # Transactions and rollbacks are not very reliable due to idiosyncrasies.
+    params[:toggl_ids].each do |toggl_id|
+      toggl_time_entry = TogglTimeEntry.where(toggl_id: toggl_id)
+      if !toggl_time_entry.empty?
+        render :json => { :errors => 'Toggl ID has already been imported.' }, :status => 400
+        return
+      end
+    end
+
     # Save the Redmine time entry and map each Toggl entry to it.
+    toggl_time_entries = []
     begin
-      TimeEntry.transaction do
         @time_entry.save!
         params[:toggl_ids].each do |toggl_id|
-          @toggl_time_entry = TogglTimeEntry.create(time_entry: @time_entry, toggl_id: toggl_id)
-          @toggl_time_entry.save!
+        toggl_time_entry = TogglTimeEntry.new(time_entry: @time_entry, toggl_id: toggl_id)
+        toggl_time_entry.save!
+        toggl_time_entries.push(toggl_time_entry)
         end
-      end
-      render :json => { :time_entry => @time_entry }, :status => 201
     rescue
-      # Explicitly delete the time entry if it was created.
-      # TODO: Why doesn't the time entry if the transaction fails?
-      @time_entry.delete unless @time_entry.id.nil?
+      # Capture errors and delete the time entry if it was saved.
       errors = @time_entry.errors.full_messages
-      errors += @toggl_time_entry.errors.full_messages if defined? @toggl_time_entry
+      @time_entry.delete unless @time_entry.id.nil?
+
+      # Capture errors and delete all created Toggl mappings.
+      toggl_time_entries.each do |toggl_time_entry|
+        errors += toggl_time_entry.errors.full_messages
+        toggl_time_entry.delete
+      end
+
+      # Render response.
       render :json => { :errors => errors }, :status => 400
+      return
     end
+
+    # Render response.
+    render :json => { :time_entry => @time_entry }, :status => 201
   end
 
   def validate_user

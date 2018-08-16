@@ -76,12 +76,6 @@ class T2rController < ApplicationController
       flash[:error] = 'To import time entries from Toggl, please add a Toggl API key to your account.'
       redirect_to :controller => 'my', :action => 'account'
     end
-
-    # Must have a timezone preference.
-    if @user.preference.time_zone.empty?
-      flash[:error] = 'For time reports to show correctly, please configure your time zone.'
-      redirect_to :controller => 'my', :action => 'account'
-    end
   end
 
 end

@@ -985,12 +985,12 @@ T2R.updateRedmineReport = function () {
   // Determine Redmine API friendly date range.
   var till = T2R.storage('date');
   till = T2R.dateStringToObject(till);
-  var from = new Date(till.getTime() - 60 * 60 * 24);
+  var from = till;
 
   // Fetch time entries from Redmine.
   var opts = {
-    from: from.toISOString().split('T')[0],
-    till: till.toISOString().split('T')[0]
+    from: from.toISOString().split('T')[0] + 'T00:00:00Z',
+    till: till.toISOString().split('T')[0] + 'T00:00:00Z'
   };
   var entries = T2R.getNormalizedRedmineTimeEntries(opts) || [];
 

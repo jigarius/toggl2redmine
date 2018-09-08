@@ -63,7 +63,15 @@ class T2rController < ApplicationController
         end
       end
     rescue => e
-      render :json => { :errors => e.message }, :status => 400
+      messages = [e.message]
+
+      # If the transaction couldn't be rolled back, raise an alert.
+      unless @time_entry.id.nil?
+        @time_entry.delete
+        messages.push('Your database does not support transactions. Please ask your system administrator to refer to the README for "Toggle 2 Redmine".');
+      end
+
+      render :json => { :errors => messages }, :status => 400
       return
     end
 

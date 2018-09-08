@@ -17,12 +17,16 @@ caused by the use of this plugin. In short, use it at your own risk.
 ## Installation
 
 * Copy the plugin directory into the `plugins` directory of Redmine.
-* Run database migrations (read more about
-[plugin installation](http://www.redmine.org/projects/redmine/wiki/Plugins)):
+* Run database migrations
+  * You can read more about
+[plugin installation](http://www.redmine.org/projects/redmine/wiki/Plugins) on redmine.org
 ```bash
     RAILS_ENV=production bundle exec rake redmine:plugins:migrate
 ```
   * This creates a Toggl API Key field on the user profile
+* Your database **must** support [transactions](https://en.wikipedia.org/wiki/Database_transaction).
+  * Without transaction support, users might end up importing duplicate
+    time entries.
 
 ## Usage
 

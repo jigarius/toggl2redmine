@@ -37,6 +37,9 @@
 .t2r-table td.activity {
   width: 150px;
 }
+.t2r-table td.comments {
+  width: 30%;
+}
 .t2r-table th.status,
 .t2r-table td.status {
   text-align: center !important;

@@ -278,6 +278,19 @@ T2R.clearFlashMessages = function () {
 };
 
 /**
+ * Returns a string after encoding HTML entities.
+ *
+ * @param String string
+ */
+T2R.htmlEntityEncode = function (string) {
+  return $('<div />')
+    .text(string)
+    .text()
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+};
+
+/**
  * Returns the Toggl report table.
  */
 T2R.getTogglTable = function () {
@@ -1365,7 +1378,7 @@ T2RRenderer.renderTogglRow = function (data) {
       + '<input data-property="issue_id" type="hidden" data-value="' + (issue ? issue.id : '') + '" value="' + issue.id + '" />'
       + issueLabel
     + '</td>'
-    + '<td class="comments"><input data-property="comments" type="text" value="' + data.comments + '" maxlength="255" /></td>'
+    + '<td class="comments"><input data-property="comments" type="text" value="' + T2R.htmlEntityEncode(data.comments) + '" maxlength="255" /></td>'
     + '<td class="activity">'
       + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.storage('default-activity') + '"></select>'
     + '</td>'

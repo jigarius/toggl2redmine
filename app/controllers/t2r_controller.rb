@@ -4,11 +4,64 @@ class T2rController < ApplicationController
   before_action :require_login, :validate_user
 
   # TODO: Check if user is allowed to log time.
+  # TODO: Respond in HTML / JSON according to format requested.
+  # TODO: Redirect to login only for when HTML format is requested.
 
   # Provides an interface for importing Toggl time entries to Redmine.
   def index
     @toggl_api_key = @user.custom_field_value(UserCustomField.find_by_name('Toggl API Key'))
     @redmine_api_key = @user.api_key
+  end
+
+  # Reads time entries from Redmine.
+  def read_redmine_time_entries
+    # Require 'from' parameter.
+    unless params[:from]
+      render :json => { :errors => "Parameter 'from' must be present." }, :status => 403
+      return
+    end
+    from = Time.parse(params[:from])
+
+    # Require 'till' parameter.
+    unless params[:till]
+      render :json => { :errors => "Parameter 'till' must be present." }, :status => 403
+      return
+    end
+    till = Time.parse(params[:till])
+
+    # Load time entries in range.
+    @time_entries = TimeEntry.where(
+      user: @user,
+      spent_on: from..till
+    )
+
+    # Return time entries with associations.
+    render :json => { :time_entries => @time_entries },
+      :include => {
+        :issue => {
+          :only => [:id, :subject, :tracker_id],
+          :include => {
+            :tracker => {
+              :only => [:id, :name]
+            }
+          }
+        },
+        :project => {
+          :only => [:id, :name, :closed]
+        },
+        :activity => {
+          :only => [:id, :name]
+        },
+        :user => {
+          :only => [:id, :login]
+        }
+      }
+  end
+
+  # Reads time entries from Toggl.
+  def read_toggl_time_entries
+    render_403
+    return
   end
 
   # Creates time entries from request data.
@@ -35,7 +88,7 @@ class T2rController < ApplicationController
     end
 
     # Toggl IDs must be present.
-    if !params['toggl_ids'].present?
+    if !params[:toggl_ids].present?
       render :json => { :errors => "Parameter 'toggl_ids' must be present." }, :status => 400
       return
     end
@@ -82,6 +135,12 @@ class T2rController < ApplicationController
   # Determines the currently logged in user.
   def validate_user
     @user = User.current
+
+    # If a user is not logged in, throw a 403.
+    if @user.nil?
+      render_403
+      return
+    end
 
     # Must have a Toggl API key.
     toggl_api_key = @user.custom_field_value(UserCustomField.find_by_name('Toggl API Key'))

@@ -322,6 +322,16 @@ T2R.browserStorage = function (key, value) {
 };
 
 /**
+ * A callback which simply logs all arguments to the console.
+ *
+ * @param {*} data
+ *   Arguments.
+ */
+T2R.FAKE_CALLBACK = function (data) {
+  console.log('No callback was provided to handle this data: ', data);
+};
+
+/**
  * Get or set objects from or to the cache.
  *
  * @param {string} key
@@ -1093,82 +1103,69 @@ T2R.updateTogglTotals = function () {
 /**
  * Retrieves raw time entry data from Redmine.
  *
- * @param opts
+ * @param {Object} query
  *   Applied filters.
+ * @param {Function} callback
+ *   A callback.
  *
  * @returns {Object|boolean}
  *   Data on success or false otherwise.
  */
-T2R.getRedmineTimeEntries = function (opts) {
-  opts = opts || {};
-  var output = [];
+T2R._getRawRedmineTimeEntries = function (query, callback) {
+  query = query || {};
   try {
     T2R.redmineRequest({
-      async: false,
+      async: true,
       method: 'get',
-      url: '/time_entries.json',
+      url: '/toggl2redmine/redmine_time_entries',
       data: {
-        spent_on: opts.from + '|' + opts.till,
-        user_id: 'me'
+        from: query.from,
+        till: query.till
       },
       success: function (data, status, xhr) {
-        output = 'undefined' !== typeof data.time_entries
+        var output = 'undefined' !== typeof data.time_entries
           ? data.time_entries : [];
+        callback(output);
       }
     });
   } catch (e) {
-    output = [];
+    callback(false);
   }
-  return output;
 };
 
 /**
  * Retrieves normalized time entry data from Redmine.
  *
- * @param opts
- *   Applied filters.
+ * @param query
+ *   Query parameters.
+ * @param {Function} callback
+ *   A callback.
  *
  * @returns {Object|boolean}
  *   Data on success or false otherwise.
  */
-T2R.getNormalizedRedmineTimeEntries = function (opts) {
-  opts = opts || {};
+T2R.getRedmineTimeEntries = function (query, callback) {
+  query = query || {};
+  callback = callback || T2R.FAKE_CALLBACK;
 
-  var entries = T2R.getRedmineTimeEntries(opts);
-  var output = [];
-  var issueIds = [];
+  T2R._getRawRedmineTimeEntries(query, function (entries) {
+    var output = [];
 
-  for (var i in entries) {
-    var entry = entries[i];
+    for (var i in entries) {
+      var entry = entries[i];
 
-    // Ensure an issue ID.
-    entry.issue = entry.issue ? entry.issue : { id: false };
+      // Ensure an issue object.
+      entry.issue = entry.issue || { id: false };
 
-    // Generate duration in seconds.
-    entry.duration = Math.floor(parseFloat(entry.hours) * 3600);
-
-    // Collect issue IDs.
-    if (issueIds.indexOf(entry.issue.id) < 0) {
-      issueIds.push(entry.issue.id);
-    }
-  }
-
-  // Add issue subjects to all entries.
-  var issues = T2R.getRedmineIssues(issueIds);
-  for (var i in entries) {
-    var entry = entries[i];
-    if (entry.issue.id && 'undefined' !== typeof issues[entry.issue.id]) {
-      var issue = issues[entry.issue.id];
-      if (issue) {
-        entry.issue = issue;
-      }
+      // Generate duration in seconds.
+      entry.duration = Math.floor(parseFloat(entry.hours) * 3600);
 
       // Include the entry in the output.
       output.push(entry);
     }
-  }
 
-  return output;
+    callback(entries);
+  });
 }
 
 /**
@@ -1185,32 +1182,34 @@ T2R.updateRedmineReport = function () {
   var from = till;
 
   // Fetch time entries from Redmine.
-  var opts = {
+  var query = {
     from: from.toISOString().split('T')[0] + 'T00:00:00Z',
     till: till.toISOString().split('T')[0] + 'T00:00:00Z'
   };
-  var entries = T2R.getNormalizedRedmineTimeEntries(opts) || [];
+  T2R.getRedmineTimeEntries(query, function (entries) {
+    var $table = T2R.getRedmineTable().addClass('t2r-loading');
 
-  // Display entries from Redmine.
-  for (var key in entries) {
-    var entry = entries[key];
-    var markup = T2RRenderer.render('RedmineRow', entry);
-    $table.find('tbody').append(markup);
-  }
+    // Display entries from Redmine.
+    for (var key in entries) {
+      var entry = entries[key];
+      var markup = T2RRenderer.render('RedmineRow', entry);
+      $table.find('tbody').append(markup);
+    }
 
-  // Display empty table message, if required.
-  if (0 === entries.length) {
-    var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
-      + 'There are no items to display here.'
-      + '</td></tr>';
-    $table.find('tbody').html(markup);
-  }
+    // Display empty table message, if required.
+    if (0 === entries.length) {
+      var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
+        + 'There are no items to display here.'
+        + '</td></tr>';
+      $table.find('tbody').html(markup);
+    }
 
-  // Update totals.
-  T2R.updateRedmineTotals();
+    // Update totals.
+    T2R.updateRedmineTotals();
 
-  // Remove loader.
-  $table.removeClass('t2r-loading');
+    // Remove loader.
+    $table.removeClass('t2r-loading');
+  });
 };
 
 /**

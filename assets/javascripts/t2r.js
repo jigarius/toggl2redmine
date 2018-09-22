@@ -839,40 +839,33 @@ T2R.getTogglTimeEntries = function (opts) {
   var data = {};
 
   // Determine start date.
-  opts.start_date = T2R.dateStringToObject(opts.from);
-  if (!opts.start_date) {
+  opts.from = T2R.dateStringToObject(opts.from);
+  if (!opts.from) {
     alert('Error: Invalid start date!');
     return false;
   }
-  data.start_date = opts.start_date.toISOString();
+  data.from = opts.from.toISOString();
 
   // Determine end date.
-  opts.end_date = T2R.dateStringToObject(opts.till);
-  if (!opts.end_date) {
+  opts.till = T2R.dateStringToObject(opts.till);
+  if (!opts.till) {
     alert('Error: Invalid end date!');
     return false;
   }
-  data.end_date = opts.end_date.toISOString();
+  data.till = opts.till.toISOString();
+
+  // Determine workspaces.
+  if (opts.workspace) {
+    data.workspaces = opts.workspace;
+  }
 
   var output = false;
-  T2R.togglRequest({
+  T2R.redmineRequest({
     async: false,
-    url: '/api/v8/time_entries',
+    url: '/toggl2redmine/toggl_time_entries',
     data: data,
     success: function(data, status, xhr) {
       output = data;
-      // The workspace filter is only supported on certain versions of the
-      // Toggl API. Thus, it is easier to filter out such records manually.
-      if ('undefined' !== typeof opts.workspace && false !== opts.workspace) {
-        var temp = output;
-        output = [];
-        for (var i in temp) {
-          var entry = temp[i];
-          if (entry.wid == opts.workspace) {
-            output.push(entry);
-          }
-        }
-      }
     }
   });
 

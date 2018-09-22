@@ -60,8 +60,43 @@ class T2rController < ApplicationController
 
   # Reads time entries from Toggl.
   def read_toggl_time_entries
-    render_403
-    return
+    # Require 'from' parameter.
+    unless params[:from]
+      render :json => { :errors => "Parameter 'from' must be present." }, :status => 403
+      return
+    end
+    from = Time.parse(params[:from])
+
+    # Require 'till' parameter.
+    unless params[:till]
+      render :json => { :errors => "Parameter 'till' must be present." }, :status => 403
+      return
+    end
+    till = Time.parse(params[:till])
+
+    # Determine 'workspaces' parameter.
+    workspaces = []
+    if params[:workspaces]
+      workspaces = params[:workspaces].split(',').map(&:to_i)
+    end
+
+    begin
+      toggl_service = TogglService.new(@toggl_api_key)
+      @time_entries = toggl_service.load_time_entries({
+        :start_date => from,
+        :end_date => till,
+        :workspaces => workspaces
+      })
+    rescue TogglError => e
+      response = e.response
+      render :json => { :errors => response.body }, :status => response.code
+      return
+    rescue e
+      render :json => { :errors => e.message }, :status => 400
+    end
+
+    # Render response.
+    render :json => @time_entries
   end
 
   # Creates time entries from request data.
@@ -143,8 +178,8 @@ class T2rController < ApplicationController
     end
 
     # Must have a Toggl API key.
-    toggl_api_key = @user.custom_field_value(UserCustomField.find_by_name('Toggl API Key'))
-    if toggl_api_key.nil? || toggl_api_key.empty?
+    @toggl_api_key = @user.custom_field_value(UserCustomField.find_by_name('Toggl API Key'))
+    if @toggl_api_key.nil? || @toggl_api_key.empty?
       flash[:error] = 'To import time entries from Toggl, please add a Toggl API key to your account.'
       redirect_to :controller => 'my', :action => 'account'
     end

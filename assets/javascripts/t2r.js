@@ -278,6 +278,40 @@ T2R.clearFlashMessages = function () {
 };
 
 /**
+ * Parse a Toggl comment into various parts.
+ *
+ * For a text like "Bug #1919 Feed the bunny wabbit", an object is returned:
+ * {
+ *   issueId: 1919,
+ *   text: 'Feed the bunny wabbit'
+ * }
+ *
+ * @param String {comment}
+ *   A Toggl comment.
+ *
+ * @return {*}
+ *   An object containing issueId and text. Returns false on failure.
+ *
+ * @private
+ */
+T2R.__parseTogglComment = function (comment) {
+  // Argument must be a string.
+  if ('string' !== typeof comment) {
+    return false;
+  }
+  // Must match the expected comment format.
+  var matches = comment.match(/^[^#]*#(\d+)\s+(.*)$/);
+  if (!matches) {
+    return false;
+  }
+  // Return output as an object.
+  return {
+    issueId: parseInt(matches[1]),
+    text: matches[2].trim()
+  };
+};
+
+/**
  * Returns a string after encoding HTML entities.
  *
  * @param String string
@@ -721,10 +755,10 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
     var entry = entries[i];
 
     entry.description = entry.description || '';
-    var match = entry.description.match(/^.*#(\d+) (.*)$/);
-    if (match) {
-      record.issueId = parseInt(match[1]);
-      record.comments = match[2].trim();
+    var togglComment = T2R.__parseTogglComment(entry.description);
+    if (togglComment) {
+      record.issueId = togglComment.issueId;
+      record.comments = togglComment.text;
     }
     else {
       record.issueId = false;

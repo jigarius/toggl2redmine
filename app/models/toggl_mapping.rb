@@ -1,4 +1,4 @@
-class TogglTimeEntry < ActiveRecord::Base
+class TogglMapping < ActiveRecord::Base
 
   belongs_to :time_entry
   validates :time_entry,

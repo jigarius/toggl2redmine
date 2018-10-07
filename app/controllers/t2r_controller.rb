@@ -131,8 +131,8 @@ class T2rController < ApplicationController
     # Abort if Toggl entries have already been imported.
     # This prevents reimports for databases which do not support transactions.
     params[:toggl_ids].each do |toggl_id|
-      toggl_time_entry = TogglTimeEntry.where(toggl_id: toggl_id)
-      if !toggl_time_entry.empty?
+      toggl_mapping = TogglMapping.where(toggl_id: toggl_id)
+      if !toggl_mapping.empty?
         render :json => { :errors => 'Toggl ID has already been imported.' }, :status => 400
         return
       end
@@ -143,11 +143,11 @@ class T2rController < ApplicationController
       ActiveRecord::Base.transaction do
         @time_entry.save!
         params[:toggl_ids].each do |toggl_id|
-          toggl_time_entry = TogglTimeEntry.new(
+          toggl_mapping = TogglMapping.new(
             time_entry: @time_entry,
             toggl_id: toggl_id
           )
-        toggl_time_entry.save!
+          toggl_mapping.save!
         end
       end
     rescue => e

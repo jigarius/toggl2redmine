@@ -387,40 +387,6 @@ T2R.clearFlashMessages = function () {
 };
 
 /**
- * Parse a Toggl comment into various parts.
- *
- * For a text like "Bug #1919 Feed the bunny wabbit", an object is returned:
- * {
- *   issueId: 1919,
- *   text: 'Feed the bunny wabbit'
- * }
- *
- * @param String {comment}
- *   A Toggl comment.
- *
- * @return {*}
- *   An object containing issueId and text. Returns false on failure.
- *
- * @private
- */
-T2R.__parseTogglComment = function (comment) {
-  // Argument must be a string.
-  if ('string' !== typeof comment) {
-    return false;
-  }
-  // Must match the expected comment format.
-  var matches = comment.match(/^[^#]*#(\d+)\s+(.*)$/);
-  if (!matches) {
-    return false;
-  }
-  // Return output as an object.
-  return {
-    issueId: parseInt(matches[1]),
-    text: matches[2].trim()
-  };
-};
-
-/**
  * Returns a string after encoding HTML entities.
  *
  * @param String string
@@ -661,7 +627,7 @@ T2R.publishToRedmine = function () {
     // Finalize POST data.
     var data = {
       time_entry: redmine_entry,
-      toggl_ids: toggl_entry.togglIds
+      toggl_ids: toggl_entry.ids
     };
 
     // Push the data to Redmine.
@@ -885,91 +851,30 @@ T2R.getNormalizedTogglTimeEntries = function (opts) {
   opts = opts || {};
 
   var entries = T2R.getTogglTimeEntries(opts) || {};
-  var output = {};
-  var issueIds = [];
+  var output = [];
 
-  for (var i in entries) {
-    var record = {
-      duration: 0,
-      issue: false,
-      errors: [],
-      togglIds: [],
-      togglEntries: []
-    };
-    var entry = entries[i];
+  for (var key in entries) {
+    var entry = entries[key];
+    entry.errors = entry.errors || [];
 
-    entry.description = entry.description || '';
-    var togglComment = T2R.__parseTogglComment(entry.description);
-    if (togglComment) {
-      record.issueId = togglComment.issueId;
-      record.comments = togglComment.text;
-    }
-    else {
-      record.issueId = false;
-      record.comments = entry.description;
-      record.errors.push('Could not determine issue ID. Please mention the Redmine issue ID in your Toggl task description. Example: "#1919 Feed the bunny wabbit"');
+    // If there is no issue ID associated to the entry.
+    if (!entry.issue_id) {
+      entry.errors.push('Could not determine issue ID. Please mention the Redmine issue ID in your Toggl task description. Example: "#1919 Feed the bunny wabbit"');
     }
 
-    // Handle timers which are currently running.
-    record.running = false;
-    if (entry.duration < 0) {
-      entry.duration = 0;
-      record.running = true;
-      record.comments += ' - Timer running';
+    // If an issue ID exists, but no issue could be found.
+    if (entry.issue_id && !entry.issue) {
+      entry.errors.push('Issue not found on Redmine. Make sure you\'re using a correct issue ID.');
     }
-
-    // Unique key for the record.
-    record.key = record.issueId + ':' + record.comments;
-    record.duration = entry.duration;
-
-    // Collect this issue ID.
-    if (record.issueId && issueIds.indexOf(record.issueId) < 0) {
-      issueIds.push(record.issueId);
-    }
-
-    // Create record if not exists.
-    if ('undefined' === typeof output[record.key]) {
-      output[record.key] = record;
-    }
-    // Update record if exists.
-    else {
-      output[record.key].duration += record.duration;
-    }
-
-    // Track original Toggl data.
-    output[record.key].togglEntries.push(entry);
-    output[record.key].togglIds.push(entry.id);
-  }
-
-  // Further massaging and refinements.
-  var issues = T2R.getRedmineIssues(issueIds);
-  for (var i in output) {
-    var record = output[i];
 
     // Include "hours" in Redmine format.
-    record.hours = (record.duration / 3600).toFixed(2);
+    entry.hours = (entry.duration / 3600).toFixed(2);
 
-    // Attach issue data.
-    if (record.issueId !== false) {
-      // If an issue was found, attach it.
-      if ('undefined' !== typeof issues[record.issueId]) {
-        var issue = issues[record.issueId];
-        record.issue = issue;
-      }
-      // Otherwise, mark the record as invalid.
-      else {
-        record.errors.push('Issue not found on Redmine. Make sure you\'re using the correct issue ID.');
-      }
-    }
+    // Push to output array.
+    output.push(entry);
   }
 
-  // Convert output to an array and return the array.
-  var array = [];
-  for (var i in output) {
-    array.push(output[i]);
-  }
-
-  return array;
+  return output;
 };
 
 /**
@@ -993,7 +898,7 @@ T2R.updateTogglReport = function () {
   // Display currently running entries.
   for (var key in entries) {
     var entry = entries[key];
-    if (entry.running) {
+    if (entry.status === 'running') {
       var $tr = T2RRenderer.render('TogglRow', entry);
       var entry = $tr.data('t2r.entry');
       $table.find('tbody').append($tr);
@@ -1004,7 +909,7 @@ T2R.updateTogglReport = function () {
   // Display entries eligible for export.
   for (var key in entries) {
     var entry = entries[key];
-    if (entry.errors.length === 0) {
+    if (entry.status === 'pending' && entry.errors.length === 0) {
       var $tr = T2RRenderer.render('TogglRow', entry);
       $table.find('tbody').append($tr);
     }
@@ -1013,7 +918,16 @@ T2R.updateTogglReport = function () {
   // Display entries not eligible for export.
   for (var key in entries) {
     var entry = entries[key];
-    if (entry.errors.length > 0) {
+    if (entry.status === 'pending' && entry.errors.length > 0) {
+      var $tr = T2RRenderer.render('TogglRow', entry);
+      $table.find('tbody').append($tr);
+    }
+  }
+
+  // Display entries which are already imported.
+  for (var key in entries) {
+    var entry = entries[key];
+    if (entry.status === 'imported') {
       var $tr = T2RRenderer.render('TogglRow', entry);
       $table.find('tbody').append($tr);
     }
@@ -1612,14 +1526,15 @@ T2RRenderer.renderRedmineIssueLabel = function (data) {
 };
 
 T2RRenderer.renderTogglRow = function (data) {
-  var issue = data.issue ? data.issue : false;
+  var issue = data.issue || false;
+  var project = data.project || false;
   var issueUrl = issue ? T2R.redmineIssueURL(issue.id) : '#';
   var duration = new T2RDuration(data.duration);
 
   // Build a label for the issue.
   var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : false;
   if (!issueLabel) {
-    issueLabel = data.issueId ? data.issueId : '-';
+    issueLabel = data.issue_id || '-';
   }
 
   var markup = '<tr data-t2r-widget="TogglRow">'
@@ -1641,40 +1556,56 @@ T2RRenderer.renderTogglRow = function (data) {
     + '</td>'
     + '</tr>';
   var $tr = $(markup);
+  var $checkbox = $tr.find('.cb-import');
 
   // Attach the entry for reference.
   $tr.data('t2r.entry', data);
 
-  // If the entry is invalid, disable it.
-  if (!issue || data.errors.length > 0) {
-    $tr.addClass('t2r-error');
-    $tr.find(':input').attr({
-      'disabled': 'disabled'
-    });
+  // Status specific actions.
+  switch (data.status) {
+    case 'pending':
+      // Display errors, if any.
+      if (data.errors.length > 0) {
+        $tr.addClass('t2r-error');
+        $tr.find(':input').attr({
+          'disabled': 'disabled'
+        });
 
-    // Display status.
-    var $message = T2RRenderer.render('StatusLabel', {
-      label: 'Invalid',
-      description: data.errors.join("\n"),
-      icon: 'error'
-    });
-    $tr.find('td.status').html($message);
-  }
+        // Display status.
+        var $message = T2RRenderer.render('StatusLabel', {
+          label: 'Invalid',
+          description: data.errors.join("\n"),
+          icon: 'error'
+        });
+        $tr.find('td.status').html($message);
+      }
+      break;
 
-  // If the entry is running, disable it.
-  if (data.running) {
-    $tr.addClass('t2r-running');
-    $tr.find(':input').attr({
-      'disabled': 'disabled'
-    });
+    case 'imported':
+      $checkbox.removeAttr('checked');
+      $tr.addClass('t2r-success');
+      $tr.find(':input').attr('disabled', 'disabled');
 
-    // Display status.
-    var $message = T2RRenderer.render('StatusLabel', {
-      label: 'Active',
-      description: 'Entry cannot be imported because the timer is still running on Toggl.',
-      icon: 'warning'
-    });
-    $tr.find('td.status').html($message);
+      // Display status.
+      var $message = T2RRenderer.render('StatusLabel', {
+        label: 'Imported',
+        description: 'Already imported to Redmine.',
+      });
+      $tr.find('td.status').html($message);
+      break;
+
+    case 'running':
+      $tr.addClass('t2r-running');
+      $tr.find(':input').attr('disabled', 'disabled');
+
+      // Display status.
+      var $message = T2RRenderer.render('StatusLabel', {
+        label: 'Active',
+        description: 'Entry cannot be imported because the timer is still running on Toggl.',
+        icon: 'warning'
+      });
+      $tr.find('td.status').html($message);
+      break;
   }
 
   return $tr;
@@ -1704,7 +1635,9 @@ T2RRenderer.renderRedmineRow = function (data) {
     + '</td>'
     + '</tr>';
   var $tr = $(markup);
-  if (!data.issueId) {
+
+  // If there's no associated issue.
+  if (!issue) {
     $tr.addClass('error');
     $tr.find(':input').attr({
       'disabled': 'disabled'

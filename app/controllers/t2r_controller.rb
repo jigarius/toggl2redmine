@@ -39,7 +39,7 @@ class T2rController < ApplicationController
     render :json => { :time_entries => @time_entries },
       :include => {
         :issue => {
-          :only => [:id, :subject, :tracker_id],
+          :only => [:id, :subject],
           :include => {
             :tracker => {
               :only => [:id, :name]
@@ -47,7 +47,7 @@ class T2rController < ApplicationController
           }
         },
         :project => {
-          :only => [:id, :name, :closed]
+          :only => [:id, :name, :status]
         },
         :activity => {
           :only => [:id, :name]
@@ -82,7 +82,7 @@ class T2rController < ApplicationController
 
     begin
       toggl_service = TogglService.new(@toggl_api_key)
-      @time_entries = toggl_service.load_time_entries({
+      time_entries = toggl_service.load_time_entries({
         :start_date => from,
         :end_date => till,
         :workspaces => workspaces
@@ -95,8 +95,37 @@ class T2rController < ApplicationController
       render :json => { :errors => e.message }, :status => 400
     end
 
-    # Render response.
-    render :json => @time_entries
+    # Prepare grouped time entries.
+    @time_entries = GroupedTogglTimeEntry.newFromFeed(time_entries)
+    output = {}
+    # Expand certain Redmine models manually.
+    @time_entries.values.each do |time_entry|
+      hash = time_entry.as_json
+      hash[:issue] = nil
+      hash[:project] = nil
+      if !time_entry.issue.nil?
+        # Include issue.
+        issue = time_entry.issue
+        hash[:issue] = {
+          :id => issue.id,
+          :subject => issue.subject,
+          :tracker => {
+            :id => issue.tracker.id,
+            :name => issue.tracker.name
+          }
+        }
+
+        # Include project.
+        hash[:project] = {
+          :id => issue.project.id,
+          :name => issue.project.name,
+          :status => issue.project.status
+        }
+      end
+      output[time_entry.key] = hash
+    end
+
+    render :json => output
   end
 
   # Creates time entries from request data.

@@ -36,13 +36,13 @@ T2RDuration.prototype.setValue = function(duration) {
   else if ('string' === typeof duration && duration.match(/^\d+$/)) {
     this.setSeconds(duration);
   }
-  // Duration as hh:mm.
-  else if ('string' === typeof duration && duration.indexOf(':') > 0) {
-    this.setHHMM(duration);
-  }
   // Not a valid format, throw error.
   else {
-    throw 'Error: "' + duration + '" is not a number or an an hh:mm string.';
+    try {
+      this.setHHMM(duration);
+    } catch (e) {
+      throw 'Error: "' + duration + '" is not a number or an hh:mm string.';
+    }
   }
 };
 
@@ -64,19 +64,64 @@ T2RDuration.prototype.setSeconds = function (seconds) {
 };
 
 /**
- * Sets duration from hh:mm.
+ * Gets duration as seconds.
+ *
+ * @return {integer}
+ *   Duration in seconds.
+ */
+T2RDuration.prototype.getSeconds = function () {
+  return this.hours * 60 * 60 + this.minutes * 60;
+};
+
+
+/**
+ * Sets duration from hours and minutes.
+ *
+ * Supported formats:
+ *   - 2 = 2h 00m
+ *   - 2:30 = 2h 30m
+ *   - :5 = 0h 5m
+ *   - :30 = 0h 30m
+ *   - 2.50 = 2h 30m
+ *   - .5 = 0h 30m
  *
  * @param {string} hhmm
  */
 T2RDuration.prototype.setHHMM = function (hhmm) {
-  // Validate string format.
-  if (hhmm.indexOf(':') < 0) {
-    throw 'Error: ' + hhmm + ' is not in hh:mm format.';
+  var parts = null;
+
+  // Parse hh only. Ex: 2 = 2h 00m.
+  var pattern = /^(\d{0,2})$/;
+  if (hhmm.match(pattern)) {
+    var parts = hhmm.match(pattern).slice(-1);
+    parts.push('00');
   }
 
-  // Determine hours and minutes.
-  var parts = hhmm.split(':');
-  if (parts.length != 2) {
+  // Parse hh:mm as decimal. Ex: 2:30 = 2h 30m.
+  var pattern = /^(\d{0,2}):(\d{0,2})$/;
+  if (hhmm.match(pattern)) {
+    parts = hhmm.match(pattern).slice(-2);
+    // Minutes must have 2 digits.
+    if (parts[1].length < 2) {
+      parts = null;
+    }
+    // Minutes cannot exceed 59 in this format.
+    if (parts[1] > 59) {
+      parts = null;
+    }
+  }
+
+  // Parse hh.mm as decimal. Ex: 2.5 = 2h 30m.
+  var pattern = /^(\d{0,2})\.(\d{0,2})$/;
+  if (!parts && hhmm.match(pattern)) {
+    parts = hhmm.match(pattern).slice(-2);
+    // Compute minutes.
+    parts[1] = (60 * parts[1]) / Math.pow(10, parts[1].length);
+    parts[1] = Math.round(parts[1]);
+  }
+
+  // No pattern matched? Throw error.
+  if (!parts || parts.length !== 2) {
     throw 'Error: ' + hhmm + ' is not in hh:mm format.';
   }
 
@@ -87,13 +132,16 @@ T2RDuration.prototype.setHHMM = function (hhmm) {
     throw 'Error: ' + hhmm + ' is not in hh:mm format.';
   }
 
-  // Initialize values.
-  this.hours = parts[0];
-  this.minutes = parts[1];
+  // Convert time to seconds and set the number of seconds.
+  var secs = parts[0] * 60 * 60 + parts[1] * 60;
+  this.setSeconds(secs);
 };
 
 /**
- * Gets the duration as hh:mm.
+ * Gets the duration as hours and minutes.
+ *
+ * @return string
+ *   Time in hh:mm format.
  */
 T2RDuration.prototype.getHHMM = function () {
   return this.hours + ':' + ('00' + this.minutes).substr(-2);
@@ -507,8 +555,15 @@ T2R.publishToRedmine = function () {
       issue_id: parseInt($tr.find('[data-property="issue_id"]').val()),
       comments: $tr.find('[data-property="comments"]').val(),
       activity_id: parseInt($tr.find('[data-property="activity_id"]').val()),
-      hours: $tr.find('[data-property="hours"]').val(),
     };
+
+    // Convert time to Redmine-friendly format, i.e. hh:mm.
+    var durationInput = $tr.find('[data-property="hours"]').val();
+    var duration = new T2RDuration();
+    duration.setHHMM(durationInput);
+    redmine_entry.hours = duration.getHHMM();
+
+    // Finalize POST data.
     var data = {
       time_entry: redmine_entry,
       toggl_ids: toggl_entry.togglIds
@@ -929,9 +984,12 @@ T2R.updateTogglTotals = function () {
       return;
     }
 
+    // Parse the input as time and add it to the total.
     var hours = $tr.find('[data-property="hours"]').val();
     try {
-      var duration = new T2RDuration(hours);
+      var duration = new T2RDuration();
+      // Assume time to be hours and minutes.
+      duration.setHHMM(hours);
       total.add(duration);
     } catch(e) {}
   });
@@ -1265,17 +1323,36 @@ T2RWidget.initTogglRow = function(el) {
 
       // If the row is marked for import, make fields required.
       if (checked) {
-        $tr.find(':input').not('.cb-import').removeAttr('disabled');
+        $tr.find(':input').not('.cb-import')
+          .removeAttr('disabled')
+          .attr('required', 'required');
       }
       // Otherwise, the fields are disabled.
       else {
-        $tr.find(':input').not('.cb-import').attr('disabled', 'disabled');
+        $tr.find(':input').not('.cb-import')
+          .removeAttr('required')
+          .attr('disabled', 'disabled');
       }
     })
     .trigger('change');
 
   // If hours change, update totals.
-  $el.find('[data-property="hours"]').bind('input', T2R.updateTogglTotals);
+  $el.find('[data-property="hours"]')
+    .bind('input', T2R.updateTogglTotals)
+    // When the value changes, display the way the value will be treated.
+    .bind('change', function () {
+      var $input = $(this);
+      var value = '';
+      try {
+        var duration = new T2RDuration();
+        // Assume time to be hours and minutes.
+        duration.setHHMM($input.val());
+        value = duration.getHHMM();
+      } catch(e) {}
+      // Update the visible value and the totals.
+      $input.val(value);
+      T2R.updateTogglTotals();
+    });
 
   // Initialize tooltips for all inputs.
   $el.find(':input').tooltip();

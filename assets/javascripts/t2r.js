@@ -7,11 +7,15 @@
  *   A duration as hh:mm or seconds.
  */
 var T2RDuration = function (duration = null) {
-  // Number of hours.
-  this.hours = 0;
 
-  // Number of minutes.
-  this.minutes = 0;
+  // Number of hours in the duration.
+  this.__hours = 0;
+
+  // Number of minutes in the duration.
+  this.__minutes = 0;
+
+  // Number of seconds in the duration.
+  this.__seconds = 0;
 
   // Pass arguments to the constructor.
   if (arguments.length > 0) {
@@ -19,13 +23,16 @@ var T2RDuration = function (duration = null) {
   }
 
   return this;
+
 };
 
 /**
  * Duration constructor.
  *
  * @param {string} duration
- *   A duration as hh:mm or seconds.
+ *   A duration as seconds or hours and minutes.
+ *
+ * @see T2RDuration.setHHMM()
  */
 T2RDuration.prototype.setValue = function(duration) {
   // Seconds as an integer.
@@ -57,10 +64,10 @@ T2RDuration.prototype.setSeconds = function (seconds) {
   if (!seconds.match(/^\d+$/)) {
     throw 'Error: ' + seconds + ' is not a valid number.';
   }
-  seconds = parseInt(seconds);
-  this.minutes = Math.ceil(seconds / 60);
-  this.hours = Math.floor(this.minutes / 60);
-  this.minutes = this.minutes % 60;
+  this.__seconds = parseInt(seconds);
+  this.__minutes = Math.ceil(this.__seconds / 60);
+  this.__hours = Math.floor(this.__minutes / 60);
+  this.__minutes = this.__minutes % 60;
 };
 
 /**
@@ -70,9 +77,8 @@ T2RDuration.prototype.setSeconds = function (seconds) {
  *   Duration in seconds.
  */
 T2RDuration.prototype.getSeconds = function () {
-  return this.hours * 60 * 60 + this.minutes * 60;
+  return this.__seconds;
 };
-
 
 /**
  * Sets duration from hours and minutes.
@@ -138,13 +144,49 @@ T2RDuration.prototype.setHHMM = function (hhmm) {
 };
 
 /**
+ * Gets the "hours" part of the duration.
+ *
+ * @param {boolean} force2
+ *   Whether to force 2 digits.
+ *
+ * @return {integer|string}
+ *   Hours in the duration.
+ */
+T2RDuration.prototype.getHours = function (force2) {
+  force2 = force2 || false;
+  var output = this.__hours;
+  if (force2) {
+    output = ('00' + output).substr(-2);
+  }
+  return output;
+};
+
+/**
+ * Gets the "minutes" part of the duration.
+ *
+ * @param {boolean} force2
+ *   Whether to force 2 digits.
+ *
+ * @return {integer|string}
+ *   Minutes in the duration.
+ */
+T2RDuration.prototype.getMinutes = function (force2) {
+  force2 = force2 || false;
+  var output = this.__minutes;
+  if (force2) {
+    output = ('00' + output).substr(-2);
+  }
+  return output;
+};
+
+/**
  * Gets the duration as hours and minutes.
  *
  * @return string
  *   Time in hh:mm format.
  */
-T2RDuration.prototype.getHHMM = function () {
-  return this.hours + ':' + ('00' + this.minutes).substr(-2);
+T2RDuration.prototype.asHHMM = function () {
+  return this.getHours(true) + ':' + this.getMinutes(true);
 };
 
 /**
@@ -152,17 +194,25 @@ T2RDuration.prototype.getHHMM = function () {
  *
  * @param {*} duration
  */
-T2RDuration.prototype.add = function(duration) {
+T2RDuration.prototype.add = function (duration) {
   var oDuration = ('object' === typeof duration)
     ? duration : new T2RDuration(duration);
-  // Update hours and minutes.
-  this.hours += oDuration.hours;
-  this.minutes += oDuration.minutes;
-  // Adjustment for total minutes exceeding 60.
-  if (this.minutes > 59) {
-    this.hours += Math.floor(this.minutes / 60);
-    this.minutes = this.minutes % 60;
-  }
+  var seconds = this.getSeconds() + oDuration.getSeconds();
+  this.setSeconds(seconds);
+};
+
+/**
+ * Subtract a duration.
+ *
+ * @param {*} duration
+ */
+T2RDuration.prototype.sub = function (duration) {
+  var oDuration = ('object' === typeof duration)
+    ? duration : new T2RDuration(duration);
+  var seconds = this.getSeconds() - oDuration.getSeconds();
+  // Duration cannot be negative.
+  seconds = (seconds >= 0) ? seconds : 0;
+  this.setSeconds(seconds);
 };
 
 /**
@@ -562,7 +612,7 @@ T2R.publishToRedmine = function () {
     try {
       var duration = new T2RDuration();
       duration.setHHMM(durationInput);
-      redmine_entry.hours = duration.getHHMM();
+      redmine_entry.hours = duration.asHHMM();
     } catch (e) {
       console.log('Invalid duration. Ignoring entry.', redmine_entry);
       return;
@@ -1000,7 +1050,7 @@ T2R.updateTogglTotals = function () {
   });
 
   // Show the total in the table footer.
-  $table.find('[data-property="total-hours"]').html(total.getHHMM());
+  $table.find('[data-property="total-hours"]').html(total.asHHMM());
 };
 
 /**
@@ -1142,7 +1192,7 @@ T2R.updateRedmineTotals = function () {
   });
 
   // Show the total in the table footer.
-  $table.find('[data-property="total-hours"]').html(total.getHHMM());
+  $table.find('[data-property="total-hours"]').html(total.asHHMM());
 };
 
 /**
@@ -1350,9 +1400,8 @@ T2RWidget.initTogglRow = function(el) {
       var value = '';
       try {
         var duration = new T2RDuration();
-        // Assume time to be hours and minutes.
         duration.setHHMM($input.val());
-        value = duration.getHHMM();
+        value = duration.asHHMM();
       } catch(e) {}
       // Update the visible value and the totals.
       $input.val(value);
@@ -1499,7 +1548,7 @@ T2RRenderer.renderTogglRow = function (data) {
       + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.storage('default-activity') + '"></select>'
     + '</td>'
     + '<td class="hours">'
-      + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Time in the format hh:mm. Example: 1:50 means 1 hour 50 minutes." value="' + duration.getHHMM() + '" size="6" maxlength="5" />'
+      + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Time in the format hh:mm. Example: 1:50 means 1 hour 50 minutes." value="' + duration.asHHMM() + '" size="6" maxlength="5" />'
     + '</td>'
     + '</tr>';
   var $tr = $(markup);

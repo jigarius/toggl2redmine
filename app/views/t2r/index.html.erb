@@ -27,7 +27,7 @@
               <label for="date">Date<span class="required"> *</span></label>
             </td>
             <td class="values">
-              <input id="date" type="date" required="required" class="value date_value" title="Choose the date for which you want to import time entries into Redmine. Make sure your timezone is set correctly for your Redmine and Toggl accounts." />
+              <input id="date" type="date" required="required" autofocus="autofocus" class="value date_value" title="Choose the date for which you want to import time entries into Redmine. Make sure your timezone is set correctly for your Redmine and Toggl accounts." />
             </td>
           </tr>
         </tbody>
@@ -38,6 +38,7 @@
     <a aria-role="button" href="#" id="btn-apply-filters" class="icon icon-checked" title="This will reload the tables below with the filters you've selected.">Apply</a>
     <a aria-role="button" href="#" id="btn-reset-filters" class="icon icon-reload">Reset</a>
     <a aria-role="button" href="https://github.com/jigarius/toggl2redmine#usage" target="_blank" id="btn-help" class="icon icon-help" title="Confused? Get started by reading the user guide.">Help</a>
+    <input type="submit" hidden="hidden" />
   </p>
 </form>
 
@@ -75,7 +76,7 @@
     <thead>
       <tr>
         <th class="checkbox">
-          <input type="checkbox" class="check-all" value="" class="toggle-selection" title="Check all / Uncheck all">
+          <input type="checkbox" class="check-all" value="" class="toggle-selection" title="Mark / unmark all items for editing and import. Alternatively, you can mark / unmark individual rows.">
         </th>
         <th class="status">Status</th>
         <th class="project">Project</th>

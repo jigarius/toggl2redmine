@@ -423,7 +423,30 @@ T2R.htmlEntityEncode = function (string) {
 };
 
 /**
+ * Returns the form containing filters.
+ *
+ * @return {Object}
+ *   jQuery object for the filter form.
+ */
+T2R.getFilterForm = function () {
+  return $('#filter-form');
+};
+
+/**
+ * Returns the form to publish data to Redmine.
+ *
+ * @return {Object}
+ *   jQuery object for the publish form.
+ */
+T2R.getPublishForm = function () {
+  return $('#publish-form');
+};
+
+/**
  * Returns the Toggl report table.
+ *
+ * @return {Object}
+ *   jQuery object for the Toggl report table.
  */
 T2R.getTogglTable = function () {
   return $('#toggl-report');
@@ -431,6 +454,9 @@ T2R.getTogglTable = function () {
 
 /**
  * Returns the Redmine report table.
+ *
+ * @return {Object}
+ *   jQuery object for the Redmine report table.
  */
 T2R.getRedmineTable = function () {
   return $('#redmine-report');
@@ -540,7 +566,7 @@ T2R.handleFilterForm = function() {
  * Publish form initializer.
  */
 T2R.initPublishForm = function () {
-  $('#publish-form').submit(T2R.handlePublishForm);
+  T2R.getPublishForm().submit(T2R.handlePublishForm);
 };
 
 /**
@@ -549,7 +575,7 @@ T2R.initPublishForm = function () {
  * This disallows the user to submit the form.
  */
 T2R.lockPublishForm = function () {
-  $('#publish-form #btn-publish').attr('disabled', 'disabled');
+  T2R.getPublishForm().find('#btn-publish').attr('disabled', 'disabled');
 };
 
 /**
@@ -558,7 +584,7 @@ T2R.lockPublishForm = function () {
  * This allows the user to submit it.
  */
 T2R.unlockPublishForm = function () {
-  $('#publish-form #btn-publish').removeAttr('disabled');
+  T2R.getPublishForm().find('#btn-publish').removeAttr('disabled');
 };
 
 /**
@@ -1008,14 +1034,20 @@ T2R.updateTogglReport = function () {
   // Initialize widgets.
   T2RWidget.initialize($table);
 
-  // Uncheck the "check all" checkbox.
-  $table.find('.check-all').prop('checked', false);
-
   // Update totals.
   T2R.updateTogglTotals();
 
   // Remove loader.
   $table.removeClass('t2r-loading');
+
+  // Uncheck the "check all" checkbox.
+  var $checkAll = $table.find('.check-all')
+    .prop('checked', false);
+  // If the update was triggered from the filter form, then focus the
+  // "check-all" button to allow keyboard navigation.
+  if (T2R.getFilterForm().has(':focus').length > 0) {
+    $checkAll.focus();
+  }
 };
 
 /**

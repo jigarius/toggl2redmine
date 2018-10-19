@@ -559,9 +559,14 @@ T2R.publishToRedmine = function () {
 
     // Convert time to Redmine-friendly format, i.e. hh:mm.
     var durationInput = $tr.find('[data-property="hours"]').val();
-    var duration = new T2RDuration();
-    duration.setHHMM(durationInput);
-    redmine_entry.hours = duration.getHHMM();
+    try {
+      var duration = new T2RDuration();
+      duration.setHHMM(durationInput);
+      redmine_entry.hours = duration.getHHMM();
+    } catch (e) {
+      console.log('Invalid duration. Ignoring entry.', redmine_entry);
+      return;
+    }
 
     // Finalize POST data.
     var data = {

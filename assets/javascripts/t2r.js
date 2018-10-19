@@ -1393,6 +1393,40 @@ T2RWidget.initTogglRow = function(el) {
 
   // If hours change, update totals.
   $el.find('[data-property="hours"]')
+    .bind('keyup', function (e) {
+      var $input = $(this);
+
+      // Detect current duration.
+      try {
+        var duration = new T2RDuration();
+        duration.setHHMM($input.val());
+      } catch(e) {
+        return;
+      }
+
+      // Round to the nearest 5 minutes or 15 minutes.
+      var minutes = duration.getMinutes();
+      var step = e.shiftKey ? 15 : 5;
+
+      // On "Up" press.
+      if (e.key === 'ArrowUp') {
+        var delta = step - (minutes % step);
+        duration.add(delta * 60);
+      }
+      // On "Down" press.
+      else if (e.key === 'ArrowDown') {
+        var delta = (minutes % step) || step;
+        duration.sub(delta * 60);
+      }
+      // Do nothing.
+      else {
+        return;
+      }
+
+      // Update value in the input field.
+      $(this).val(duration.asHHMM()).select();
+    })
+    // Update totals as the user updates hours.
     .bind('input', T2R.updateTogglTotals)
     // When the value changes, display the way the value will be treated.
     .bind('change', function () {
@@ -1548,7 +1582,7 @@ T2RRenderer.renderTogglRow = function (data) {
       + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.storage('default-activity') + '"></select>'
     + '</td>'
     + '<td class="hours">'
-      + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Time in the format hh:mm. Example: 1:50 means 1 hour 50 minutes." value="' + duration.asHHMM() + '" size="6" maxlength="5" />'
+      + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Example: 1:50 means 1 hour 50 minutes. Press \'Up\' or \'Down\' to round to the nearest 5 minutes. Combine with \'Shift\' to round to the nearest 15 minutes." value="' + duration.asHHMM() + '" size="6" maxlength="5" />'
     + '</td>'
     + '</tr>';
   var $tr = $(markup);

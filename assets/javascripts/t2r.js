@@ -262,6 +262,7 @@ T2R.initialize = function () {
   T2RWidget.initialize();
   T2R.initTogglReport();
   T2R.initFilterForm();
+  T2R.updateLastImported();
   T2R.initPublishForm();
 };
 
@@ -702,6 +703,7 @@ T2R.publishToRedmine = function () {
   // Refresh the Redmine report and show success message.
   T2R.unlockPublishForm();
   T2R.updateRedmineReport();
+  T2R.updateLastImported();
 };
 
 /**
@@ -1225,6 +1227,32 @@ T2R.updateRedmineTotals = function () {
 
   // Show the total in the table footer.
   $table.find('[data-property="total-hours"]').html(total.asHHMM());
+};
+
+/**
+ * Updates the date of the latest time entry on Redmine.
+ */
+T2R.updateLastImported = function () {
+  T2R.redmineRequest({
+    url: '/time_entries.json',
+    data: {
+      user_id: 'me',
+      limit: 1
+    },
+    beforeSend: function () {
+      $(this).html('&nbsp;').addClass('t2r-loading');
+    },
+    context: $('#last-imported'),
+    complete: function (xhr, status) {
+      var sDate = 'Unknown';
+      try {
+        var lastImported = xhr.responseJSON.time_entries.pop().spent_on;
+        lastImported = T2R.dateStringToObject(lastImported + ' 00:00:00');
+        sDate = lastImported.toLocaleDateString();
+      } catch (e) {}
+      $(this).text(sDate).removeClass('t2r-loading');
+    }
+  });
 };
 
 /**

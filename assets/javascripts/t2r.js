@@ -1484,7 +1484,7 @@ T2RWidget.initTogglRow = function(el) {
       }
 
       // Update value in the input field.
-      $(this).val(duration.asHHMM()).select();
+      $(this).val(duration.asHHMM()).trigger('input').select();
     })
     // Update totals as the user updates hours.
     .bind('input', T2R.updateTogglTotals)

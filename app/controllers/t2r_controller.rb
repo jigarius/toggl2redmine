@@ -109,17 +109,17 @@ class T2rController < ApplicationController
         hash[:issue] = {
           :id => issue.id,
           :subject => issue.subject,
+          # Include tracker.
           :tracker => {
             :id => issue.tracker.id,
             :name => issue.tracker.name
+          },
+          # Include project.
+          :project => {
+            :id => issue.project.id,
+            :name => issue.project.name,
+            :status => issue.project.status
           }
-        }
-
-        # Include project.
-        hash[:project] = {
-          :id => issue.project.id,
-          :name => issue.project.name,
-          :status => issue.project.status
         }
       end
       output[time_entry.key] = hash

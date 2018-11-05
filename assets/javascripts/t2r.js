@@ -416,11 +416,14 @@ T2R.__parseTogglComment = function (comment) {
  * @param String string
  */
 T2R.htmlEntityEncode = function (string) {
-  return $('<div />')
+  var output = $('<div />')
     .text(string)
     .text()
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
+    .replace(/'/g, '&apos;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return output;
 };
 
 /**
@@ -1609,9 +1612,9 @@ T2RRenderer.renderRedmineIssueLabel = function (data) {
 
   // Render a clickable issue label.
   var markup = '<a href="' + T2R.redmineIssueURL(issue.id) + '" target="_blank">'
-    + (issue ? issue.tracker.name : '-')
-    + (issue ? ' #' + issue.id : '')
-    + (issue.subject ? ': ' + issue.subject : '')
+    + T2R.htmlEntityEncode(issue ? issue.tracker.name : '-')
+    + T2R.htmlEntityEncode(issue ? ' #' + issue.id : '')
+    + T2R.htmlEntityEncode(issue.subject ? ': ' + issue.subject : '')
   + '</a>';
   return markup;
 };
@@ -1631,10 +1634,10 @@ T2RRenderer.renderTogglRow = function (data) {
     + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" title="Check this box if you want to import this entry." /></td>'
     + '<td class="status"></td>'
     + '<td class="project">'
-      + (issue ? issue.project.name : '-')
+      + T2R.htmlEntityEncode(issue ? issue.project.name : '-')
     + '</td>'
     + '<td class="issue">'
-      + '<input data-property="issue_id" type="hidden" data-value="' + (issue ? issue.id : '') + '" value="' + issue.id + '" />'
+      + '<input data-property="issue_id" type="hidden" data-value="' + T2R.htmlEntityEncode(issue ? issue.id : '') + '" value="' + issue.id + '" />'
       + issueLabel
     + '</td>'
     + '<td class="comments"><input data-property="comments" type="text" value="' + T2R.htmlEntityEncode(data.comments) + '" maxlength="255" /></td>'
@@ -1689,19 +1692,20 @@ T2RRenderer.renderRedmineRow = function (data) {
   var issue = data.issue.id ? data.issue : false;
   var issueUrl = issue ? T2R.redmineIssueURL(issue.id) : '#';
   var entryUrl = T2R.REDMINE_URL + '/time_entries/' + data.id + '/edit';
+
+  // Build a label for the issue.
+  var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : false;
+  if (!issueLabel) {
+    issueLabel = data.issueId ? data.issueId : '-';
+  }
+
   var markup = '<tr>'
     + '<td class="id">'
-      + (data.project.name || 'Unknown')
+      + T2R.htmlEntityEncode(data.project.name || 'Unknown')
     + '</td>'
-    + '<td class="subject">'
-      + '<a href="' + issueUrl + '" target="_blank">'
-        + (issue ? issue.tracker.name : 'Unknown')
-        + (issue ? ' #' + issue.id : '')
-      + '</a>'
-      + ': ' + (issue.subject || 'Unknown')
-    + '</td>'
-    + '<td class="comments">' + data.comments + '</td>'
-    + '<td class="activity">' + data.activity.name + '</td>'
+    + '<td class="subject">' + issueLabel + '</td>'
+    + '<td class="comments">' + T2R.htmlEntityEncode(data.comments) + '</td>'
+    + '<td class="activity">' + T2R.htmlEntityEncode(data.activity.name) + '</td>'
     + '<td class="hours">' + T2RRenderer.render('Duration', data.duration) + '</td>'
     + '<td class="buttons">'
       + '<a href="' + entryUrl + '" title="Edit" class="icon-only icon-edit" target="_blank">Edit</a>'

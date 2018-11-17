@@ -794,13 +794,15 @@ T2R.getTogglWorkspaces = function (opts) {
 /**
  * Retrieves raw time entry data from Toggl.
  *
- * @param opts
+ * @param {Object} opts
  *   Applied filters.
+ * @param {function} callback
+ *   A callback. Receives entries as an argument.
  *
  * @returns {Object|boolean}
  *   Data on success or false otherwise.
  */
-T2R.getTogglTimeEntries = function (opts) {
+T2R._getRawTogglTimeEntries = function (opts, callback) {
   opts = opts || {};
   var data = {};
 
@@ -825,56 +827,57 @@ T2R.getTogglTimeEntries = function (opts) {
     data.workspaces = opts.workspace;
   }
 
-  var output = false;
-  T2R.redmineRequest({
-    async: false,
-    url: '/toggl2redmine/toggl_time_entries',
-    data: data,
-    success: function(data, status, xhr) {
-      output = data;
-    }
-  });
-
-  return output;
+  try {
+    T2R.redmineRequest({
+      url: '/toggl2redmine/toggl_time_entries',
+      data: data,
+      success: function(data, status, xhr) {
+        data = ('undefined' === typeof data) ? {} : data;
+        callback(data);
+      }
+    });
+  } catch(e) {
+    callback(false);
+  }
 };
 
 /**
  * Retrieves normalized time entry data from Toggl.
  *
- * @param opts
+ * @param {Object} opts
  *   Applied filters.
+ * @param {function} callback
+ *   A callback. Receives entries as an argument.
  *
  * @returns {Object|boolean}
  *   Data on success or false otherwise.
  */
-T2R.getNormalizedTogglTimeEntries = function (opts) {
+T2R.getTogglTimeEntries = function (opts, callback) {
   opts = opts || {};
+  callback = callback || T2R.FAKE_CALLBACK;
 
-  var entries = T2R.getTogglTimeEntries(opts) || {};
-  var output = [];
+  T2R._getRawTogglTimeEntries(opts, function (entries) {
+    var output = [];
+    for (var key in entries) {
+      var entry = entries[key];
+      entry.errors = entry.errors || [];
 
-  for (var key in entries) {
-    var entry = entries[key];
-    entry.errors = entry.errors || [];
+      // If there is no issue ID associated to the entry.
+      if (!entry.issue_id) {
+        entry.errors.push('Could not determine issue ID. Please mention the Redmine issue ID in your Toggl task description. Example: "#1919 Feed the bunny wabbit"');
+      }
 
-    // If there is no issue ID associated to the entry.
-    if (!entry.issue_id) {
-      entry.errors.push('Could not determine issue ID. Please mention the Redmine issue ID in your Toggl task description. Example: "#1919 Feed the bunny wabbit"');
+      // If an issue ID exists, but no issue could be found.
+      if (entry.issue_id && !entry.issue) {
+        entry.errors.push('Issue not found on Redmine. Make sure you\'re using a correct issue ID.');
+      }
+
+      // Include the entry in the output.
+      output.push(entry);
     }
 
-    // If an issue ID exists, but no issue could be found.
-    if (entry.issue_id && !entry.issue) {
-      entry.errors.push('Issue not found on Redmine. Make sure you\'re using a correct issue ID.');
-    }
-
-    // Include "hours" in Redmine format.
-    entry.hours = (entry.duration / 3600).toFixed(2);
-
-    // Push to output array.
-    output.push(entry);
-  }
-
-  return output;
+    callback(output);
+  });
 };
 
 /**
@@ -893,83 +896,85 @@ T2R.updateTogglReport = function () {
   };
 
   // Fetch time entries from Toggl.
-  var entries = T2R.getNormalizedTogglTimeEntries(opts);
+  T2R.getTogglTimeEntries(opts, function (entries) {
+    var $table = T2R.getTogglTable();
 
-  // Display currently running entries.
-  for (var key in entries) {
-    var entry = entries[key];
-    if (entry.status === 'running') {
-      var $tr = T2RRenderer.render('TogglRow', entry);
-      var entry = $tr.data('t2r.entry');
-      $table.find('tbody').append($tr);
-      delete entries[key];
-    }
-  }
-
-  // Display entries eligible for export.
-  for (var key in entries) {
-    var entry = entries[key];
-    if (entry.status === 'pending' && entry.errors.length === 0) {
-      var $tr = T2RRenderer.render('TogglRow', entry);
-      $table.find('tbody').append($tr);
-    }
-  }
-
-  // Display entries not eligible for export.
-  for (var key in entries) {
-    var entry = entries[key];
-    if (entry.status === 'pending' && entry.errors.length > 0) {
-      var $tr = T2RRenderer.render('TogglRow', entry);
-      $table.find('tbody').append($tr);
-    }
-  }
-
-  // Display entries which are already imported.
-  for (var key in entries) {
-    var entry = entries[key];
-    if (entry.status === 'imported') {
-      var $tr = T2RRenderer.render('TogglRow', entry);
-      $table.find('tbody').append($tr);
-    }
-  }
-
-  // Pre-select default activities.
-  var defaultActivity = T2R.storage('default-activity');
-  if (defaultActivity) {
-    $table.find('tbody [data-property="activity_id"]').each(function() {
-      var $select = $(this);
-      // Populate default value if no value is set.
-      if ('' === $select.val()) {
-        $select.val(defaultActivity);
+    // Display currently running entries.
+    for (var key in entries) {
+      var entry = entries[key];
+      if (entry.status === 'running') {
+        var $tr = T2RRenderer.render('TogglRow', entry);
+        var entry = $tr.data('t2r.entry');
+        $table.find('tbody').append($tr);
+        delete entries[key];
       }
-    });
-  }
+    }
 
-  // Display empty table message, if required.
-  if (0 === entries.length) {
-    var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
-      + 'There are no items to display here. Did you log your time on Toggl?'
-      + '</td></tr>';
-    $table.find('tbody').append(markup);
-  }
+    // Display entries eligible for export.
+    for (var key in entries) {
+      var entry = entries[key];
+      if (entry.status === 'pending' && entry.errors.length === 0) {
+        var $tr = T2RRenderer.render('TogglRow', entry);
+        $table.find('tbody').append($tr);
+      }
+    }
 
-  // Initialize widgets.
-  T2RWidget.initialize($table);
+    // Display entries not eligible for export.
+    for (var key in entries) {
+      var entry = entries[key];
+      if (entry.status === 'pending' && entry.errors.length > 0) {
+        var $tr = T2RRenderer.render('TogglRow', entry);
+        $table.find('tbody').append($tr);
+      }
+    }
 
-  // Update totals.
-  T2R.updateTogglTotals();
+    // Display entries which are already imported.
+    for (var key in entries) {
+      var entry = entries[key];
+      if (entry.status === 'imported') {
+        var $tr = T2RRenderer.render('TogglRow', entry);
+        $table.find('tbody').append($tr);
+      }
+    }
 
-  // Remove loader.
-  $table.removeClass('t2r-loading');
+    // Pre-select default activities.
+    var defaultActivity = T2R.storage('default-activity');
+    if (defaultActivity) {
+      $table.find('tbody [data-property="activity_id"]').each(function() {
+        var $select = $(this);
+        // Populate default value if no value is set.
+        if ('' === $select.val()) {
+          $select.val(defaultActivity);
+        }
+      });
+    }
 
-  // Uncheck the "check all" checkbox.
-  var $checkAll = $table.find('.check-all')
-    .prop('checked', false);
-  // If the update was triggered from the filter form, then focus the
-  // "check-all" button to allow keyboard navigation.
-  if (T2R.getFilterForm().has(':focus').length > 0) {
-    $checkAll.focus();
-  }
+    // Display empty table message, if required.
+    if (0 === entries.length) {
+      var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
+        + 'There are no items to display here. Did you log your time on Toggl?'
+        + '</td></tr>';
+      $table.find('tbody').append(markup);
+    }
+
+    // Initialize widgets.
+    T2RWidget.initialize($table);
+
+    // Update totals.
+    T2R.updateTogglTotals();
+
+    // Remove loader.
+    $table.removeClass('t2r-loading');
+
+    // Uncheck the "check all" checkbox.
+    var $checkAll = $table.find('.check-all')
+      .prop('checked', false);
+    // If the update was triggered from the filter form, then focus the
+    // "check-all" button to allow keyboard navigation.
+    if (T2R.getFilterForm().has(':focus').length > 0) {
+      $checkAll.focus();
+    }
+  });
 };
 
 /**
@@ -1013,7 +1018,7 @@ T2R.updateTogglTotals = function () {
  * @param {Object} query
  *   Applied filters.
  * @param {Function} callback
- *   A callback.
+ *   A callback. Receives entries as an argument.
  *
  * @returns {Object|boolean}
  *   Data on success or false otherwise.
@@ -1030,7 +1035,7 @@ T2R._getRawRedmineTimeEntries = function (query, callback) {
         till: query.till
       },
       success: function (data, status, xhr) {
-        var output = 'undefined' !== typeof data.time_entries
+        var output = ('undefined' !== typeof data.time_entries)
           ? data.time_entries : [];
         callback(output);
       }
@@ -1046,7 +1051,7 @@ T2R._getRawRedmineTimeEntries = function (query, callback) {
  * @param query
  *   Query parameters.
  * @param {Function} callback
- *   A callback.
+ *   A callback. Receives entries as an argument.
  *
  * @returns {Object|boolean}
  *   Data on success or false otherwise.
@@ -1245,7 +1250,7 @@ T2R.getRedmineIssues = function (ids) {
 /**
  * Returns CSRF Token data generated by Redmine.
  *
- * @returns object
+ * @returns {object}
  *   An object containing "param" and "token".
  */
 T2R.getRedmineCsrfToken = function () {

@@ -328,7 +328,7 @@ T2R.browserStorage = function (key, value) {
  *   Arguments.
  */
 T2R.FAKE_CALLBACK = function (data) {
-  console.log('No callback was provided to handle this data: ', data);
+  T2RConsole.warn('No callback was provided to handle this data: ', data);
 };
 
 /**
@@ -620,7 +620,7 @@ T2R.publishToRedmine = function () {
       duration.setHHMM(durationInput);
       redmine_entry.hours = duration.asHHMM();
     } catch (e) {
-      console.log('Invalid duration. Ignoring entry.', redmine_entry);
+      T2RConsole.log('Invalid duration. Ignoring entry.', redmine_entry);
       return;
     }
 
@@ -837,6 +837,7 @@ T2R._getRawTogglTimeEntries = function (opts, callback) {
       }
     });
   } catch(e) {
+    T2RConsole.error(e);
     callback(false);
   }
 };
@@ -1005,7 +1006,9 @@ T2R.updateTogglTotals = function () {
       // Assume time to be hours and minutes.
       duration.setHHMM(hours);
       total.add(duration);
-    } catch(e) {}
+    } catch(e) {
+      T2RConsole.error(e);
+    }
   });
 
   // Show the total in the table footer.
@@ -1242,7 +1245,7 @@ T2R.getRedmineIssues = function (ids) {
       error: function (xhr, textStatus) {}
     });
   } catch(e) {
-    console.log('Error: ' + e);
+    T2RConsole.error(e);
   }
   return output;
 };
@@ -1483,6 +1486,50 @@ T2RWidget.initTogglWorkspaceDropdown = function (el) {
   if ('undefined' !== typeof value) {
     $el.val(value);
   }
+};
+
+/**
+ * Toggl 2 Redmine Logger.
+ */
+var T2RConsole = {};
+
+/**
+ * Whether to show debugging messages.
+ */
+T2RConsole.debug = false;
+
+/**
+ * Logs a debugging message.
+ *
+ * @param {string} message
+ *   A message.
+ */
+T2RConsole.log = function (message) {
+  if (this.debug) {
+    console.log(message);
+  }
+};
+
+/**
+ * Logs an error message.
+ *
+ * @param {string} message
+ *   A message.
+ */
+T2RConsole.error = function (message) {
+  setTimeout(function () {
+    throw(message);
+  }, 0);
+};
+
+/**
+ * Logs a warning message.
+ *
+ * @param {string} message
+ *   A message.
+ */
+T2RConsole.warn = function (message) {
+  console.warn(message);
 };
 
 /**

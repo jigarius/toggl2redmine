@@ -400,13 +400,18 @@ T2R.publishToRedmine = function () {
 
     // Convert time to Redmine-friendly format, i.e. hh:mm.
     var durationInput = $tr.find('[data-property="hours"]').val();
+    var duration = new T2RDuration();
     try {
-      var duration = new T2RDuration();
       duration.setHHMM(durationInput);
       redmine_entry.hours = duration.asHHMM();
     } catch (e) {
-      T2RConsole.log('Invalid duration. Ignoring entry.', redmine_entry);
+      T2RConsole.warn('Invalid duration. Ignoring entry.', redmine_entry);
       return;
+    }
+
+    // Ignore entries with 0 duration.
+    if (duration.getSeconds() <= 0) {
+      T2RConsole.warn('Duration is zero. Ignoring entry.', redmine_entry);
     }
 
     // Finalize POST data.
@@ -1503,10 +1508,12 @@ T2RConsole.debug = false;
  *
  * @param {string} message
  *   A message.
+ * @param {*} args
+ *   Data, if any.
  */
-T2RConsole.log = function (message) {
+T2RConsole.log = function (message, args) {
   if (this.debug) {
-    console.log(message);
+    console.log(message, args);
   }
 };
 
@@ -1515,11 +1522,11 @@ T2RConsole.log = function (message) {
  *
  * @param {string} message
  *   A message.
+ * @param {*} args
+ *   Data, if any.
  */
-T2RConsole.error = function (message) {
-  setTimeout(function () {
-    throw(message);
-  }, 0);
+T2RConsole.error = function (message, args) {
+  console.error(message, args);
 };
 
 /**
@@ -1527,9 +1534,11 @@ T2RConsole.error = function (message) {
  *
  * @param {string} message
  *   A message.
+ * @param {*} args
+ *   Data, if any.
  */
-T2RConsole.warn = function (message) {
-  console.warn(message);
+T2RConsole.warn = function (message, args) {
+  console.warn(message, args);
 };
 
 /**

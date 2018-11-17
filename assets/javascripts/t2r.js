@@ -1,221 +1,6 @@
 'use strict';
 
 /**
- * Toggl to Redmine time duration.
- *
- * @param {string}
- *   A duration as hh:mm or seconds.
- */
-var T2RDuration = function (duration = null) {
-
-  // Number of hours in the duration.
-  this.__hours = 0;
-
-  // Number of minutes in the duration.
-  this.__minutes = 0;
-
-  // Number of seconds in the duration.
-  this.__seconds = 0;
-
-  // Pass arguments to the constructor.
-  if (arguments.length > 0) {
-    this.setValue(duration);
-  }
-
-  return this;
-
-};
-
-/**
- * Duration constructor.
- *
- * @param {string} duration
- *   A duration as seconds or hours and minutes.
- *
- * @see T2RDuration.setHHMM()
- */
-T2RDuration.prototype.setValue = function(duration) {
-  // Seconds as an integer.
-  if ('number' === typeof duration) {
-    this.setSeconds(duration);
-  }
-  // Seconds as a string.
-  else if ('string' === typeof duration && duration.match(/^\d+$/)) {
-    this.setSeconds(duration);
-  }
-  // Not a valid format, throw error.
-  else {
-    try {
-      this.setHHMM(duration);
-    } catch (e) {
-      throw 'Error: "' + duration + '" is not a number or an hh:mm string.';
-    }
-  }
-};
-
-/**
- * Sets duration from seconds.
- *
- * @param {integer} seconds
- */
-T2RDuration.prototype.setSeconds = function (seconds) {
-  // Set duration form seconds.
-  seconds += '';
-  if (!seconds.match(/^\d+$/)) {
-    throw 'Error: ' + seconds + ' is not a valid number.';
-  }
-  this.__seconds = parseInt(seconds);
-  this.__minutes = Math.ceil(this.__seconds / 60);
-  this.__hours = Math.floor(this.__minutes / 60);
-  this.__minutes = this.__minutes % 60;
-};
-
-/**
- * Gets duration as seconds.
- *
- * @return {integer}
- *   Duration in seconds.
- */
-T2RDuration.prototype.getSeconds = function () {
-  return this.__seconds;
-};
-
-/**
- * Sets duration from hours and minutes.
- *
- * Supported formats:
- *   - 2 = 2h 00m
- *   - 2:30 = 2h 30m
- *   - :5 = 0h 5m
- *   - :30 = 0h 30m
- *   - 2.50 = 2h 30m
- *   - .5 = 0h 30m
- *
- * @param {string} hhmm
- */
-T2RDuration.prototype.setHHMM = function (hhmm) {
-  var parts = null;
-
-  // Parse hh only. Ex: 2 = 2h 00m.
-  var pattern = /^(\d{0,2})$/;
-  if (hhmm.match(pattern)) {
-    var parts = hhmm.match(pattern).slice(-1);
-    parts.push('00');
-  }
-
-  // Parse hh:mm as decimal. Ex: 2:30 = 2h 30m.
-  var pattern = /^(\d{0,2}):(\d{0,2})$/;
-  if (hhmm.match(pattern)) {
-    parts = hhmm.match(pattern).slice(-2);
-    // Minutes must have 2 digits.
-    if (parts[1].length < 2) {
-      parts = null;
-    }
-    // Minutes cannot exceed 59 in this format.
-    if (parts[1] > 59) {
-      parts = null;
-    }
-  }
-
-  // Parse hh.mm as decimal. Ex: 2.5 = 2h 30m.
-  var pattern = /^(\d{0,2})\.(\d{0,2})$/;
-  if (!parts && hhmm.match(pattern)) {
-    parts = hhmm.match(pattern).slice(-2);
-    // Compute minutes.
-    parts[1] = (60 * parts[1]) / Math.pow(10, parts[1].length);
-    parts[1] = Math.round(parts[1]);
-  }
-
-  // No pattern matched? Throw error.
-  if (!parts || parts.length !== 2) {
-    throw 'Error: ' + hhmm + ' is not in hh:mm format.';
-  }
-
-  // Validate hours and minutes.
-  parts[0] = (parts[0].length == 0) ? 0 : parseInt(parts[0]);
-  parts[1] = (parts[1].length == 0) ? 0 : parseInt(parts[1]);
-  if (isNaN(parts[0]) || isNaN(parts[1])) {
-    throw 'Error: ' + hhmm + ' is not in hh:mm format.';
-  }
-
-  // Convert time to seconds and set the number of seconds.
-  var secs = parts[0] * 60 * 60 + parts[1] * 60;
-  this.setSeconds(secs);
-};
-
-/**
- * Gets the "hours" part of the duration.
- *
- * @param {boolean} force2
- *   Whether to force 2 digits.
- *
- * @return {integer|string}
- *   Hours in the duration.
- */
-T2RDuration.prototype.getHours = function (force2) {
-  force2 = force2 || false;
-  var output = this.__hours;
-  if (force2) {
-    output = ('00' + output).substr(-2);
-  }
-  return output;
-};
-
-/**
- * Gets the "minutes" part of the duration.
- *
- * @param {boolean} force2
- *   Whether to force 2 digits.
- *
- * @return {integer|string}
- *   Minutes in the duration.
- */
-T2RDuration.prototype.getMinutes = function (force2) {
-  force2 = force2 || false;
-  var output = this.__minutes;
-  if (force2) {
-    output = ('00' + output).substr(-2);
-  }
-  return output;
-};
-
-/**
- * Gets the duration as hours and minutes.
- *
- * @return string
- *   Time in hh:mm format.
- */
-T2RDuration.prototype.asHHMM = function () {
-  return this.getHours(true) + ':' + this.getMinutes(true);
-};
-
-/**
- * Add a duration.
- *
- * @param {*} duration
- */
-T2RDuration.prototype.add = function (duration) {
-  var oDuration = ('object' === typeof duration)
-    ? duration : new T2RDuration(duration);
-  var seconds = this.getSeconds() + oDuration.getSeconds();
-  this.setSeconds(seconds);
-};
-
-/**
- * Subtract a duration.
- *
- * @param {*} duration
- */
-T2RDuration.prototype.sub = function (duration) {
-  var oDuration = ('object' === typeof duration)
-    ? duration : new T2RDuration(duration);
-  var seconds = this.getSeconds() - oDuration.getSeconds();
-  // Duration cannot be negative.
-  seconds = (seconds >= 0) ? seconds : 0;
-  this.setSeconds(seconds);
-};
-
-/**
  * Toggl 2 Redmine Helper.
  */
 var T2R = T2R || {};
@@ -1309,6 +1094,221 @@ T2R.redmineIssueURL = function (id) {
     output = T2R.REDMINE_URL + '/issues/' + id;
   }
   return output;
+};
+
+/**
+ * Toggl to Redmine time duration.
+ *
+ * @param {string}
+ *   A duration as hh:mm or seconds.
+ */
+var T2RDuration = function (duration = null) {
+
+  // Number of hours in the duration.
+  this.__hours = 0;
+
+  // Number of minutes in the duration.
+  this.__minutes = 0;
+
+  // Number of seconds in the duration.
+  this.__seconds = 0;
+
+  // Pass arguments to the constructor.
+  if (arguments.length > 0) {
+    this.setValue(duration);
+  }
+
+  return this;
+
+};
+
+/**
+ * Duration constructor.
+ *
+ * @param {string} duration
+ *   A duration as seconds or hours and minutes.
+ *
+ * @see T2RDuration.setHHMM()
+ */
+T2RDuration.prototype.setValue = function(duration) {
+  // Seconds as an integer.
+  if ('number' === typeof duration) {
+    this.setSeconds(duration);
+  }
+  // Seconds as a string.
+  else if ('string' === typeof duration && duration.match(/^\d+$/)) {
+    this.setSeconds(duration);
+  }
+  // Not a valid format, throw error.
+  else {
+    try {
+      this.setHHMM(duration);
+    } catch (e) {
+      throw 'Error: "' + duration + '" is not a number or an hh:mm string.';
+    }
+  }
+};
+
+/**
+ * Sets duration from seconds.
+ *
+ * @param {integer} seconds
+ */
+T2RDuration.prototype.setSeconds = function (seconds) {
+  // Set duration form seconds.
+  seconds += '';
+  if (!seconds.match(/^\d+$/)) {
+    throw 'Error: ' + seconds + ' is not a valid number.';
+  }
+  this.__seconds = parseInt(seconds);
+  this.__minutes = Math.ceil(this.__seconds / 60);
+  this.__hours = Math.floor(this.__minutes / 60);
+  this.__minutes = this.__minutes % 60;
+};
+
+/**
+ * Gets duration as seconds.
+ *
+ * @return {integer}
+ *   Duration in seconds.
+ */
+T2RDuration.prototype.getSeconds = function () {
+  return this.__seconds;
+};
+
+/**
+ * Sets duration from hours and minutes.
+ *
+ * Supported formats:
+ *   - 2 = 2h 00m
+ *   - 2:30 = 2h 30m
+ *   - :5 = 0h 5m
+ *   - :30 = 0h 30m
+ *   - 2.50 = 2h 30m
+ *   - .5 = 0h 30m
+ *
+ * @param {string} hhmm
+ */
+T2RDuration.prototype.setHHMM = function (hhmm) {
+  var parts = null;
+
+  // Parse hh only. Ex: 2 = 2h 00m.
+  var pattern = /^(\d{0,2})$/;
+  if (hhmm.match(pattern)) {
+    var parts = hhmm.match(pattern).slice(-1);
+    parts.push('00');
+  }
+
+  // Parse hh:mm as decimal. Ex: 2:30 = 2h 30m.
+  var pattern = /^(\d{0,2}):(\d{0,2})$/;
+  if (hhmm.match(pattern)) {
+    parts = hhmm.match(pattern).slice(-2);
+    // Minutes must have 2 digits.
+    if (parts[1].length < 2) {
+      parts = null;
+    }
+    // Minutes cannot exceed 59 in this format.
+    if (parts[1] > 59) {
+      parts = null;
+    }
+  }
+
+  // Parse hh.mm as decimal. Ex: 2.5 = 2h 30m.
+  var pattern = /^(\d{0,2})\.(\d{0,2})$/;
+  if (!parts && hhmm.match(pattern)) {
+    parts = hhmm.match(pattern).slice(-2);
+    // Compute minutes.
+    parts[1] = (60 * parts[1]) / Math.pow(10, parts[1].length);
+    parts[1] = Math.round(parts[1]);
+  }
+
+  // No pattern matched? Throw error.
+  if (!parts || parts.length !== 2) {
+    throw 'Error: ' + hhmm + ' is not in hh:mm format.';
+  }
+
+  // Validate hours and minutes.
+  parts[0] = (parts[0].length == 0) ? 0 : parseInt(parts[0]);
+  parts[1] = (parts[1].length == 0) ? 0 : parseInt(parts[1]);
+  if (isNaN(parts[0]) || isNaN(parts[1])) {
+    throw 'Error: ' + hhmm + ' is not in hh:mm format.';
+  }
+
+  // Convert time to seconds and set the number of seconds.
+  var secs = parts[0] * 60 * 60 + parts[1] * 60;
+  this.setSeconds(secs);
+};
+
+/**
+ * Gets the "hours" part of the duration.
+ *
+ * @param {boolean} force2
+ *   Whether to force 2 digits.
+ *
+ * @return {integer|string}
+ *   Hours in the duration.
+ */
+T2RDuration.prototype.getHours = function (force2) {
+  force2 = force2 || false;
+  var output = this.__hours;
+  if (force2) {
+    output = ('00' + output).substr(-2);
+  }
+  return output;
+};
+
+/**
+ * Gets the "minutes" part of the duration.
+ *
+ * @param {boolean} force2
+ *   Whether to force 2 digits.
+ *
+ * @return {integer|string}
+ *   Minutes in the duration.
+ */
+T2RDuration.prototype.getMinutes = function (force2) {
+  force2 = force2 || false;
+  var output = this.__minutes;
+  if (force2) {
+    output = ('00' + output).substr(-2);
+  }
+  return output;
+};
+
+/**
+ * Gets the duration as hours and minutes.
+ *
+ * @return string
+ *   Time in hh:mm format.
+ */
+T2RDuration.prototype.asHHMM = function () {
+  return this.getHours(true) + ':' + this.getMinutes(true);
+};
+
+/**
+ * Add a duration.
+ *
+ * @param {*} duration
+ */
+T2RDuration.prototype.add = function (duration) {
+  var oDuration = ('object' === typeof duration)
+    ? duration : new T2RDuration(duration);
+  var seconds = this.getSeconds() + oDuration.getSeconds();
+  this.setSeconds(seconds);
+};
+
+/**
+ * Subtract a duration.
+ *
+ * @param {*} duration
+ */
+T2RDuration.prototype.sub = function (duration) {
+  var oDuration = ('object' === typeof duration)
+    ? duration : new T2RDuration(duration);
+  var seconds = this.getSeconds() - oDuration.getSeconds();
+  // Duration cannot be negative.
+  seconds = (seconds >= 0) ? seconds : 0;
+  this.setSeconds(seconds);
 };
 
 /**

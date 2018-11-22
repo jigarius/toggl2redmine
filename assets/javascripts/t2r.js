@@ -1166,7 +1166,7 @@ T2RDuration.prototype.setSeconds = function (seconds) {
     throw 'Error: ' + seconds + ' is not a valid number.';
   }
   this.__seconds = parseInt(seconds);
-  this.__minutes = Math.ceil(this.__seconds / 60);
+  this.__minutes = Math.round(this.__seconds / 60);
   this.__hours = Math.floor(this.__minutes / 60);
   this.__minutes = this.__minutes % 60;
 };

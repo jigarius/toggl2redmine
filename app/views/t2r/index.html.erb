@@ -47,7 +47,7 @@
 </form>
 
 <div id="redmine-report-container">
-  <h3>Time logged on <a href="<%= @redmine_url %>/time_entries/report?utf8=✓&criteria[]=user&criteria[]=project&criteria[]=issue&set_filter=1&sort=spent_on:desc&f[]=spent_on&op[spent_on]=><t-&v[spent_on][]=7&f[]=user_id&op[user_id]==&v[user_id][]=me&f[]=&c[]=project&c[]=spent_on&c[]=user&c[]=activity&c[]=issue&c[]=comments&c[]=hours&group_by=&t[]=hours&t[]=&columns=day" target="_blank">Redmine</a></h3>
+  <h3>Time logged on <a href="<%= @redmine_url %>/time_entries/report" id="redmine-report-url" target="_blank">Redmine</a></h3>
   <table id="redmine-report" class="list odd-even t2r-table">
     <thead>
       <tr>
@@ -75,7 +75,7 @@
 </div>
 
 <form id="publish-form">
-  <h3>Time logged on <a href="https://toggl.com/app/timer" target="_blank">Toggl</a></h3>
+  <h3>Time logged on <a href="https://toggl.com/app/timer" id="toggl-report-url" target="_blank">Toggl</a></h3>
   <table id="toggl-report" class="list odd-even t2r-table">
     <thead>
       <tr>
@@ -115,6 +115,8 @@
   <script>
     T2R.REDMINE_API_KEY = '<%= @redmine_api_key %>';
     T2R.TOGGL_API_KEY = '<%= @toggl_api_key %>';
+    T2R.TOGGL_REPORT_URL_FORMAT = 'https://www.toggl.com/app/reports/summary/[workspace]/from/[date-from]/to/[date-till]';
+    T2R.REDMINE_REPORT_URL_FORMAT = '<%= @redmine_url %>/time_entries/report?utf8=✓&criteria[]=user&criteria[]=project&criteria[]=issue&set_filter=1&sort=spent_on[]:desc&f[]=spent_on&op[spent_on]=%3D&v[spent_on][]=[@date]&f[]=user_id&op[user_id]=%3D&v[user_id][]=me&f[]=&c[]=project&c[]=spent_on&c[]=user&c[]=activity&c[]=issue&c[]=comments&c[]=hours&group_by=spent_on&t[]=hours&t[]=&columns=day';
   </script>
 <% end %>
 

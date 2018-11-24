@@ -65,21 +65,17 @@ T2R.initialize = function () {
  *   Stored value if found.
  */
 T2R.storage = function (key, value) {
-  var output = null;
-
   // Set data.
   if (2 === arguments.length) {
+    value = (undefined === value) ? null : value;
     T2R.storageData[key] = value;
-    output = value;
+    return value;
   }
   // Get data.
   else {
-    if ('undefined' !== typeof T2R.storageData[key]) {
-      output = T2R.storageData[key];
-    }
+    return ('undefined' !== typeof T2R.storageData[key])
+      ? T2R.storageData[key] : null;
   }
-
-  return output;
 };
 
 /**
@@ -96,8 +92,14 @@ T2R.storage = function (key, value) {
  */
 T2R.browserStorage = function (key, value) {
   if (2 === arguments.length) {
-    if ('undefined' !== window.localStorage) {
-      window.localStorage.setItem(key, value);
+    value = (undefined === value) ? null : value;
+    if (undefined !== window.localStorage) {
+      if (null === value) {
+        window.localStorage.removeItem(key)
+      }
+      else {
+        window.localStorage.setItem(key, value);
+      }
     }
     return value;
   }
@@ -315,7 +317,10 @@ T2R.resetFilterForm = function (data) {
       // Populate default value, if set.
       switch (name) {
         case 'default-activity':
-          $field.data('selected', data[name]);
+        case 'toggl-workspace':
+          $field
+            .data('selected', data[name])
+            .val(data[name]);
           break;
 
         default:
@@ -336,12 +341,18 @@ T2R.resetFilterForm = function (data) {
 T2R.handleFilterForm = function() {
   // Determine default activity.
   var $defaultActivity = $('select#default-activity');
-  var defaultActivity = $defaultActivity.val() || $defaultActivity.data('selected');
+  var defaultActivity = $defaultActivity.val();
+  if (undefined === defaultActivity) {
+    defaultActivity = $defaultActivity.data('selected');
+  }
   T2R.browserStorage('t2r.default-activity', defaultActivity);
 
   // Determine toggl workspace.
   var $togglWorkspace = $('select#toggl-workspace');
-  var togglWorkspace = $togglWorkspace.val() || $togglWorkspace.data('selected');
+  var togglWorkspace = $togglWorkspace.val();
+  if (undefined === togglWorkspace) {
+    togglWorksapce = $togglWokspace.data('selected');
+  }
   T2R.browserStorage('t2r.toggl-workspace', togglWorkspace);
 
   // Determine rounding value.
@@ -1644,7 +1655,7 @@ T2RWidget.initRedmineActivityDropdown = function (el) {
     // Mark selection.
     var value = $el.data('selected');
     if ('undefined' !== typeof value) {
-      $el.val(value);
+      $el.val(value).data('selected', null);
     }
   });
 };
@@ -1673,7 +1684,7 @@ T2RWidget.initTogglWorkspaceDropdown = function (el) {
     // Mark selection.
     var value = $el.data('selected');
     if ('undefined' !== typeof value) {
-      $el.val(value);
+      $el.val(value).data('selected', null);
     }
   });
 };

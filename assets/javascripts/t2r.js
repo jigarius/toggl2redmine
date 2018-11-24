@@ -44,6 +44,7 @@ T2R.storageData = {};
  * This is where it starts.
  */
 T2R.initialize = function () {
+  T2RConsole.initialize();
   T2RWidget.initialize();
   T2R.initTogglReport();
   T2R.initFilterForm();
@@ -668,6 +669,8 @@ T2R.getTogglTimeEntries = function (opts, callback) {
 
     for (var key in entries) {
       var entry = entries[key];
+      T2RConsole.group(key, true);
+      T2RConsole.log('Toggl time entry: ', entry);
 
       // Prepare error messages for the record.
       entry.errors = entry.errors || [];
@@ -679,6 +682,7 @@ T2R.getTogglTimeEntries = function (opts, callback) {
       entry.roundedDuration = new T2RDuration(entry.duration.getSeconds());
       if (roundingDirection !== '' && roundingValue > 0) {
         entry.roundedDuration.roundTo(roundingValue, roundingDirection);
+        T2RConsole.log('Duration rounded from ' + entry.duration.asHHMM() + ' to ' + entry.roundedDuration.asHHMM());
       }
 
       // If there is no issue ID associated to the entry.
@@ -693,6 +697,7 @@ T2R.getTogglTimeEntries = function (opts, callback) {
 
       // Include the entry in the output.
       output.push(entry);
+      T2RConsole.groupEnd();
     }
 
     callback(output);
@@ -1618,12 +1623,63 @@ T2RWidget.initDurationRoundingDirection = function (el) {
 var T2RConsole = {};
 
 /**
- * Whether to show debugging messages.
+ * Enable or disable verbose mode.
+ *
+ * @type {boolean} status
+ *   True to enable or false to disable.
  */
-T2RConsole.debug = false;
+T2RConsole.setVerboseMode = function (status) {
+  T2R.browserStorage('t2r.debug', status == true);
+};
 
 /**
- * Logs a debugging message.
+ * Enable or disable verbose mode.
+ *
+ * @return {boolean}
+ *   True if enabled, false otherwise.
+ */
+T2RConsole.getVerboseMode = function () {
+  return T2R.browserStorage('t2r.debug' || false);
+};
+
+/**
+ * Initializes T2RConsole.
+ */
+T2RConsole.initialize = function () {
+  if (T2RConsole.getVerboseMode()) {
+    console.log('Verbose logging is enabled for the Toggl 2 Redmine plugin.');
+  }
+  console.log('Use "T2RConsole.setVerboseMode()" to enable / disable verbose logging.');
+};
+
+/**
+ * Equivalent to console.clear().
+ */
+T2RConsole.clear = function () {
+  console.clear();
+}
+
+/**
+ * Equivalent to console.group().
+ */
+T2RConsole.group = function (label, collapsed) {
+  collapsed = collapsed || false;
+  if (T2RConsole.getVerboseMode()) {
+    collapsed ? console.groupCollapsed(label) : console.group(label);
+  }
+};
+
+/**
+ * Equivalent to console.groupEnd().
+ */
+T2RConsole.groupEnd = function () {
+  if (T2RConsole.getVerboseMode()) {
+    console.groupEnd();
+  }
+};
+
+/**
+ * Equivalent to console.log().
  *
  * @param {string} message
  *   A message.
@@ -1631,13 +1687,13 @@ T2RConsole.debug = false;
  *   Data, if any.
  */
 T2RConsole.log = function (message, args) {
-  if (this.debug) {
+  if (T2RConsole.getVerboseMode()) {
     console.log(message, args);
   }
 };
 
 /**
- * Logs an error message.
+ * Equivalent to console.error().
  *
  * @param {string} message
  *   A message.
@@ -1649,7 +1705,7 @@ T2RConsole.error = function (message, args) {
 };
 
 /**
- * Logs a warning message.
+ * Equivalent to console.warn().
  *
  * @param {string} message
  *   A message.

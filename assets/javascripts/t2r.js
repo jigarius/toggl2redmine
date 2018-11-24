@@ -253,7 +253,7 @@ T2R.initFilterForm = function () {
 
   // Initialize apply filters button.
   $form.find('#btn-apply-filters').click(function () {
-    $form.submit();
+    T2R.handleFilterForm();
     return false;
   });
 
@@ -267,7 +267,10 @@ T2R.initFilterForm = function () {
   $form.find('[title]').tooltip();
 
   // Handle filter form submission.
-  $form.submit(T2R.handleFilterForm);
+  $form.submit(function (e) {
+    e.preventDefault();
+    T2R.handleFilterForm();
+  });
 
   // Hide workspace filter if there is only one Toggl workspace.
   var $workspace = $form.find('#toggl-workspace');
@@ -276,56 +279,105 @@ T2R.initFilterForm = function () {
   }
 
   // Reset the form to set default values.
-  T2R.resetFilterForm();
+  var data = {
+    date: T2R.getDateFromLocationHash()
+  };
+  T2R.resetFilterForm(data);
 };
 
 /**
  * Filter form resetter.
+ *
+ * @param {object} data
+ *   Default values to populate.
  */
-T2R.resetFilterForm = function () {
-  var $form = $('#filter-form');
+T2R.resetFilterForm = function (data) {
+  data = data || {};
 
-  // Mark all inputs as empty.
-  $form.find(':input').val('');
+  // Default values.
+  var defaults = {
+    date: T2R.dateFormatYYYYMMDD().substr(0, 10),
+    'toggl-workspace': T2R.browserStorage('t2r.toggl-workspace'),
+    'default-activity': T2R.browserStorage('t2r.default-activity'),
+    'rounding-value': T2R.browserStorage('t2r.rounding-value'),
+    'rounding-direction': T2R.browserStorage('t2r.rounding-direction')
+  };
 
-  // Populate current date on date fields.
-  $form.find('#date').each(function() {
-    var date = T2R.dateFormatYYYYMMDD();
-    this.value = date.substr(0, 10);
-  });
+  // Merge with defaults.
+  for (var name in defaults) {
+    var value = data[name];
+    if (undefined === value || '' === value || false === value) {
+      data[name] = defaults[name];
+    }
+  }
 
-  // Populate default activity from browser storage.
-  $form.find('#default-activity').val(T2R.browserStorage('t2r.default-activity'));
+  T2RConsole.log('Filter form reset: ', data);
 
-  // Populate rounding rules.
-  $form.find('#rounding-value').val(T2R.browserStorage('t2r.rounding-value'));
-  $form.find('#rounding-direction').val(T2R.browserStorage('t2r.rounding-direction') || '');
+  // Initialize all form inputs.
+  T2R.getFilterForm().find(':input')
+    .each(function () {
+      var $field = $(this).val('');
+      var name = $field.attr('name');
+      // Populate default value, if set.
+      switch (name) {
+        case 'default-activity':
+          $field.data('selected', data[name]);
+          break;
 
-  $form.submit();
+        default:
+          if ('undefined' !== typeof data[name]) {
+            $field.val(data[name]);
+          }
+          break;
+      }
+    });
+
+  // Submit the filter form to update the reports.
+  T2R.handleFilterForm();
 };
 
 /**
  * Filter form submission handler.
  */
 T2R.handleFilterForm = function() {
-  T2R.storage('date', $('input#date').val());
-  T2R.storage('default-activity', $('select#default-activity').val());
-  T2R.storage('toggl-workspace', $('select#toggl-workspace').val());
+  // Determine default activity.
+  var $defaultActivity = $('select#default-activity');
+  var defaultActivity = $defaultActivity.val() || $defaultActivity.data('selected');
+  T2R.browserStorage('t2r.default-activity', defaultActivity);
 
-  // Store rounding rules.
+  // Determine toggl workspace.
+  var $togglWorkspace = $('select#toggl-workspace');
+  var togglWorkspace = $togglWorkspace.val() || $togglWorkspace.data('selected');
+  T2R.browserStorage('t2r.toggl-workspace', togglWorkspace);
+
+  // Determine rounding value.
   var roundingValue = $('input#rounding-value').val() || 0;
   roundingValue = parseInt(roundingValue);
   roundingValue = isNaN(roundingValue) ? 0 : roundingValue;
   T2R.browserStorage('t2r.rounding-value', roundingValue);
+
+  // Determine rounding direction.
   var roundingDirection = $('select#rounding-direction').val();
   T2R.browserStorage('t2r.rounding-direction', roundingDirection);
 
-  // Store default activity to browser storage.
-  T2R.browserStorage('t2r.default-activity', T2R.storage('default-activity'));
+  // Determine date filter.
+  var $date = $('#date');
+  var sDate = $date.val();
+  try {
+    if (!sDate) {
+      throw 'Invalid date.';
+    }
+    var oDate = T2R.dateStringToObject(sDate + ' 00:00:00');
+  } catch (e) {
+    $date.focus();
+    return false;
+  }
+
+  // Store date and update URL hash.
+  T2R.storage('date', sDate);
+  window.location.hash = T2R.storage('date');
 
   // Show date in the headings.
-  var sDate = T2R.storage('date');
-  var oDate = T2R.dateStringToObject(sDate + ' 00:00:00');
   $('h2 .date').html('(' + oDate.toLocaleDateString() + ')');
 
   // Update both the Redmine and Toggl reports.
@@ -336,8 +388,6 @@ T2R.handleFilterForm = function() {
 
   // Unlock the publish form if it was previously locked.
   T2R.unlockPublishForm();
-
-  return false;
 };
 
 /**
@@ -374,6 +424,18 @@ T2R.handlePublishForm = function() {
   }
   return false;
 };
+
+/**
+ * Gets date from window.location.hash.
+ */
+T2R.getDateFromLocationHash = function () {
+  var output = window.location.hash.match(/^#?([\d]{4}-[\d]{2}-[\d]{2})$/);
+  // Must be a valid date.
+  if (!T2R.dateStringToObject(output)) {
+    output = false;
+  }
+  return output ? output.pop() : false;
+}
 
 /**
  * Publishes selected Toggl data to Redmine.
@@ -1578,7 +1640,7 @@ T2RWidget.initRedmineActivityDropdown = function (el) {
     $el.append($select.find('option'));
 
     // Mark selection.
-    var value = $el.attr('data-selected');
+    var value = $el.data('selected');
     if ('undefined' !== typeof value) {
       $el.val(value);
     }
@@ -1604,7 +1666,7 @@ T2RWidget.initTogglWorkspaceDropdown = function (el) {
   $el.html(options.join(''));
 
   // Mark selection.
-  var value = $el.attr('data-selected');
+  var value = $el.data('selected');
   if ('undefined' !== typeof value) {
     $el.val(value);
   }

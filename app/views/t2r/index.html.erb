@@ -11,7 +11,7 @@
               <label for="default-activity">Default Activity</label>
             </td>
             <td class="values">
-              <select id="default-activity" data-t2r-widget="RedmineActivityDropdown" placeholder="-" class="value" title="This activity will be applied to all time entries by default. You will still be able the activity for individual items before importing."></select>
+              <select id="default-activity" name="default-activity" data-t2r-widget="RedmineActivityDropdown" placeholder="-" class="value" title="This activity will be applied to all time entries by default. You will still be able the activity for individual items before importing."></select>
             </td>
           </tr>
           <tr class="filter">
@@ -19,7 +19,7 @@
               <label for="toggl-workspace">Toggl Workspace</label>
             </td>
             <td class="values">
-              <select id="toggl-workspace" data-t2r-widget="TogglWorkspaceDropdown" placeholder="-" class="value" title="Choose a Toggl workspace or leave blank to use all workspaces. If you don't use separate workspaces in Toggl, you can ignore this field."></select>
+              <select id="toggl-workspace" name="toggl-workspace" data-t2r-widget="TogglWorkspaceDropdown" placeholder="-" class="value" title="Choose a Toggl workspace or leave blank to use all workspaces. If you don't use separate workspaces in Toggl, you can ignore this field."></select>
             </td>
           </tr>
           <tr class="filter">
@@ -27,7 +27,7 @@
               <label for="date">Date<span class="required"> *</span></label>
             </td>
             <td class="values">
-              <input id="date" type="date" required="required" autofocus="autofocus" class="value date_value" title="Choose the date for which you want to import time entries into Redmine. Make sure your timezone is set correctly for your Redmine and Toggl accounts." />
+              <input id="date" name="date" type="date" required="required" autofocus="autofocus" class="value date_value" title="Choose the date for which you want to import time entries into Redmine. Make sure your timezone is set correctly for your Redmine and Toggl accounts." />
               <span class="date_suffix last-imported">
                 <span class="label">Last imported on</span>
                 <span class="value" id="last-imported">&nbsp;</span>
@@ -40,9 +40,9 @@
               <label for="rounding">Duration rounding</label>
             </td>
             <td class="values">
-              <select id="rounding-direction" class="value" data-t2r-widget="DurationRoundingDirection" title="Choose the logic to be used for rounding Toggl durations."></select>
+              <select id="rounding-direction" name="rounding-direction" class="value" data-t2r-widget="DurationRoundingDirection" title="Choose the logic to be used for rounding Toggl durations."></select>
               <span class="rounding-text">&nbsp;|&nbsp;</span>
-              <input id="rounding-value" class="value" type="number" min="0" max="30" step="5" title="All time entries from Toggl will automatically be rounded to this number of minutes." />
+              <input id="rounding-value" name="rounding-value" class="value" type="number" min="0" max="30" step="5" title="All time entries from Toggl will automatically be rounded to this number of minutes." />
               <span class="rounding-text">minutes</span>
             </td>
           </tr>

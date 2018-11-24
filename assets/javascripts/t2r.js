@@ -296,6 +296,10 @@ T2R.resetFilterForm = function () {
   // Populate default activity from browser storage.
   $form.find('#default-activity').val(T2R.browserStorage('t2r.default-activity'));
 
+  // Populate rounding rules.
+  $form.find('#rounding-value').val(T2R.browserStorage('t2r.rounding-value'));
+  $form.find('#rounding-direction').val(T2R.browserStorage('t2r.rounding-direction') || '');
+
   $form.submit();
 };
 
@@ -306,6 +310,14 @@ T2R.handleFilterForm = function() {
   T2R.storage('date', $('input#date').val());
   T2R.storage('default-activity', $('select#default-activity').val());
   T2R.storage('toggl-workspace', $('select#toggl-workspace').val());
+
+  // Store rounding rules.
+  var roundingValue = $('input#rounding-value').val() || 0;
+  roundingValue = parseInt(roundingValue);
+  roundingValue = isNaN(roundingValue) ? 0 : roundingValue;
+  T2R.browserStorage('t2r.rounding-value', roundingValue);
+  var roundingDirection = $('select#rounding-direction').val();
+  T2R.browserStorage('t2r.rounding-direction', roundingDirection);
 
   // Store default activity to browser storage.
   T2R.browserStorage('t2r.default-activity', T2R.storage('default-activity'));
@@ -649,9 +661,25 @@ T2R.getTogglTimeEntries = function (opts, callback) {
 
   T2R._getRawTogglTimeEntries(opts, function (entries) {
     var output = [];
+
+    // Prepare rounding rules.
+    var roundingValue = T2R.browserStorage('t2r.rounding-value');
+    var roundingDirection = T2R.browserStorage('t2r.rounding-direction');
+
     for (var key in entries) {
       var entry = entries[key];
+
+      // Prepare error messages for the record.
       entry.errors = entry.errors || [];
+
+      // Prepare "duration" object.
+      entry.duration = new T2RDuration(entry.duration);
+
+      // Prepare rounded duration as per rounding rules.
+      entry.roundedDuration = new T2RDuration(entry.duration.getSeconds());
+      if (roundingDirection !== '' && roundingValue > 0) {
+        entry.roundedDuration.roundTo(roundingValue, roundingDirection);
+      }
 
       // If there is no issue ID associated to the entry.
       if (!entry.issue_id) {
@@ -1128,7 +1156,28 @@ var T2RDuration = function (duration = null) {
 };
 
 /**
- * Duration constructor.
+ * Round up.
+ *
+ * @type {string}
+ */
+T2RDuration.ROUND_UP = 'U';
+
+/**
+ * Round down.
+ *
+ * @type {string}
+ */
+T2RDuration.ROUND_DOWN = 'D';
+
+/**
+ * Round regular.
+ *
+ * @type {string}
+ */
+T2RDuration.ROUND_REGULAR = 'R';
+
+/**
+ * Set a value for the duration.
  *
  * @param {string} duration
  *   A duration as seconds or hours and minutes.
@@ -1144,7 +1193,7 @@ T2RDuration.prototype.setValue = function(duration) {
   else if ('string' === typeof duration && duration.match(/^\d+$/)) {
     this.setSeconds(duration);
   }
-  // Not a valid format, throw error.
+  // Something else?
   else {
     try {
       this.setHHMM(duration);
@@ -1314,6 +1363,58 @@ T2RDuration.prototype.sub = function (duration) {
   // Duration cannot be negative.
   seconds = (seconds >= 0) ? seconds : 0;
   this.setSeconds(seconds);
+};
+
+/**
+ * Rounds to the nearest minutes.
+ *
+ * @param {*} minutes
+ *   Number of minutes to round to. Ex: 5, 10 or 15.
+ * @param {string} direction
+ *   One of T2R.ROUND_* constants.
+ */
+T2RDuration.prototype.roundTo = function (minutes, direction) {
+  // Determine the rounding value.
+  minutes = 'undefined' === typeof minutes ? 0 : minutes;
+  minutes = parseInt(minutes);
+  minutes = isNaN(minutes) ? 0 : minutes;
+
+  // Do nothing if rounding value is zero.
+  if (0 === minutes) {
+    return;
+  }
+
+  // Compute the rounding value as seconds.
+  var seconds = minutes * 60;
+
+  // Do nothing if already rounded.
+  var correction = this.getSeconds() % seconds;
+  if (correction === 0) {
+    return;
+  }
+
+  // Round according to rounding direction.
+  switch (direction) {
+    case T2RDuration.ROUND_REGULAR:
+      if (correction >= seconds / 2) {
+        this.roundTo(minutes, T2RDuration.ROUND_UP);
+      }
+      else {
+        this.roundTo(minutes, T2RDuration.ROUND_DOWN);
+      }
+      break;
+
+      case T2RDuration.ROUND_UP:
+      this.add(seconds - correction);
+      break;
+
+     case T2RDuration.ROUND_DOWN:
+      this.sub(correction);
+      break;
+
+     default:
+      throw 'Invalid rounding direction. Please use one of T2RDuration.ROUND_*.';
+  }
 };
 
 /**
@@ -1493,6 +1594,24 @@ T2RWidget.initTogglWorkspaceDropdown = function (el) {
   }
 };
 
+T2RWidget.initDurationRoundingDirection = function (el) {
+  var $el = $(el);
+
+  // Prepare rounding options.
+  var options = {};
+  options[T2RDuration.ROUND_REGULAR] = 'Round off';
+  options[T2RDuration.ROUND_UP] = 'Round up';
+  options[T2RDuration.ROUND_DOWN] = 'Round down';
+
+  // Generate a SELECT element and use it's options.
+  var $select = T2RRenderer.render('Dropdown', {
+    placeholder: 'Don\'t round',
+    options: options
+  });
+
+  $el.append($select.find('option'));
+};
+
 /**
  * Toggl 2 Redmine Logger.
  */
@@ -1558,7 +1677,7 @@ T2RRenderer.renderDropdown = function (data) {
     var label = data.options[value];
     $el.append('<option value="' + value + '">' + label + '</option>');
   }
-  return $('<div />').append($el).html();
+  return $el;
 };
 
 T2RRenderer.renderDuration = function (data) {
@@ -1590,7 +1709,8 @@ T2RRenderer.renderTogglRow = function (data) {
   var issue = data.issue || false;
   var project = data.project || false;
   var issueUrl = issue ? T2R.redmineIssueURL(issue.id) : '#';
-  var duration = new T2RDuration(data.duration);
+  var oDuration = data.duration;
+  var rDuration = data.roundedDuration;
 
   // Build a label for the issue.
   var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : false;
@@ -1613,7 +1733,7 @@ T2RRenderer.renderTogglRow = function (data) {
       + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.storage('default-activity') + '"></select>'
     + '</td>'
     + '<td class="hours">'
-      + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Example: 1:50 means 1 hour 50 minutes. Press \'Up\' or \'Down\' to round to the nearest 5 minutes. Combine with \'Shift\' to round to the nearest 15 minutes." value="' + duration.asHHMM() + '" size="6" maxlength="5" />'
+      + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Original value as on Toggl is ' + oDuration.asHHMM() + '.\n\nFormatting: 1:50 means 1 hour 50 minutes. Press \'Up\' or \'Down\' to round the nearest 5 minutes. Combine with \'Shift\' to round to the nearest 15 minutes." value="' + rDuration.asHHMM() + '" size="6" maxlength="5" />'
     + '</td>'
     + '</tr>';
   var $tr = $(markup);

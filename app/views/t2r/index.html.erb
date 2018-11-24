@@ -35,6 +35,17 @@
               </span>
             </td>
           </tr>
+          <tr class="filter">
+            <td class="field">
+              <label for="rounding">Duration rounding</label>
+            </td>
+            <td class="values">
+              <select id="rounding-direction" class="value" data-t2r-widget="DurationRoundingDirection" title="Choose the logic to be used for rounding Toggl durations."></select>
+              <span class="rounding-text">&nbsp;|&nbsp;</span>
+              <input id="rounding-value" class="value" type="number" min="0" max="30" step="5" title="All time entries from Toggl will automatically be rounded to this number of minutes." />
+              <span class="rounding-text">minutes</span>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>

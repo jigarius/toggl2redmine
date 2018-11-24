@@ -998,24 +998,31 @@ T2R.updateLastImported = function () {
 /**
  * Gets a list of Redmine time entry activities.
  *
- * @returns {Object}
- *   Activities indexed by ID.
+ * @param {function} callback
+ *   A callback. Receives activities as an argument.
  */
-T2R.getRedmineActivities = function () {
+T2R.getRedmineActivities = function (callback) {
   var key = 'redmine.activities';
-  if (!T2R.cache(key)) {
-    T2R.redmineRequest({
-      async: false,
-      url: '/enumerations/time_entry_activities.json',
-      success: function (data, status, xhr) {
-        T2R.cache(key, data.time_entry_activities);
-      },
-      error: function (xhr, textStatus) {
-        T2R.cache(key, []);
-      }
-    });
+  callback = callback || T2R.FAKE_CALLBACK;
+
+  // Use cached data, if available.
+  var activities = T2R.cache(key);
+  if (activities) {
+    callback(activities);
   }
-  return T2R.cache(key);
+
+  // Fetch data from Redmine.
+  T2R.redmineRequest({
+    url: '/enumerations/time_entry_activities.json',
+    success: function (data, status, xhr) {
+      var activities = data.time_entry_activities;
+      T2R.cache(key, activities);
+      callback(activities);
+    },
+    error: function (xhr, textStatus) {
+      T2R.cache(key, []);
+    }
+  });
 };
 
 /**
@@ -1551,27 +1558,31 @@ T2RWidget.initDurationInput = function (el) {
 
 T2RWidget.initRedmineActivityDropdown = function (el) {
   var $el = $(el);
-  var activities = T2R.getRedmineActivities();
-  var options = [];
+  T2R.getRedmineActivities(function (activities) {
+    // Prepare placeholder.
+    var placeholder = $el.attr('placeholder') || $el.data('placeholder');
 
-  // Determine placeholder.
-  var placeholder = $el.attr('placeholder');
-  if ('undefined' !== typeof placeholder) {
-    options.push('<option value="">' + placeholder + '</option>');
-  }
+    // Prepare options.
+    var options = {};
+    for (var i in activities) {
+      var activity = activities[i];
+      options[activity.id] = activity.name;
+    }
 
-  // Prepare and insert options.
-  for (var i in activities) {
-    var activity = activities[i];
-    options.push('<option value="' + activity.id + '">' + activity.name + '</option>');
-  }
-  $el.html(options.join(''));
+    // Generate a SELECT element and use it's options.
+    var $select = T2RRenderer.render('Dropdown', {
+      placeholder: placeholder,
+      options: options
+    });
 
-  // Mark selection.
-  var value = $el.attr('data-selected');
-  if ('undefined' !== typeof value) {
-    $el.val(value);
-  }
+    $el.append($select.find('option'));
+
+    // Mark selection.
+    var value = $el.attr('data-selected');
+    if ('undefined' !== typeof value) {
+      $el.val(value);
+    }
+  });
 };
 
 T2RWidget.initTogglWorkspaceDropdown = function (el) {

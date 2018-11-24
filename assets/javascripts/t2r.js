@@ -272,12 +272,6 @@ T2R.initFilterForm = function () {
     T2R.handleFilterForm();
   });
 
-  // Hide workspace filter if there is only one Toggl workspace.
-  var $workspace = $form.find('#toggl-workspace');
-  if ($workspace.find('option').length <= 2) {
-    $workspace.closest('tr').hide();
-  }
-
   // Reset the form to set default values.
   var data = {
     date: T2R.getDateFromLocationHash()
@@ -633,27 +627,33 @@ T2R.togglRequest = function (opts) {
 /**
  * Gets all workspaces from Toggl.
  *
- * @param {Object} opts
+ * @param {function} callback
+ *   A callback. Receives workspaces as an argument.
  */
-T2R.getTogglWorkspaces = function (opts) {
+T2R.getTogglWorkspaces = function (callback) {
   var key = 'toggl.workspaces';
-  if (!T2R.cache(key)) {
-    var output = {};
-    T2R.togglRequest({
-      async: false,
-      url: '/api/v8/workspaces',
-      success: function(data, status, xhr) {
-        output = data;
-      },
-      error: function (xhr, textStatus) {
-        T2R.flash('Could not fetch Toggl Workspaces. Please refresh the page to try again.', 'error');
-      }
-    });
-    if (output) {
-      T2R.cache(key, output);
-    }
+  callback = callback || T2R.FAKE_CALLBACK;
+
+  // Use cached data, if available.
+  var workspaces = T2R.cache(key);
+  if (workspaces) {
+    callback(workspaces);
+    return;
   }
-  return T2R.cache(key);
+
+  // Fetch data from Toggl.
+  T2R.togglRequest({
+    url: '/api/v8/workspaces',
+    success: function(data, status, xhr) {
+      workspaces = data;
+      T2R.cache(key, workspaces);
+      callback(workspaces);
+    },
+    error: function (xhr, textStatus) {
+      T2R.flash('Could not fetch Toggl Workspaces. Please refresh the page to try again.', 'error');
+      callback([]);
+    }
+  });
 };
 
 /**
@@ -1071,6 +1071,7 @@ T2R.getRedmineActivities = function (callback) {
   var activities = T2R.cache(key);
   if (activities) {
     callback(activities);
+    return;
   }
 
   // Fetch data from Redmine.
@@ -1082,7 +1083,8 @@ T2R.getRedmineActivities = function (callback) {
       callback(activities);
     },
     error: function (xhr, textStatus) {
-      T2R.cache(key, []);
+      T2R.flash('Could not fetch Redmine Activities. Please refresh the page to try again.', 'error');
+      callback([]);
     }
   });
 };
@@ -1649,27 +1651,31 @@ T2RWidget.initRedmineActivityDropdown = function (el) {
 
 T2RWidget.initTogglWorkspaceDropdown = function (el) {
   var $el = $(el);
-  var workspaces = T2R.getTogglWorkspaces();
-  var options = [];
+  T2R.getTogglWorkspaces(function (workspaces) {
+    // Prepare placeholder.
+    var placeholder = $el.attr('placeholder') || $el.data('placeholder');
 
-  // Determine placeholder.
-  var placeholder = $el.attr('placeholder');
-  if ('undefined' !== typeof placeholder) {
-    options.push('<option value="">' + placeholder + '</option>');
-  }
+    // Prepare options.
+    var options = {};
+    for (var i in workspaces) {
+      var workspace = workspaces[i];
+      options[workspace.id] = workspace.name;
+    }
 
-  // Prepare and insert options.
-  for (var i in workspaces) {
-    var workspace = workspaces[i];
-    options.push('<option value="' + workspace.id + '">' + workspace.name + '</option>');
-  }
-  $el.html(options.join(''));
+    // Generate a SELECT element and use it's options.
+    var $select = T2RRenderer.render('Dropdown', {
+      placeholder: placeholder,
+      options: options
+    });
 
-  // Mark selection.
-  var value = $el.data('selected');
-  if ('undefined' !== typeof value) {
-    $el.val(value);
-  }
+    $el.append($select.find('option'));
+
+    // Mark selection.
+    var value = $el.data('selected');
+    if ('undefined' !== typeof value) {
+      $el.val(value);
+    }
+  });
 };
 
 T2RWidget.initDurationRoundingDirection = function (el) {

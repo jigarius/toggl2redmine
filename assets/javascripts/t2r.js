@@ -342,7 +342,7 @@ T2R.handleFilterForm = function() {
   // Determine default activity.
   var $defaultActivity = $('select#default-activity');
   var defaultActivity = $defaultActivity.val();
-  if (undefined === defaultActivity) {
+  if (null === defaultActivity) {
     defaultActivity = $defaultActivity.data('selected');
   }
   T2R.browserStorage('t2r.default-activity', defaultActivity);
@@ -350,8 +350,8 @@ T2R.handleFilterForm = function() {
   // Determine toggl workspace.
   var $togglWorkspace = $('select#toggl-workspace');
   var togglWorkspace = $togglWorkspace.val();
-  if (undefined === togglWorkspace) {
-    togglWorksapce = $togglWokspace.data('selected');
+  if (null === togglWorkspace) {
+    togglWorkspace = $togglWorkspace.data('selected');
   }
   T2R.browserStorage('t2r.toggl-workspace', togglWorkspace);
 

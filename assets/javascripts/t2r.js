@@ -795,6 +795,7 @@ T2R.updateTogglReport = function () {
   // Fetch time entries from Toggl.
   T2R.getTogglTimeEntries(opts, function (entries) {
     var $table = T2R.getTogglTable();
+    var pendingEntriesExist = false;
 
     // Display currently running entries.
     for (var key in entries) {
@@ -813,6 +814,7 @@ T2R.updateTogglReport = function () {
       if (entry.status === 'pending' && entry.errors.length === 0) {
         var $tr = T2RRenderer.render('TogglRow', entry);
         $table.find('tbody').append($tr);
+        pendingEntriesExist = true;
       }
     }
 
@@ -866,9 +868,10 @@ T2R.updateTogglReport = function () {
     // Uncheck the "check all" checkbox.
     var $checkAll = $table.find('.check-all')
       .prop('checked', false);
-    // If the update was triggered from the filter form, then focus the
-    // "check-all" button to allow keyboard navigation.
-    if (T2R.getFilterForm().has(':focus').length > 0) {
+    // If the update was triggered from the filter form and there are entries
+    // which can be imported, then focus the "check-all" button to allow easier
+    // keyboard navigation.
+    if (pendingEntriesExist && T2R.getFilterForm().has(':focus').length > 0) {
       $checkAll.focus();
     }
   });

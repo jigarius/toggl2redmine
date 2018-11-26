@@ -749,7 +749,7 @@ T2R.getTogglTimeEntries = function (opts, callback) {
       entry.errors = entry.errors || [];
 
       // Prepare "duration" object.
-      entry.duration = new T2RDuration(entry.duration);
+      entry.duration = new T2RDuration(Math.max(0, entry.duration));
 
       // Prepare rounded duration as per rounding rules.
       entry.roundedDuration = new T2RDuration(entry.duration.getSeconds());

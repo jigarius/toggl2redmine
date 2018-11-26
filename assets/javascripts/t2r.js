@@ -785,12 +785,21 @@ T2R.updateTogglReport = function () {
   var $table = T2R.getTogglTable().addClass('t2r-loading');
   $table.find('tbody').html('');
 
+  // Determine report date.
   var date = T2R.storage('date');
   var opts = {
     from: date + ' 00:00:00',
     till: date + ' 23:59:59',
     workspace: T2R.storage('toggl-workspace') || false
   };
+
+  // Lock the publish form.
+  T2R.lockPublishForm();
+
+  // Uncheck the "check all" checkbox.
+  var $checkAll = $table.find('.check-all')
+    .prop('checked', false)
+    .attr('disabled', 'disabled');
 
   // Fetch time entries from Toggl.
   T2R.getTogglTimeEntries(opts, function (entries) {
@@ -865,14 +874,19 @@ T2R.updateTogglReport = function () {
     // Remove loader.
     $table.removeClass('t2r-loading');
 
-    // Uncheck the "check all" checkbox.
-    var $checkAll = $table.find('.check-all')
-      .prop('checked', false);
-    // If the update was triggered from the filter form and there are entries
-    // which can be imported, then focus the "check-all" button to allow easier
-    // keyboard navigation.
-    if (pendingEntriesExist && T2R.getFilterForm().has(':focus').length > 0) {
-      $checkAll.focus();
+    // If pending entries exist.
+    if (pendingEntriesExist) {
+      // If the update was triggered from the filter form, then focus the
+      // "check-all" button to allow easier keyboard navigation.
+      if (T2R.getFilterForm().has(':focus').length > 0) {
+        $checkAll.focus();
+      }
+
+      // Enable the "check-all" checkbox.
+      $checkAll.removeAttr('disabled');
+
+      // Unlock publish form.
+      T2R.unlockPublishForm();
     }
   });
 };

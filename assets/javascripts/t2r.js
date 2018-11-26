@@ -790,7 +790,7 @@ T2R.updateTogglReport = function () {
   var opts = {
     from: date + ' 00:00:00',
     till: date + ' 23:59:59',
-    workspace: T2R.storage('toggl-workspace') || false
+    workspace: T2R.browserStorage('t2r.toggl-workspace') || false
   };
 
   // Lock the publish form.
@@ -843,18 +843,6 @@ T2R.updateTogglReport = function () {
         var $tr = T2RRenderer.render('TogglRow', entry);
         $table.find('tbody').append($tr);
       }
-    }
-
-    // Pre-select default activities.
-    var defaultActivity = T2R.storage('default-activity');
-    if (defaultActivity) {
-      $table.find('tbody [data-property="activity_id"]').each(function() {
-        var $select = $(this);
-        // Populate default value if no value is set.
-        if ('' === $select.val()) {
-          $select.val(defaultActivity);
-        }
-      });
     }
 
     // Display empty table message, if required.
@@ -1893,7 +1881,7 @@ T2RRenderer.renderTogglRow = function (data) {
     + '</td>'
     + '<td class="comments"><input data-property="comments" type="text" value="' + T2R.htmlEntityEncode(data.comments) + '" maxlength="255" /></td>'
     + '<td class="activity">'
-      + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.storage('default-activity') + '"></select>'
+      + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.browserStorage('t2r.default-activity') + '"></select>'
     + '</td>'
     + '<td class="hours">'
       + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Original value as on Toggl is ' + oDuration.asHHMM() + '.\n\nFormatting: 1:50 means 1 hour 50 minutes. Press \'Up\' or \'Down\' to round the nearest 5 minutes. Combine with \'Shift\' to round to the nearest 15 minutes." value="' + rDuration.asHHMM() + '" size="6" maxlength="5" />'

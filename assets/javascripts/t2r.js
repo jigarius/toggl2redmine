@@ -1306,10 +1306,15 @@ T2RDuration.prototype.setSeconds = function (seconds) {
   if (!seconds.match(/^\d+$/)) {
     throw 'Error: ' + seconds + ' is not a valid number.';
   }
+
+  // Compute time as hours and minutes.
   this.__seconds = parseInt(seconds);
   this.__minutes = Math.round(this.__seconds / 60);
   this.__hours = Math.floor(this.__minutes / 60);
   this.__minutes = this.__minutes % 60;
+
+  // Ignore second-level precision. Round off to the nearest minute.
+  this.__seconds = this.__minutes * 60 + this.__hours * 3600;
 };
 
 /**

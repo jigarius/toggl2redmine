@@ -27,6 +27,20 @@ T2R.REDMINE_API_KEY = T2R.REDMINE_API_KEY || false;
 T2R.TOGGL_API_KEY = T2R.TOGGL_API_KEY || false;
 
 /**
+ * Redmine time report URL format.
+ *
+ * @type {string}
+ */
+T2R.REDMINE_REPORT_URL_FORMAT = T2R.REDMINE_REPORT_URL_FORMAT || '';
+
+/**
+ * Toggl time report URL format.
+ *
+ * @type {string}
+ */
+T2R.TOGGL_REPORT_URL_FORMAT = T2R.TOGGL_REPORT_URL_FORMAT || '';
+
+/**
  * Cached data.
  *
  * @type {Object}
@@ -793,6 +807,12 @@ T2R.updateTogglReport = function () {
     workspace: T2R.browserStorage('t2r.toggl-workspace') || false
   };
 
+  // Update other elements.
+  T2R.updateTogglReportLink({
+    date: date,
+    workspace: opts.workspace
+  });
+
   // Lock the publish form.
   T2R.lockPublishForm();
 
@@ -877,6 +897,22 @@ T2R.updateTogglReport = function () {
       T2R.unlockPublishForm();
     }
   });
+};
+
+/**
+ * Updates the Toggl report URL.
+ *
+ * @param {object} data
+ *   An object containing report URL variables.
+ *     - date: The date.
+ *     - workspace: Workspace ID.
+ */
+T2R.updateTogglReportLink = function (data) {
+  data.workspace = data.workspace || 0;
+  var url = T2R.TOGGL_REPORT_URL_FORMAT
+    .replace(/\[@date\]/g, data.date)
+    .replace('[@workspace]', data.workspace);
+  $('#toggl-report-link').attr('href', url);
 };
 
 /**
@@ -998,11 +1034,18 @@ T2R.updateRedmineReport = function () {
   var from = till;
 
   // Fetch time entries from Redmine.
-  var query = {
+  var opts = {
     from: from.toISOString().split('T')[0] + 'T00:00:00Z',
     till: till.toISOString().split('T')[0] + 'T00:00:00Z'
   };
-  T2R.getRedmineTimeEntries(query, function (entries) {
+
+  // Update Redmine report link.
+  T2R.updateRedmineReportLink({
+    date: T2R.storage('date')
+  });
+
+  // Fetch time entries from Redmine.
+  T2R.getRedmineTimeEntries(opts, function (entries) {
     var $table = T2R.getRedmineTable().addClass('t2r-loading');
 
     // Display entries from Redmine.
@@ -1026,6 +1069,19 @@ T2R.updateRedmineReport = function () {
     // Remove loader.
     $table.removeClass('t2r-loading');
   });
+};
+
+/**
+ * Updates the Redmine report URL.
+ *
+ * @param {object} data
+ *   An object containing report URL variables.
+ *     - date: Report date.
+ */
+T2R.updateRedmineReportLink = function (data) {
+  var url = T2R.REDMINE_REPORT_URL_FORMAT
+    .replace('[@date]', data.date);
+  $('#redmine-report-link').attr('href', url);
 };
 
 /**

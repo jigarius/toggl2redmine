@@ -483,7 +483,7 @@ T2R.publishToRedmine = function () {
     var duration = new T2RDuration();
     try {
       duration.setHHMM(durationInput);
-      redmine_entry.hours = duration.asHHMM();
+      redmine_entry.hours = duration.asDecimal();
     } catch (e) {
       T2RConsole.warn('Invalid duration. Ignoring entry.', redmine_entry);
       return;
@@ -1434,6 +1434,16 @@ T2RDuration.prototype.getMinutes = function (force2) {
  */
 T2RDuration.prototype.asHHMM = function () {
   return this.getHours(true) + ':' + this.getMinutes(true);
+};
+
+/**
+ * Gets the duration as hours in decimals.
+ *
+ * @return string
+ *   Time in hours (decimal). Ex: 1.5 for 1 hr 30 min.
+ */
+T2RDuration.prototype.asDecimal = function () {
+  return (this.getSeconds() / 3600).toFixed(2);
 };
 
 /**

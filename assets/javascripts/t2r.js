@@ -1798,7 +1798,12 @@ T2RConsole.groupEnd = function () {
  */
 T2RConsole.log = function (message, args) {
   if (T2RConsole.getVerboseMode()) {
-    console.log(message, args);
+    if ('undefined' === typeof args) {
+      console.log(message);
+    }
+    else {
+      console.log(message, args);
+    }
   }
 };
 
@@ -1811,7 +1816,12 @@ T2RConsole.log = function (message, args) {
  *   Data, if any.
  */
 T2RConsole.error = function (message, args) {
-  console.error(message, args);
+  if ('undefined' === typeof args) {
+    console.error(message);
+  }
+  else {
+    console.error(message, args);
+  }
 };
 
 /**
@@ -1823,7 +1833,12 @@ T2RConsole.error = function (message, args) {
  *   Data, if any.
  */
 T2RConsole.warn = function (message, args) {
-  console.warn(message, args);
+  if ('undefined' === typeof args) {
+    console.warn(message);
+  }
+  else {
+    console.warn(message, args);
+  }
 };
 
 /**

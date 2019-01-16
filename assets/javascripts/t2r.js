@@ -1350,7 +1350,7 @@ T2RDuration.prototype.setHHMM = function (hhmm) {
     parts.push('00');
   }
 
-  // Parse hh:mm as decimal. Ex: 2:30 = 2h 30m.
+  // Parse hh:mm duration. Ex: 2:30 = 2h 30m.
   var pattern = /^(\d{0,2}):(\d{0,2})$/;
   if (hhmm.match(pattern)) {
     parts = hhmm.match(pattern).slice(-2);
@@ -1359,7 +1359,7 @@ T2RDuration.prototype.setHHMM = function (hhmm) {
       parts = null;
     }
     // Minutes cannot exceed 59 in this format.
-    if (parts[1] > 59) {
+    else if (parts[1] > 59) {
       parts = null;
     }
   }

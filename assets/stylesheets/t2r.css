@@ -64,6 +64,9 @@
 }
 
 /* Miscellaneous */
+#last-imported {
+  cursor: help;
+}
 #last-imported.t2r-loading {
   display: inline-block;
 }

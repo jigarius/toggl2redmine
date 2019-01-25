@@ -251,7 +251,7 @@ T2R.initTogglReport = function () {
  * Filter form initializer.
  */
 T2R.initFilterForm = function () {
-  var $form = $('#filter-form');
+  var $form = T2R.getFilterForm();
 
   // Initialize apply filters button.
   $form.find('#btn-apply-filters').click(function () {

@@ -68,6 +68,8 @@ Tracker #1919 Feed the bunny wabbit.
 * Now, in the Toggl report, check the entries you want to import into Redmine.
   * For each entry, you can modify the comments, activity and time as per your
     requirements.
+  * You can enter time as in decimal or as `hh:mm`. For example, `1h 30m` can
+    be written as `1.5` or `1:30` in the input boxes.
 * Once you've reviewed everything, click on the _Import to Redmine_ button
   towards the bottom of the page.
   * After you import the data, you cannot undo it, so BE CAREFUL.

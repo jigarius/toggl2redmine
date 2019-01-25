@@ -1,27 +1,11 @@
 <h2>Toggle 2 Redmine <span class="date"></span></h2>
 
 <form id="filter-form" class="t2r-form">
-  <fieldset class="collapsible" id="filters">
-    <legend onclick="toggleFieldset(this);">Options</legend>
+  <fieldset class="collapsible" id="basic-options">
+    <legend onclick="toggleFieldset(this);">Basic options</legend>
     <div>
-      <table id="filters-table">
+      <table class="t2r-options-table">
         <tbody>
-          <tr class="filter">
-            <td class="field">
-              <label for="default-activity">Default Activity</label>
-            </td>
-            <td class="values">
-              <select id="default-activity" name="default-activity" data-t2r-widget="RedmineActivityDropdown" placeholder="-" class="value" title="This activity will be applied to all time entries by default. You will still be able the activity for individual items before importing."></select>
-            </td>
-          </tr>
-          <tr class="filter">
-            <td class="field">
-              <label for="toggl-workspace">Toggl Workspace</label>
-            </td>
-            <td class="values">
-              <select id="toggl-workspace" name="toggl-workspace" data-t2r-widget="TogglWorkspaceDropdown" placeholder="-" class="value" title="Choose a Toggl workspace or leave blank to use all workspaces. If you don't use separate workspaces in Toggl, you can ignore this field."></select>
-            </td>
-          </tr>
           <tr class="filter">
             <td class="field">
               <label for="date">Date<span class="required"> *</span></label>
@@ -33,6 +17,31 @@
                 <span class="value" id="last-imported">&nbsp;</span>
                 <span class="icon icon-help" title="The latest date for which a time entry has been found."></span>
               </span>
+            </td>
+          </tr>
+          <tr class="filter">
+            <td class="field">
+              <label for="default-activity">Default activity</label>
+            </td>
+            <td class="values">
+              <select id="default-activity" name="default-activity" data-t2r-widget="RedmineActivityDropdown" placeholder="-" class="value" title="This activity will be applied to all time entries by default. You will still be able the activity for individual items before importing."></select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </fieldset>
+  <fieldset class="collapsible collapsed" id="advanced-options">
+    <legend onclick="toggleFieldset(this);">Advanced options</legend>
+    <div style="display: none;">
+      <table class="t2r-options-table">
+        <tbody>
+          <tr class="filter">
+            <td class="field">
+              <label for="toggl-workspace">Toggl workspace</label>
+            </td>
+            <td class="values">
+              <select id="toggl-workspace" name="toggl-workspace" data-t2r-widget="TogglWorkspaceDropdown" placeholder="-" class="value" title="Choose a Toggl workspace or leave blank to use all workspaces. If you don't use separate workspaces in Toggl, you can ignore this field."></select>
             </td>
           </tr>
           <tr class="filter">

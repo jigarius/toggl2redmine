@@ -23,7 +23,7 @@ caused by the use of this plugin. In short, use it at your own risk.
 ```bash
     RAILS_ENV=production bundle exec rake redmine:plugins:migrate
 ```
-  * This creates a _Toggl API Key_ field on the user profile.
+  * This creates a _Toggl API Token_ field on the user profile.
 * Your database **must** support [transactions](https://en.wikipedia.org/wiki/Database_transaction).
   * Without transaction support, users might end up importing duplicate
     time entries.
@@ -33,7 +33,7 @@ caused by the use of this plugin. In short, use it at your own risk.
 ### One-time Setup
 
 * Go to the _My Account_ page on Redmine (`/my/account`).
-* Paste in your _Toggl API Key_ and save your profile.
+* Paste in your _Toggl API Token_ and save your profile.
   * You can find this in your Toggl _profile settings_ page.
 * Update your time zone on Toggl and Redmine - this makes your time reports
   show correctly according to your timezone.

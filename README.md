@@ -35,7 +35,8 @@ caused by the use of this plugin. In short, use it at your own risk.
 * Go to the _My Account_ page on Redmine (`/my/account`).
 * Paste in your _Toggl API Key_ and save your profile.
   * You can find this in your Toggl _profile settings_ page.
-* Select your time zone - this makes your time reports show correctly.
+* Update your time zone on Toggl and Redmine - this makes your time reports
+  show correctly according to your timezone.
   * *Important:* Confirm with your Redmine administrator whether you need to
     update your timezone. Some organizations use Redmine without configuring
     timezones to avoid certain timezone-related bugs in Redmine.

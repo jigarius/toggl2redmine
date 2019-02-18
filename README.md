@@ -30,6 +30,12 @@ caused by the use of this plugin. In short, use it at your own risk.
 
 ## Usage
 
+Here's a quick video to get you started.
+
+[![Toggl 2 Redmine Video Tutorial](https://img.youtube.com/vi/FdwWUYllop4/0.jpg)](https://www.youtube.com/watch?v=FdwWUYllop4)
+
+If a certain topic is not mentioned in the video, you can find more information on it by reading this document.
+
 ### One-time Setup
 
 * Go to the _My Account_ page on Redmine (`/my/account`).

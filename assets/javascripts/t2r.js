@@ -507,14 +507,14 @@ T2R.publishToRedmine = function () {
     var duration = new T2RDuration();
     try {
       duration.setHHMM(durationInput);
-      redmine_entry.hours = duration.asDecimal();
+      redmine_entry.hours = duration.asDecimal(true);
     } catch (e) {
       T2RConsole.warn('Invalid duration. Ignoring entry.', redmine_entry);
       return;
     }
 
     // Ignore entries with 0 duration.
-    if (duration.getSeconds() <= 0) {
+    if (duration.getSeconds(true) <= 0) {
       T2RConsole.warn('Duration is zero. Ignoring entry.', redmine_entry);
     }
 
@@ -1525,11 +1525,21 @@ T2RDuration.prototype.asHHMM = function () {
 /**
  * Gets the duration as hours in decimals.
  *
+ * @param {boolean} ignoreSeconds
+ *   Round down to the nearest full-minute.
+ *
+ *   Ex: 90 seconds is treated 60 seconds.
+ *
  * @return string
  *   Time in hours (decimal). Ex: 1.5 for 1 hr 30 min.
  */
-T2RDuration.prototype.asDecimal = function () {
-  return (this.getSeconds() / 3600).toFixed(2);
+T2RDuration.prototype.asDecimal = function (ignoreSeconds) {
+  var output = this.getSeconds(ignoreSeconds) / 3600;
+  // Convert to hours. Ex: 0h 25m becomes 0.416.
+  // Since toFixed rounds off the last digit, we ignore it.
+  output = output.toFixed(3);
+  output = output.substr(0, output.length - 1);
+  return output;
 };
 
 /**

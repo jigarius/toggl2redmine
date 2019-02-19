@@ -765,8 +765,10 @@ T2R.getTogglTimeEntries = function (opts, callback) {
       // Prepare "duration" object.
       entry.duration = new T2RDuration(Math.max(0, entry.duration));
 
+      // Ignore second-level precision for rounded duration.
+      entry.roundedDuration = new T2RDuration(entry.duration.getSeconds(false));
+
       // Prepare rounded duration as per rounding rules.
-      entry.roundedDuration = new T2RDuration(entry.duration.getSeconds());
       if (roundingDirection !== '' && roundingValue > 0) {
         entry.roundedDuration.roundTo(roundingValue, roundingDirection);
         T2RConsole.log('Duration rounded from ' + entry.duration.asHHMM() + ' to ' + entry.roundedDuration.asHHMM());
@@ -1363,24 +1365,37 @@ T2RDuration.prototype.setSeconds = function (seconds) {
     throw 'Error: ' + seconds + ' is not a valid number.';
   }
 
-  // Compute time as hours and minutes.
+  // Set seconds.
   this.__seconds = parseInt(seconds);
-  this.__minutes = Math.round(this.__seconds / 60);
+
+  // Ignore second-level precision for hour and minutes computation.
+  this.__minutes = Math.floor(this.__seconds / 60);
   this.__hours = Math.floor(this.__minutes / 60);
   this.__minutes = this.__minutes % 60;
-
-  // Ignore second-level precision. Round off to the nearest minute.
-  this.__seconds = this.__minutes * 60 + this.__hours * 3600;
 };
 
 /**
  * Gets duration as seconds.
  *
+ * @param {boolean} imprecise
+ *   Whether to remove second-level precision.
+ *
+ *   Defaults to false. When true, a duration of 95 seconds is treated as
+ *   60 seconds, i.e. rounded down to the nearest full minute.
+ *
  * @return {integer}
  *   Duration in seconds.
  */
-T2RDuration.prototype.getSeconds = function () {
-  return this.__seconds;
+T2RDuration.prototype.getSeconds = function (imprecise) {
+  imprecise = 'undefined' === typeof imprecise ? false : imprecise;
+  var output = this.__seconds;
+
+  // For imprecise output, round-down to the nearest full minute.
+  if (imprecise) {
+    output = output - output % 60;
+  }
+
+  return output;
 };
 
 /**
@@ -1550,8 +1565,10 @@ T2RDuration.prototype.roundTo = function (minutes, direction) {
   // Compute the rounding value as seconds.
   var seconds = minutes * 60;
 
-  // Do nothing if already rounded.
-  var correction = this.getSeconds() % seconds;
+  // Determine the amount of correction required.
+  var correction = this.getSeconds(true) % seconds;
+
+  // Do nothing if no correction / rounding is required.
   if (correction === 0) {
     return;
   }

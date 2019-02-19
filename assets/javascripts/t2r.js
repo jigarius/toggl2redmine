@@ -321,8 +321,6 @@ T2R.resetFilterForm = function (data) {
     }
   }
 
-  T2RConsole.log('Filter form reset: ', data);
-
   // Initialize all form inputs.
   T2R.getFilterForm().find(':input')
     .each(function () {
@@ -399,6 +397,16 @@ T2R.handleFilterForm = function() {
   // Show date in the headings.
   $('h2 .date').html('(' + oDate.toLocaleDateString() + ')');
 
+  // Log the event.
+  T2RConsole.separator();
+  T2RConsole.log('Filter form updated: ', {
+    'date': T2R.storage('t2r.date'),
+    'default-activity': T2R.browserStorage('t2r.default-activity'),
+    'toggl-workspace': T2R.browserStorage('t2r.toggl-workspace'),
+    'rounding-value': T2R.browserStorage('t2r.rounding-value'),
+    'rounding-direction': T2R.browserStorage('t2r.rounding-direction')
+  });
+
   // Update both the Redmine and Toggl reports.
   setTimeout(function() {
     T2R.updateRedmineReport();
@@ -474,6 +482,8 @@ T2R.publishToRedmine = function () {
   }
 
   // Post eligible entries to Redmine.
+  T2RConsole.separator();
+  T2RConsole.log('Pushing time entries to Redmine.');
   $('#toggl-report tbody tr').each(function () {
     var $tr = $(this);
     var toggl_entry = $tr.data('t2r.entry');
@@ -515,6 +525,8 @@ T2R.publishToRedmine = function () {
     };
 
     // Push the data to Redmine.
+    T2RConsole.group('Sending "' + redmine_entry.comments + '"', true);
+    T2RConsole.log('Entry data', data);
     T2R.redmineRequest({
       async: false,
       url: '/toggl2redmine/import',
@@ -523,6 +535,7 @@ T2R.publishToRedmine = function () {
       data: JSON.stringify(data),
       contentType: 'application/json',
       success: function(data, status, xhr) {
+        T2RConsole.log('Request successful', data);
         var $tr = $(this).addClass('t2r-success');
 
         // Disable checkboxes.
@@ -537,6 +550,7 @@ T2R.publishToRedmine = function () {
         $tr.find('td.status').html($message);
       },
       error: function(xhr, textStatus) {
+        T2RConsole.log('Request failed');
         var $tr = $(this).addClass('t2r-error');
 
         // Prepare and display error message.
@@ -562,6 +576,7 @@ T2R.publishToRedmine = function () {
       }
     });
   });
+  T2RConsole.groupEnd();
 
   // Refresh the Redmine report and show success message.
   T2R.unlockPublishForm();
@@ -1837,6 +1852,13 @@ T2RConsole.initialize = function () {
  */
 T2RConsole.clear = function () {
   console.clear();
+}
+
+/**
+ * Creates a separator between log messages.
+ */
+T2RConsole.separator = function () {
+  this.log('------');
 }
 
 /**

@@ -1654,8 +1654,25 @@ T2RWidget.initTogglRow = function(el) {
     })
     .trigger('change');
 
-  // If hours change, update totals.
-  $el.find('[data-property="hours"]')
+  // Initialize tooltips for all inputs.
+  $el.find(':input').tooltip();
+};
+
+T2RWidget.initDurationInput = function (el) {
+  var $el = $(el);
+  $el
+    .bind('input', function() {
+      var val = $el.val();
+      try {
+        // If a duration object could be created, then the the time is valid.
+        new T2RDuration(val);
+        el.setCustomValidity('');
+      } catch (e) {
+        el.setCustomValidity(e);
+      }
+    })
+    // Update totals as the user updates hours.
+    .bind('input', T2R.updateTogglTotals)
     .bind('keyup', function (e) {
       var $input = $(this);
 
@@ -1689,12 +1706,10 @@ T2RWidget.initTogglRow = function(el) {
       // Update value in the input field.
       $(this).val(duration.asHHMM()).trigger('input').select();
     })
-    // Update totals as the user updates hours.
-    .bind('input', T2R.updateTogglTotals)
-    // When the value changes, display the way the value will be treated.
     .bind('change', function () {
       var $input = $(this);
       var value = '';
+      // Determine the visible value.
       try {
         var duration = new T2RDuration();
         duration.setHHMM($input.val());
@@ -1704,24 +1719,6 @@ T2RWidget.initTogglRow = function(el) {
       $input.val(value);
       T2R.updateTogglTotals();
     });
-
-  // Initialize tooltips for all inputs.
-  $el.find(':input').tooltip();
-};
-
-T2RWidget.initDurationInput = function (el) {
-  var $el = $(el);
-
-  // Bind input listeners for constant validation.
-  $el.bind('input', function() {
-    var val = $el.val();
-    try {
-      var duration = new T2RDuration(val);
-      el.setCustomValidity('');
-    } catch (e) {
-      el.setCustomValidity(e);
-    }
-  });
 };
 
 T2RWidget.initRedmineActivityDropdown = function (el) {

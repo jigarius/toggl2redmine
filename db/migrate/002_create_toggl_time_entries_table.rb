@@ -1,4 +1,4 @@
-class CreateTogglTimeEntries < ActiveRecord::Migration
+class CreateTogglTimeEntriesTable < ActiveRecord::Migration
 
   def change
     create_table :toggl_time_entries do |t|

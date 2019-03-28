@@ -316,7 +316,7 @@ T2R.resetFilterForm = function (data) {
   // Merge with defaults.
   for (var name in defaults) {
     var value = data[name];
-    if (undefined === value || '' === value || false === value) {
+    if ('undefined' == typeof value || '' === value || false === value) {
       data[name] = defaults[name];
     }
   }
@@ -400,7 +400,7 @@ T2R.handleFilterForm = function() {
   // Log the event.
   T2RConsole.separator();
   T2RConsole.log('Filter form updated: ', {
-    'date': T2R.storage('t2r.date'),
+    'date': T2R.storage('date'),
     'default-activity': T2R.browserStorage('t2r.default-activity'),
     'toggl-workspace': T2R.browserStorage('t2r.toggl-workspace'),
     'rounding-value': T2R.browserStorage('t2r.rounding-value'),
@@ -458,10 +458,12 @@ T2R.handlePublishForm = function() {
 T2R.getDateFromLocationHash = function () {
   var output = window.location.hash.match(/^#?([\d]{4}-[\d]{2}-[\d]{2})$/);
   // Must be a valid date.
-  if (!T2R.dateStringToObject(output)) {
+  output = output ? output.pop() : false;
+  if (output && !T2R.dateStringToObject(output)) {
     output = false;
   }
-  return output ? output.pop() : false;
+  T2RConsole.log('Got date from URL fragment', output);
+  return output;
 }
 
 /**

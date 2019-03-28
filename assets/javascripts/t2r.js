@@ -615,10 +615,39 @@ T2R.getBasicAuthHeader = function (username, password) {
  */
 T2R.dateStringToObject = function (string) {
   try {
-    string = Date.parse(string);
-    return new Date(string);
+    // Split the date into parts.
+    // Don't use Date.parse() as it works differently depending on the browser.
+    var dateParts = string.split(/[^\d]/);
+
+    // Must have at least the "date" part.
+    if (dateParts.length < 3) {
+      throw ('Date must contain at least YYYY-MM-DD');
+    }
+
+    // Assume time parts to be 00 if not defined.
+    for (var i = 3; i <= 6; i++) {
+      if (typeof dateParts[i] === 'undefined') {
+        dateParts[i] = 0;
+      }
+    }
+
+    // Adjust month count to begin with 0.
+    dateParts[1] = parseInt(dateParts[1]);
+    dateParts[1] -= 1;
+
+    // Create date with yyyy-mm-dd hh:mm:ss ms.
+    return new Date(
+      dateParts[0],
+      dateParts[1],
+      dateParts[2],
+      dateParts[3],
+      dateParts[4],
+      dateParts[5],
+      dateParts[6]
+    );
   }
   catch (e) {
+    T2RConsole.log('Date not understood', string);
     return false;
   }
 };

@@ -1,5 +1,8 @@
 # Toggle 2 Redmine
 
+![Redmine Version](https://img.shields.io/badge/Redmine-3.x-blue.svg)
+![Rails Version](https://img.shields.io/badge/Rails-4.x-blue.svg)
+
 This dandy Redmine plugin imports time entries from Toggl to Redmine using
 REST API service calls for both Toggl and Redmine.
 

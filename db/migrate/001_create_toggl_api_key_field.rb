@@ -1,3 +1,4 @@
+# Creates a "Toggl API Key" field.
 class CreateTogglApiKeyField < ActiveRecord::Migration
   def up
     custom_field = CustomField.new_subclass_instance('UserCustomField',

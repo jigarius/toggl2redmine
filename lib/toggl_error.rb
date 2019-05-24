@@ -1,3 +1,4 @@
+# A Toggl Error.
 class TogglError < StandardError
   attr_reader :request, :response
 

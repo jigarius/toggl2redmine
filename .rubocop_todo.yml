@@ -57,21 +57,6 @@ Style/CaseEquality:
   Exclude:
     - 'app/models/toggl_time_entry.rb'
 
-# Offense count: 9
-Style/Documentation:
-  Exclude:
-    - 'spec/**/*'
-    - 'test/**/*'
-    - 'app/controllers/t2r_controller.rb'
-    - 'app/models/grouped_toggl_time_entry.rb'
-    - 'app/models/toggl_mapping.rb'
-    - 'app/models/toggl_time_entry.rb'
-    - 'db/migrate/001_create_toggl_api_key_field.rb'
-    - 'db/migrate/002_create_toggl_time_entries_table.rb'
-    - 'db/migrate/003_rename_toggl_time_entries_table.rb'
-    - 'db/migrate/004_rename_toggl_api_key_field.rb'
-    - 'lib/toggl_error.rb'
-
 # Offense count: 1
 # Configuration parameters: MinBodyLength.
 Style/GuardClause:

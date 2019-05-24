@@ -1,3 +1,4 @@
+# A grouping of time entries related to the same Redmine issue.
 class GroupedTogglTimeEntry
   include ActiveModel::Validations
   include ActiveModel::Conversion

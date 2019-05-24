@@ -1,3 +1,4 @@
+# Creates a "toggl_time_entries" table.
 class CreateTogglTimeEntriesTable < ActiveRecord::Migration
   def change
     create_table :toggl_time_entries do |t|

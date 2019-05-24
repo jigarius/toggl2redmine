@@ -1,3 +1,4 @@
+# A time entry tag object received from Toggl.
 class TogglTimeEntry
   include ActiveModel::Validations
   include ActiveModel::Conversion

@@ -1,3 +1,4 @@
+# Toggl 2 Redmine Controller.
 class T2rController < ApplicationController
   menu_item :toggl2redmine
   before_action :require_login, :validate_user

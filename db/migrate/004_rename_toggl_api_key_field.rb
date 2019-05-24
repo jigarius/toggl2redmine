@@ -1,3 +1,4 @@
+# Renames "Toggl API Token" field to "Toggl API Key".
 class RenameTogglApiKeyField < ActiveRecord::Migration
   def self.up
     field = UserCustomField.find_by_name('Toggl API Key')

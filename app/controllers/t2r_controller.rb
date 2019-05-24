@@ -103,9 +103,8 @@ class T2rController < ApplicationController
 
       unless time_entry.issue.nil?
         # If the user has permission to see the project.
-        if
-          @user.admin? ||
-          time_entry.issue.project.members.pluck(:user_id).include?(@user.id)
+        if @user.admin? ||
+           time_entry.issue.project.members.pluck(:user_id).include?(@user.id)
 
           # Include issue.
           issue = time_entry.issue

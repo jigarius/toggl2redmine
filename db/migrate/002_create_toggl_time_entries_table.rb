@@ -1,5 +1,4 @@
 class CreateTogglTimeEntriesTable < ActiveRecord::Migration
-
   def change
     create_table :toggl_time_entries do |t|
       t.integer :toggl_id, null: false
@@ -8,5 +7,4 @@ class CreateTogglTimeEntriesTable < ActiveRecord::Migration
     end
     add_index :toggl_time_entries, [:toggl_id], unique: true, name: :toggle_id
   end
-
 end

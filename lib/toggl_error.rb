@@ -1,5 +1,4 @@
 class TogglError < StandardError
-
   attr_reader :request, :response
 
   # The request.
@@ -13,5 +12,4 @@ class TogglError < StandardError
     @request = request
     @response = response
   end
-
 end

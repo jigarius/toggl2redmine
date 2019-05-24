@@ -1,5 +1,4 @@
 class RenameTogglApiKeyField < ActiveRecord::Migration
-
   def self.up
     field = UserCustomField.find_by_name('Toggl API Key')
     field.name = 'Toggl API Token'
@@ -11,5 +10,4 @@ class RenameTogglApiKeyField < ActiveRecord::Migration
     field.name = 'Toggl API Key'
     field.save!
   end
-
 end

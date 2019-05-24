@@ -1,4 +1,4 @@
-require File.expand_path('../../test_helper', __FILE__)
+require File.expand_path('../test_helper', __dir__)
 
 class T2rControllerTest < ActionController::TestCase
   # Replace this with your real tests.

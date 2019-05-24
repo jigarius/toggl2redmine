@@ -2,11 +2,10 @@ require 'net/http'
 
 # Toggl web service helper.
 class TogglService
-
   attr_reader :api_key
 
   # API endpoint.
-  URL = 'https://www.toggl.com'
+  URL = 'https://www.toggl.com'.freeze
 
   # Toggl API Key.
   @api_key = nil
@@ -19,7 +18,7 @@ class TogglService
   # Prepare request data before sending a request to Toggl.
   def beforeSend(data)
     # TODO: Convert dates to ISO-8601 format.
-    return data
+    data
   end
 
   # Makes a GET request to Toggl.
@@ -27,7 +26,7 @@ class TogglService
     # Prepare request URI.
     url = URL + path
     uri = URI(url)
-    if !data.empty?
+    unless data.empty?
       data = beforeSend(data)
       uri.query = data.to_query
     end
@@ -43,12 +42,10 @@ class TogglService
     response = http.request(request)
 
     # Handle errors.
-    if 200 != response.code.to_i
-      raise TogglError.new("Toggl error: #{response.body}.", request, response)
-    end
+    raise TogglError.new("Toggl error: #{response.body}.", request, response) if response.code.to_i != 200
 
     # Return output as Hash.
-    return JSON.parse(response.body)
+    JSON.parse(response.body)
   end
 
   # Loads time entries form Toggl.
@@ -65,11 +62,8 @@ class TogglService
 
     # The workspace filter is only supported on certain versions of the
     # Toggl API. Thus, it is easier to filter out such records ourselves.
-    if !workspaces.empty?
-      output.keep_if{ |time_entry| workspaces.include? time_entry['wid'] }
-    end
+    output.keep_if { |time_entry| workspaces.include? time_entry['wid'] } unless workspaces.empty?
 
-    return output
+    output
   end
-
 end

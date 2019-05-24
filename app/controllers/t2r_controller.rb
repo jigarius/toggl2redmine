@@ -1,5 +1,4 @@
 class T2rController < ApplicationController
-
   menu_item :toggl2redmine
   before_action :require_login, :validate_user
 
@@ -15,14 +14,14 @@ class T2rController < ApplicationController
   def read_redmine_time_entries
     # Require 'from' parameter.
     unless params[:from]
-      render :json => { :errors => "Parameter 'from' must be present." }, :status => 403
+      render json: { errors: "Parameter 'from' must be present." }, status: 403
       return
     end
     from = Time.parse(params[:from])
 
     # Require 'till' parameter.
     unless params[:till]
-      render :json => { :errors => "Parameter 'till' must be present." }, :status => 403
+      render json: { errors: "Parameter 'till' must be present." }, status: 403
       return
     end
     till = Time.parse(params[:till])
@@ -34,63 +33,61 @@ class T2rController < ApplicationController
     )
 
     # Return time entries with associations.
-    render :json => { :time_entries => @time_entries },
-      :include => {
-        :issue => {
-          :only => [:id, :subject],
-          :include => {
-            :tracker => {
-              :only => [:id, :name]
-            }
-          }
-        },
-        :project => {
-          :only => [:id, :name, :status]
-        },
-        :activity => {
-          :only => [:id, :name]
-        },
-        :user => {
-          :only => [:id, :login]
-        }
-      }
+    render json: { time_entries: @time_entries },
+           include: {
+             issue: {
+               only: %i[id subject],
+               include: {
+                 tracker: {
+                   only: %i[id name]
+                 }
+               }
+             },
+             project: {
+               only: %i[id name status]
+             },
+             activity: {
+               only: %i[id name]
+             },
+             user: {
+               only: %i[id login]
+             }
+           }
   end
 
   # Reads time entries from Toggl.
   def read_toggl_time_entries
     # Require 'from' parameter.
     unless params[:from]
-      render :json => { :errors => "Parameter 'from' must be present." }, :status => 403
+      render json: { errors: "Parameter 'from' must be present." }, status: 403
       return
     end
     from = Time.parse(params[:from])
 
     # Require 'till' parameter.
     unless params[:till]
-      render :json => { :errors => "Parameter 'till' must be present." }, :status => 403
+      render json: { errors: "Parameter 'till' must be present." }, status: 403
       return
     end
     till = Time.parse(params[:till])
 
     # Determine 'workspaces' parameter.
     workspaces = []
-    if params[:workspaces]
-      workspaces = params[:workspaces].split(',').map(&:to_i)
-    end
+    workspaces = params[:workspaces].split(',').map(&:to_i) if params[:workspaces]
 
     begin
       toggl_service = TogglService.new(@toggl_api_key)
-      time_entries = toggl_service.load_time_entries({
-        :start_date => from,
-        :end_date => till,
-        :workspaces => workspaces
-      })
+      time_entries = toggl_service.load_time_entries(
+        start_date: from,
+        end_date: till,
+        workspaces: workspaces
+      )
     rescue TogglError => e
       response = e.response
-      render :json => { :errors => response.body }, :status => response.code
+      render json: { errors: response.body }, status: response.code
       return
     rescue e
-      render :json => { :errors => e.message }, :status => 400
+      render json: { errors: e.message }, status: 400
     end
 
     # Prepare grouped time entries.
@@ -103,27 +100,27 @@ class T2rController < ApplicationController
       hash[:project] = nil
       hash[:errors] = []
 
-      if !time_entry.issue.nil?
+      unless time_entry.issue.nil?
         # If the user has permission to see the project.
-        if (
+        if
           @user.admin? ||
           time_entry.issue.project.members.pluck(:user_id).include?(@user.id)
-        )
+
           # Include issue.
           issue = time_entry.issue
           hash[:issue] = {
-            :id => issue.id,
-            :subject => issue.subject,
+            id: issue.id,
+            subject: issue.subject,
             # Include tracker.
-            :tracker => {
-              :id => issue.tracker.id,
-              :name => issue.tracker.name
+            tracker: {
+              id: issue.tracker.id,
+              name: issue.tracker.name
             },
             # Include project.
-            :project => {
-              :id => issue.project.id,
-              :name => issue.project.name,
-              :status => issue.project.status
+            project: {
+              id: issue.project.id,
+              name: issue.project.name,
+              status: issue.project.status
             }
           }
         end
@@ -131,7 +128,7 @@ class T2rController < ApplicationController
       output[time_entry.key] = hash
     end
 
-    render :json => output
+    render json: output
   end
 
   # Creates time entries from request data.
@@ -143,24 +140,24 @@ class T2rController < ApplicationController
     @project = @time_entry.project
 
     # If project associated to the time entry could be identified.
-    if !@project.nil?
+    unless @project.nil?
       # Check if the user is a member of the project.
       # TODO: Do we need this check?
-      if !@project.members.pluck(:user_id).include?(@user.id)
-        render :json => { :errors => "You are not a member of this project." }, :status => 403
+      unless @project.members.pluck(:user_id).include?(@user.id)
+        render json: { errors: 'You are not a member of this project.' }, status: 403
         return
       end
 
       # Check if the user has permission to log time on the project.
-      if !@user.allowed_to?(:log_time, @time_entry.project)
-        render :json => { :errors => "You are not allowed to log time on this project." }, :status => 403
+      unless @user.allowed_to?(:log_time, @time_entry.project)
+        render json: { errors: 'You are not allowed to log time on this project.' }, status: 403
         return
       end
     end
 
     # Toggl IDs must be present.
-    if !params[:toggl_ids].present?
-      render :json => { :errors => "Parameter 'toggl_ids' must be present." }, :status => 400
+    unless params[:toggl_ids].present?
+      render json: { errors: "Parameter 'toggl_ids' must be present." }, status: 400
       return
     end
 
@@ -168,8 +165,8 @@ class T2rController < ApplicationController
     # This prevents reimports for databases which do not support transactions.
     params[:toggl_ids].each do |toggl_id|
       toggl_mapping = TogglMapping.where(toggl_id: toggl_id)
-      if !toggl_mapping.empty?
-        render :json => { :errors => 'Toggl ID has already been imported.' }, :status => 400
+      unless toggl_mapping.empty?
+        render json: { errors: 'Toggl ID has already been imported.' }, status: 400
         return
       end
     end
@@ -186,21 +183,21 @@ class T2rController < ApplicationController
           toggl_mapping.save!
         end
       end
-    rescue => e
+    rescue StandardError => e
       messages = [e.message]
 
       # If the transaction couldn't be rolled back, raise an alert.
       unless @time_entry.id.nil?
         @time_entry.delete
-        messages.push('Your database does not support transactions. Please ask your system administrator to refer to the README for "Toggle 2 Redmine".');
+        messages.push('Your database does not support transactions. Please ask your system administrator to refer to the README for "Toggle 2 Redmine".')
       end
 
-      render :json => { :errors => messages }, :status => 400
+      render json: { errors: messages }, status: 400
       return
     end
 
     # Render response.
-    render :json => { :time_entry => @time_entry }, :status => 201
+    render json: { time_entry: @time_entry }, status: 201
   end
 
   # Determines the currently logged in user.
@@ -211,8 +208,7 @@ class T2rController < ApplicationController
     @toggl_api_key = @user.custom_field_value(UserCustomField.find_by_name('Toggl API Token'))
     if @toggl_api_key.nil? || @toggl_api_key.empty?
       flash[:error] = 'To import time entries from Toggl, please add a Toggl API Token to your account.'
-      redirect_to :controller => 'my', :action => 'account'
+      redirect_to controller: 'my', action: 'account'
     end
   end
-
 end

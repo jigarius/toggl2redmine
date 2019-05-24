@@ -3,9 +3,7 @@ class T2rController < ApplicationController
   menu_item :toggl2redmine
   before_action :require_login, :validate_user
 
-  # TODO: Check if user is allowed to log time.
   # TODO: Respond in HTML / JSON according to format requested.
-  # TODO: Redirect to login only for when HTML format is requested.
 
   # Provides an interface for importing Toggl time entries to Redmine.
   def index
@@ -103,24 +101,32 @@ class T2rController < ApplicationController
       hash = time_entry.as_json
       hash[:issue] = nil
       hash[:project] = nil
+      hash[:errors] = []
+
       if !time_entry.issue.nil?
-        # Include issue.
-        issue = time_entry.issue
-        hash[:issue] = {
-          :id => issue.id,
-          :subject => issue.subject,
-          # Include tracker.
-          :tracker => {
-            :id => issue.tracker.id,
-            :name => issue.tracker.name
-          },
-          # Include project.
-          :project => {
-            :id => issue.project.id,
-            :name => issue.project.name,
-            :status => issue.project.status
+        # If the user has permission to see the project.
+        if (
+          @user.admin? ||
+          time_entry.issue.project.members.pluck(:user_id).include?(@user.id)
+        )
+          # Include issue.
+          issue = time_entry.issue
+          hash[:issue] = {
+            :id => issue.id,
+            :subject => issue.subject,
+            # Include tracker.
+            :tracker => {
+              :id => issue.tracker.id,
+              :name => issue.tracker.name
+            },
+            # Include project.
+            :project => {
+              :id => issue.project.id,
+              :name => issue.project.name,
+              :status => issue.project.status
+            }
           }
-        }
+        end
       end
       output[time_entry.key] = hash
     end
@@ -139,6 +145,7 @@ class T2rController < ApplicationController
     # If project associated to the time entry could be identified.
     if !@project.nil?
       # Check if the user is a member of the project.
+      # TODO: Do we need this check?
       if !@project.members.pluck(:user_id).include?(@user.id)
         render :json => { :errors => "You are not a member of this project." }, :status => 403
         return
@@ -198,13 +205,7 @@ class T2rController < ApplicationController
 
   # Determines the currently logged in user.
   def validate_user
-    @user = User.current
-
-    # If a user is not logged in, throw a 403.
-    if @user.nil?
-      render_403
-      return
-    end
+    @user = find_current_user
 
     # Must have a Toggl API key.
     @toggl_api_key = @user.custom_field_value(UserCustomField.find_by_name('Toggl API Token'))

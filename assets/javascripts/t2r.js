@@ -827,7 +827,7 @@ T2R.getTogglTimeEntries = function (opts, callback) {
 
       // If an issue ID exists, but no issue could be found.
       if (entry.issue_id && !entry.issue) {
-        entry.errors.push('Issue not found on Redmine. Make sure you\'re using a correct issue ID.');
+        entry.errors.push('This issue was either not found on Redmine or you don\'t have access to it. Make sure you\'re using a correct issue ID and that you\'re a member of the project.');
       }
 
       // Include the entry in the output.

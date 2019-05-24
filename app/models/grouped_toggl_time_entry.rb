@@ -40,17 +40,7 @@ class GroupedTogglTimeEntry
       raise 'Only issues with the same grouping key can be grouped together.'
     end
 
-    # @issue_id = entry.issue_id
-    # if @issue.nil? && !@issue_id.nil?
-    #   begin
-    #     @issue = Issue.find(@issue_id)
-    #   rescue
-    #     @issue = nil
-    #   end
-    # end
-
     @entries[entry.id] = entry
-    # @ids.push(entry.id)
     @comments = entry.comments if @comments.nil?
     @duration = @duration + entry.duration
   end

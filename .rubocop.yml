@@ -1,1 +1,6 @@
 inherit_from: .rubocop_todo.yml
+
+# Classes can contain many methods and it is normal for them
+# to be long, so allow a higher class length.
+Metrics/ClassLength:
+  Max: 1024

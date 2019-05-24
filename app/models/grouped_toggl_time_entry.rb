@@ -5,7 +5,7 @@ class GroupedTogglTimeEntry
 
   extend ActiveModel::Naming
 
-  attr_reader :entries, :ids, :comments, :duration
+  attr_reader :entries, :comments, :duration
 
   # Constructor
   def initialize(_attributes = {})

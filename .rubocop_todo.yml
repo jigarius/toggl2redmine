@@ -12,11 +12,6 @@ Layout/ConditionPosition:
     - 'app/controllers/t2r_controller.rb'
 
 # Offense count: 1
-Lint/DuplicateMethods:
-  Exclude:
-    - 'app/models/grouped_toggl_time_entry.rb'
-
-# Offense count: 1
 Lint/NonLocalExitFromIterator:
   Exclude:
     - 'app/controllers/t2r_controller.rb'

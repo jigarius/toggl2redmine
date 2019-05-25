@@ -7,8 +7,6 @@ class T2rController < ApplicationController
 
   # Provides an interface for importing Toggl time entries to Redmine.
   def index
-    field = UserCustomField.find_by_name('Toggl API Token')
-    @toggl_api_key = @user.custom_field_value(field)
     @redmine_api_key = @user.api_key
   end
 
@@ -212,10 +210,11 @@ class T2rController < ApplicationController
     @user = find_current_user
 
     # Must have a Toggl API key.
-    @toggl_api_key = @user.custom_field_value(UserCustomField.find_by_name('Toggl API Token'))
-    if @toggl_api_key.nil? || @toggl_api_key.empty?
-      flash[:error] = 'To use Toggl 2 Redmine, please add a Toggl API Token to your account.'
-      redirect_to controller: 'my', action: 'account'
-    end
+    field = UserCustomField.find_by_name('Toggl API Token')
+    @toggl_api_key = @user.custom_field_value(field)
+    return unless @toggl_api_key.nil? || @toggl_api_key.empty?
+
+    flash[:error] = 'To use Toggl 2 Redmine, please add a Toggl API Token to your account.'
+    redirect_to controller: 'my', action: 'account'
   end
 end

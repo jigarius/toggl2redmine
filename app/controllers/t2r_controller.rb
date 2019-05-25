@@ -7,7 +7,8 @@ class T2rController < ApplicationController
 
   # Provides an interface for importing Toggl time entries to Redmine.
   def index
-    @toggl_api_key = @user.custom_field_value(UserCustomField.find_by_name('Toggl API Token'))
+    field = UserCustomField.find_by_name('Toggl API Token')
+    @toggl_api_key = @user.custom_field_value(field)
     @redmine_api_key = @user.api_key
   end
 
@@ -144,31 +145,43 @@ class T2rController < ApplicationController
       # Check if the user is a member of the project.
       # TODO: Do we need this check?
       unless @project.members.pluck(:user_id).include?(@user.id)
-        render json: { errors: 'You are not a member of this project.' }, status: 403
+        render json: {
+          errors: 'You are not a member of this project.'
+        }, status: 403
         return
       end
 
       # Check if the user has permission to log time on the project.
       unless @user.allowed_to?(:log_time, @time_entry.project)
-        render json: { errors: 'You are not allowed to log time on this project.' }, status: 403
+        render json: {
+          errors: 'You are not allowed to log time on this project.'
+        }, status: 403
         return
       end
     end
 
     # Toggl IDs must be present.
     unless params[:toggl_ids].present?
-      render json: { errors: "Parameter 'toggl_ids' must be present." }, status: 400
+      render json: {
+        errors: "Parameter 'toggl_ids' must be present."
+      }, status: 400
       return
     end
 
-    # Abort if Toggl entries have already been imported.
-    # This prevents reimports for databases which do not support transactions.
+    # Check if any of the Toggl time entries have already been imported.
+    is_imported = false
     params[:toggl_ids].each do |toggl_id|
       toggl_mapping = TogglMapping.where(toggl_id: toggl_id)
-      unless toggl_mapping.empty?
-        render json: { errors: 'Toggl ID has already been imported.' }, status: 400
-        return nil
-      end
+      is_imported = true unless toggl_mapping.empty?
+    end
+
+    # Abort if Toggl entries have already been imported.
+    # This prevents re-imports for databases which do not support transactions.
+    if is_imported
+      render json: {
+        errors: 'Toggl ID has already been imported.'
+      }, status: 400
+      return nil
     end
 
     begin
@@ -207,7 +220,7 @@ class T2rController < ApplicationController
     # Must have a Toggl API key.
     @toggl_api_key = @user.custom_field_value(UserCustomField.find_by_name('Toggl API Token'))
     if @toggl_api_key.nil? || @toggl_api_key.empty?
-      flash[:error] = 'To import time entries from Toggl, please add a Toggl API Token to your account.'
+      flash[:error] = 'To use Toggl 2 Redmine, please add a Toggl API Token to your account.'
       redirect_to controller: 'my', action: 'account'
     end
   end

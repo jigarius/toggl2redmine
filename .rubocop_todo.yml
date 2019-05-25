@@ -33,4 +33,8 @@ Style/GuardClause:
 # Configuration parameters: AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, IgnoredPatterns.
 # URISchemes: http, https
 Metrics/LineLength:
+  AllowHeredoc: true
+  AllowURI: true
+  IgnoredPatterns:
+    - '\sif|unless\s'
   Max: 153

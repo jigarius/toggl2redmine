@@ -10,5 +10,8 @@ Redmine::Plugin.register :toggl2redmine do
   # TODO: Implement permissions.
 
   # Menu items.
-  menu :application_menu, :toggl2redmine, { controller: 't2r', action: 'index' }, caption: 'Toggl'
+  menu :application_menu,
+       :toggl2redmine,
+       { controller: 't2r', action: 'index' },
+       caption: 'Toggl'
 end

@@ -675,27 +675,6 @@ T2R.dateFormatYYYYMMDD = function (date) {
 };
 
 /**
- * Sends an AJAX request to Toggl with the given options.
- *
- * Automatically injects auth headers.
- *
- * @param opts
- *   Request options.
- */
-T2R.togglRequest = function (opts) {
-  opts = opts || {};
-
-  // Prepare Toggl API location.
-  opts.url = 'https://www.toggl.com' + opts.url;
-
-  // Add auth headers.
-  opts.headers = opts.headers || {};
-  $.extend(opts.headers, T2R.getBasicAuthHeader(T2R.TOGGL_API_KEY, 'api_token'));
-
-  $.ajax(opts);
-};
-
-/**
  * Gets all workspaces from Toggl.
  *
  * @param {function} callback
@@ -713,8 +692,8 @@ T2R.getTogglWorkspaces = function (callback) {
   }
 
   // Fetch data from Toggl.
-  T2R.togglRequest({
-    url: '/api/v8/workspaces',
+  T2R.redmineRequest({
+    url: '/toggl2redmine/toggl_workspaces',
     success: function(data, status, xhr) {
       workspaces = data;
       T2R.cache(key, workspaces);

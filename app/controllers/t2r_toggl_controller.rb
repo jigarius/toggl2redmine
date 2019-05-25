@@ -1,5 +1,11 @@
 # Toggl 2 Redmine Controller.
 class T2rTogglController < T2rController
+  # Returns a Toggl Service.
+  def toggl_service
+    @toggl_service = TogglService.new(@toggl_api_key) if @toggl_service.nil?
+    @toggl_service
+  end
+
   # Reads time entries from Toggl.
   def read_time_entries
     # Require 'from' parameter.
@@ -23,7 +29,6 @@ class T2rTogglController < T2rController
     workspaces = params[:workspaces].split(',').map(&:to_i) if params[:workspaces]
 
     begin
-      toggl_service = TogglService.new(@toggl_api_key)
       time_entries = toggl_service.load_time_entries(
         start_date: from,
         end_date: till,
@@ -74,5 +79,11 @@ class T2rTogglController < T2rController
     end
 
     render json: output
+  end
+
+  # Reads workspaces from Toggl.
+  def read_workspaces
+    @workspaces = toggl_service.load_workspaces
+    render json: @workspaces
   end
 end

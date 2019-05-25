@@ -2,11 +2,13 @@
 class T2rController < ApplicationController
   menu_item :toggl2redmine
   before_action :require_login, :validate_user
+  attr_reader :user, :toggl_api_key
 
-  # Provides an interface for importing Toggl time entries to Redmine.
-  def index
-    @redmine_api_key = @user.api_key
-  end
+  # Current user.
+  @user = nil
+
+  # Toggl API token of the current user.
+  @toggl_api_key = nil
 
   # Determines the currently logged in user.
   def validate_user

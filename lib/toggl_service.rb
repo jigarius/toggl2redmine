@@ -23,9 +23,12 @@ class TogglService
 
   # Makes a GET request to Toggl.
   def get(path, data = nil)
+    # Empty data means data is nil.
+    data = nil if !data.nil? && data.empty?
+
     # Prepare request URI.
     uri = URI(URL + path)
-    uri.query = before_send(data).to_query unless data.empty?
+    uri.query = before_send(data).to_query unless data.nil?
 
     # Prepare request.
     request = Net::HTTP::Get.new(uri)
@@ -38,7 +41,7 @@ class TogglService
     response = http.request(request)
 
     # Handle errors.
-    raise TogglError.new("Toggl error: #{response.body}.", request, response) if response.code.to_i != 200
+    raise TogglError.new("Toggl error: #{response.body}.", request, response) unless response.code.to_i == 200
 
     # Return output as Hash.
     JSON.parse(response.body)
@@ -61,5 +64,10 @@ class TogglService
     output.keep_if { |time_entry| workspaces.include? time_entry['wid'] } unless workspaces.empty?
 
     output
+  end
+
+  # Loads workspaces from Toggl.
+  def load_workspaces
+    get('/api/v8/workspaces')
   end
 end

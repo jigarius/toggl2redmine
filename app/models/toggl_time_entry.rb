@@ -51,7 +51,7 @@ class TogglTimeEntry
 
     # Scan the description.
     matches = description.scan(/^[^#]*#(\d+)\s*(.*)?$/).first
-    if !matches.nil? && matches.count === 2
+    if !matches.nil? && matches.count == 2
       output[:issue_id] = matches[0].to_i
       output[:comments] = matches[1]
     end

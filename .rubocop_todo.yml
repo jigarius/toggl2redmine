@@ -38,11 +38,6 @@ Naming/MethodName:
     - 'lib/toggl_service.rb'
 
 # Offense count: 1
-Style/CaseEquality:
-  Exclude:
-    - 'app/models/toggl_time_entry.rb'
-
-# Offense count: 1
 # Configuration parameters: MinBodyLength.
 Style/GuardClause:
   Exclude:

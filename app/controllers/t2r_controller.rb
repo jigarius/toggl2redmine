@@ -16,14 +16,14 @@ class T2rController < ApplicationController
     # Require 'from' parameter.
     unless params[:from]
       render json: { errors: "Parameter 'from' must be present." }, status: 403
-      return
+      return nil
     end
     from = Time.parse(params[:from])
 
     # Require 'till' parameter.
     unless params[:till]
       render json: { errors: "Parameter 'till' must be present." }, status: 403
-      return
+      return nil
     end
     till = Time.parse(params[:till])
 
@@ -167,7 +167,7 @@ class T2rController < ApplicationController
       toggl_mapping = TogglMapping.where(toggl_id: toggl_id)
       unless toggl_mapping.empty?
         render json: { errors: 'Toggl ID has already been imported.' }, status: 400
-        return
+        return nil
       end
     end
 

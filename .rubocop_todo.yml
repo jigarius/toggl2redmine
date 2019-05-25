@@ -6,11 +6,6 @@
 # Note that changes in the inspected code, or installation of new
 # versions of RuboCop, may require this file to be generated again.
 
-# Offense count: 1
-Lint/NonLocalExitFromIterator:
-  Exclude:
-    - 'app/controllers/t2r_controller.rb'
-
 # Offense count: 3
 Metrics/AbcSize:
   Max: 58

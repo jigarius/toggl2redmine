@@ -12,4 +12,9 @@ class TogglMapping < ActiveRecord::Base
             uniqueness: { message: 'has already been imported' }
 
   attr_protected :id
+
+  # Returns any mappings related to given Toggl Ids.
+  def self.find_by_toggl_ids(*ids)
+    where(toggl_id: ids)
+  end
 end

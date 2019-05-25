@@ -168,16 +168,9 @@ class T2rController < ApplicationController
       return
     end
 
-    # Check if any of the Toggl time entries have already been imported.
-    is_imported = false
-    params[:toggl_ids].each do |toggl_id|
-      toggl_mapping = TogglMapping.where(toggl_id: toggl_id)
-      is_imported = true unless toggl_mapping.empty?
-    end
-
     # Abort if Toggl entries have already been imported.
     # This prevents re-imports for databases which do not support transactions.
-    if is_imported
+    unless TogglMapping.find_by_toggl_ids(*params[:toggl_ids]).empty?
       render json: {
         errors: 'Toggl ID has already been imported.'
       }, status: 400

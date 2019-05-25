@@ -22,7 +22,7 @@ class TogglTimeEntry
     @at = attributes['at']
 
     # Interpret the description
-    description = parseDescription(attributes['description'])
+    description = parse_description(attributes['description'])
     @description = description[:original]
     @issue_id = description[:issue_id]
     @comments = description[:comments]
@@ -38,11 +38,11 @@ class TogglTimeEntry
   end
 
   # Parses a Toggl description and returns it's components.
-  def parseDescription(description)
+  def parse_description(description)
     description = '' if description.nil?
     description.strip!
 
-    # Preare default output.
+    # Prepare default output.
     output = {
       original: description,
       issue_id: nil,

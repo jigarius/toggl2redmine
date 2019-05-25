@@ -35,7 +35,7 @@ class GroupedTogglTimeEntry
   end
 
   # Add a time entry to the group.
-  def addEntry(entry)
+  def add_entry(entry)
     raise 'Only issues with the same grouping key can be grouped together.' if !key.nil? && key != entry.key
 
     @entries[entry.id] = entry
@@ -44,13 +44,13 @@ class GroupedTogglTimeEntry
   end
 
   # Normalizes and groups Toggl time entries.
-  def self.newFromFeed(entries)
+  def self.new_from_feed(entries)
     output = {}
     entries.each do |entry|
       entry = TogglTimeEntry.new(entry)
       key = entry.key
       output[key] = GroupedTogglTimeEntry.new if output[key].nil?
-      output[key].addEntry(entry)
+      output[key].add_entry(entry)
     end
     output
   end

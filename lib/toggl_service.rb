@@ -16,7 +16,7 @@ class TogglService
   end
 
   # Prepare request data before sending a request to Toggl.
-  def beforeSend(data)
+  def before_send(data)
     # TODO: Convert dates to ISO-8601 format.
     data
   end
@@ -27,7 +27,7 @@ class TogglService
     url = URL + path
     uri = URI(url)
     unless data.empty?
-      data = beforeSend(data)
+      data = before_send(data)
       uri.query = data.to_query
     end
 
@@ -54,7 +54,7 @@ class TogglService
     workspaces = query[:workspaces]
     query.delete(:workspaces)
 
-    # TODO: Convert dates to string in beforeSend()
+    # TODO: Convert dates to string in before_send()
     query[:start_date] = query[:start_date].iso8601 if query[:start_date]
     query[:end_date] = query[:end_date].iso8601 if query[:end_date]
 

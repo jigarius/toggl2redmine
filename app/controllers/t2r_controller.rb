@@ -194,7 +194,7 @@ class T2rController < ApplicationController
       # If the transaction couldn't be rolled back, raise an alert.
       unless @time_entry.id.nil?
         @time_entry.delete
-        messages.push('Your database does not support transactions. Please ask your system administrator to refer to the README for "Toggle 2 Redmine".')
+        messages.push(I18n.t('t2r.text_db_transaction_warning'))
       end
 
       render json: { errors: messages }, status: 400
@@ -214,7 +214,7 @@ class T2rController < ApplicationController
     @toggl_api_key = @user.custom_field_value(field)
     return unless @toggl_api_key.nil? || @toggl_api_key.empty?
 
-    flash[:error] = 'To use Toggl 2 Redmine, please add a Toggl API Token to your account.'
+    flash[:error] = I18n.t 't2r.text_add_toggl_api_key'
     redirect_to controller: 'my', action: 'account'
   end
 end

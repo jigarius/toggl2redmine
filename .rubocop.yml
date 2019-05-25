@@ -9,3 +9,10 @@ Metrics/ClassLength:
 Metrics/MethodLength:
   CountComments: false
   Max: 64
+
+# Disallow long lines, except for "if" and "unless" statements.
+Metrics/LineLength:
+  AllowHeredoc: true
+  AllowURI: true
+  IgnoredPatterns:
+    - '\sif|unless\s'

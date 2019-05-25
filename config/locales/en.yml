@@ -5,5 +5,7 @@ en:
       toggl_time_entry: Dude
     attributes:
       toggl_time_entry:
-        toggl_id: "Toggl ID"
-  # my_label: "My label"
+        toggl_id: 'Toggl ID'
+  t2r:
+    text_add_toggl_api_key: 'To use Toggl 2 Redmine, please add a Toggl API Token to your account.'
+    text_db_transaction_warning: 'Your database does not support transactions. Please ask your system administrator to refer to the README for Toggle 2 Redmine.'

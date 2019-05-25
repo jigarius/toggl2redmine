@@ -133,6 +133,7 @@ class T2rController < ApplicationController
   end
 
   # Creates time entries from request data.
+  # TODO: Move params validation to import_validate_params().
   def import
     # Prepare a Redmine time entry.
     @time_entry = TimeEntry.new(params[:time_entry])

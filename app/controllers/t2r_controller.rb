@@ -14,15 +14,17 @@ class T2rController < ApplicationController
   def read_redmine_time_entries
     # Require 'from' parameter.
     unless params[:from]
-      render json: { errors: "Parameter 'from' must be present." }, status: 403
-      return nil
+      return render json: {
+        errors: "Parameter 'from' must be present."
+      }, status: 403
     end
     from = Time.parse(params[:from])
 
     # Require 'till' parameter.
     unless params[:till]
-      render json: { errors: "Parameter 'till' must be present." }, status: 403
-      return nil
+      return render json: {
+        errors: "Parameter 'till' must be present."
+      }, status: 403
     end
     till = Time.parse(params[:till])
 
@@ -59,15 +61,17 @@ class T2rController < ApplicationController
   def read_toggl_time_entries
     # Require 'from' parameter.
     unless params[:from]
-      render json: { errors: "Parameter 'from' must be present." }, status: 403
-      return
+      return render json: {
+        errors: "Parameter 'from' must be present."
+      }, status: 403
     end
     from = Time.parse(params[:from])
 
     # Require 'till' parameter.
     unless params[:till]
-      render json: { errors: "Parameter 'till' must be present." }, status: 403
-      return
+      return render json: {
+        errors: "Parameter 'till' must be present."
+      }, status: 403
     end
     till = Time.parse(params[:till])
 
@@ -84,10 +88,9 @@ class T2rController < ApplicationController
       )
     rescue TogglError => e
       response = e.response
-      render json: { errors: response.body }, status: response.code
-      return
-    rescue e
-      render json: { errors: e.message }, status: 400
+      return render json: { errors: response.body }, status: response.code
+    rescue StandardError => e
+      return render json: { errors: e.message }, status: 400
     end
 
     # Prepare grouped time entries.
@@ -144,36 +147,32 @@ class T2rController < ApplicationController
       # Check if the user is a member of the project.
       # TODO: Do we need this check?
       unless @project.members.pluck(:user_id).include?(@user.id)
-        render json: {
+        return render json: {
           errors: 'You are not a member of this project.'
         }, status: 403
-        return
       end
 
       # Check if the user has permission to log time on the project.
       unless @user.allowed_to?(:log_time, @time_entry.project)
-        render json: {
+        return render json: {
           errors: 'You are not allowed to log time on this project.'
         }, status: 403
-        return
       end
     end
 
     # Toggl IDs must be present.
     unless params[:toggl_ids].present?
-      render json: {
+      return render json: {
         errors: "Parameter 'toggl_ids' must be present."
       }, status: 400
-      return
     end
 
     # Abort if Toggl entries have already been imported.
     # This prevents re-imports for databases which do not support transactions.
     unless TogglMapping.find_by_toggl_ids(*params[:toggl_ids]).empty?
-      render json: {
+      return render json: {
         errors: 'Toggl ID has already been imported.'
       }, status: 400
-      return nil
     end
 
     begin
@@ -197,8 +196,7 @@ class T2rController < ApplicationController
         messages.push(I18n.t('t2r.text_db_transaction_warning'))
       end
 
-      render json: { errors: messages }, status: 400
-      return
+      return render json: { errors: messages }, status: 400
     end
 
     # Render response.

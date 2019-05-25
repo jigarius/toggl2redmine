@@ -24,12 +24,8 @@ class TogglService
   # Makes a GET request to Toggl.
   def get(path, data = nil)
     # Prepare request URI.
-    url = URL + path
-    uri = URI(url)
-    unless data.empty?
-      data = before_send(data)
-      uri.query = data.to_query
-    end
+    uri = URI(URL + path)
+    uri.query = before_send(data).to_query unless data.empty?
 
     # Prepare request.
     request = Net::HTTP::Get.new(uri)

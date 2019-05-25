@@ -5,8 +5,8 @@
 get 'toggl2redmine', to: 't2r#index'
 
 # Import
-post 'toggl2redmine/import', to: 't2r#import'
+post 'toggl2redmine/import', to: 't2r_redmine#import'
 
 # Read time entries
-get 'toggl2redmine/redmine_time_entries', to: 't2r#read_redmine_time_entries'
-get 'toggl2redmine/toggl_time_entries', to: 't2r#read_toggl_time_entries'
+get 'toggl2redmine/redmine_time_entries', to: 't2r_redmine#read_time_entries'
+get 'toggl2redmine/toggl_time_entries', to: 't2r_toggl#read_time_entries'

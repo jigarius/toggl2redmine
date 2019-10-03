@@ -31,7 +31,9 @@ class T2rController < ApplicationController
     # Prepare a Redmine time entry.
     @time_entry = TimeEntry.new(params[:time_entry])
     @time_entry.user = @user
-    @time_entry.project = @time_entry.issue.project if @time_entry.issue.present?
+    if @time_entry.issue.present?
+      @time_entry.project = @time_entry.issue.project
+    end
     @project = @time_entry.project
 
     # If project associated to the time entry could be identified.

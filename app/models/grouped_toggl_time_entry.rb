@@ -38,7 +38,9 @@ class GroupedTogglTimeEntry
 
   # Add a time entry to the group.
   def add_entry(entry)
-    raise 'Only issues with the same grouping key can be grouped together.' if !key.nil? && key != entry.key
+    if !key.nil? && key != entry.key
+      raise 'Only issues with the same grouping key can be grouped together.'
+    end
 
     @entries[entry.id] = entry
     @comments = entry.comments if @comments.nil?

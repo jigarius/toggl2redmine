@@ -43,7 +43,9 @@ class TogglService
     response = http.request(request)
 
     # Handle errors.
-    raise TogglError.new("Toggl error: #{response.body}.", request, response) unless response.code.to_i == 200
+    unless response.code.to_i == 200
+      raise TogglError.new("Toggl error: #{response.body}.", request, response)
+    end
 
     # Return output as Hash.
     JSON.parse(response.body)
@@ -63,7 +65,9 @@ class TogglService
 
     # The workspace filter is only supported on certain versions of the
     # Toggl API. Thus, it is easier to filter out such records ourselves.
-    output.keep_if { |time_entry| workspaces.include? time_entry['wid'] } unless workspaces.empty?
+    unless workspaces.empty?
+      output.keep_if { |time_entry| workspaces.include? time_entry['wid'] }
+    end
 
     output
   end

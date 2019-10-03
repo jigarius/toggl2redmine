@@ -28,7 +28,9 @@ class T2rTogglController < T2rController
 
     # Determine 'workspaces' parameter.
     workspaces = []
-    workspaces = params[:workspaces].split(',').map(&:to_i) if params[:workspaces]
+    if params[:workspaces]
+      workspaces = params[:workspaces].split(',').map(&:to_i)
+    end
 
     begin
       time_entries = toggl_service.load_time_entries(

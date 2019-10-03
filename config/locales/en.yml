@@ -9,3 +9,4 @@ en:
   t2r:
     text_add_toggl_api_key: 'To use Toggl 2 Redmine, please add a Toggl API Token to your account.'
     text_db_transaction_warning: 'Your database does not support transactions. Please ask your system administrator to refer to the README for Toggle 2 Redmine.'
+    tooltip_row_status: "Put your mouse on the icon for a row to see it's status. Example: Imported, Failed, Error."

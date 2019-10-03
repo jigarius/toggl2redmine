@@ -1662,6 +1662,10 @@ T2RWidget.initialize = function (el) {
   });
 };
 
+T2RWidget.initTooltip = function(el) {
+  $(el).tooltip();
+}
+
 T2RWidget.initTogglRow = function(el) {
   var $el = $(el);
 

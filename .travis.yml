@@ -1,0 +1,12 @@
+language: ruby
+
+rvm:
+  - 2.3
+
+sudo: false
+
+install:
+  - gem install rubocop
+
+script:
+  - rubocop

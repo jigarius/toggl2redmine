@@ -2000,8 +2000,6 @@ T2RRenderer.renderRedmineIssueLabel = function (data) {
 
 T2RRenderer.renderTogglRow = function (data) {
   var issue = data.issue || false;
-  var project = data.project || false;
-  var issueUrl = issue ? T2R.redmineIssueURL(issue.id) : '#';
   var oDuration = data.duration;
   var rDuration = data.roundedDuration;
 
@@ -2014,11 +2012,10 @@ T2RRenderer.renderTogglRow = function (data) {
   var markup = '<tr data-t2r-widget="TogglRow">'
     + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" title="Check this box if you want to import this entry." /></td>'
     + '<td class="status"></td>'
-    + '<td class="project">'
-      + T2R.htmlEntityEncode(issue ? issue.project.name : '-')
-    + '</td>'
     + '<td class="issue">'
       + '<input data-property="issue_id" type="hidden" data-value="' + T2R.htmlEntityEncode(issue ? issue.id : '') + '" value="' + issue.id + '" />'
+      + '<strong>' + T2R.htmlEntityEncode(issue ? issue.project.name : 'Unknown') + '</strong>'
+      + '<br />'
       + issueLabel
     + '</td>'
     + '<td class="comments"><input data-property="comments" type="text" value="' + T2R.htmlEntityEncode(data.comments) + '" maxlength="255" /></td>'
@@ -2097,10 +2094,11 @@ T2RRenderer.renderRedmineRow = function (data) {
   }
 
   var markup = '<tr>'
-    + '<td class="id">'
-      + T2R.htmlEntityEncode(data.project.name || 'Unknown')
+    + '<td class="subject">'
+      + '<strong>' + T2R.htmlEntityEncode(data.project.name || 'Unknown') + '</strong>'
+      + '<br />'
+      + issueLabel
     + '</td>'
-    + '<td class="subject">' + issueLabel + '</td>'
     + '<td class="comments">' + T2R.htmlEntityEncode(data.comments) + '</td>'
     + '<td class="activity">' + T2R.htmlEntityEncode(data.activity.name) + '</td>'
     + '<td class="hours">' + T2RRenderer.render('Duration', data.duration) + '</td>'

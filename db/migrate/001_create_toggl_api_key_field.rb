@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Creates a "Toggl API Key" field.
 class CreateTogglApiKeyField < ActiveRecord::Migration
   def up

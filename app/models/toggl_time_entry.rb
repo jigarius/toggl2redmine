@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # A time entry tag object received from Toggl.
 class TogglTimeEntry
   include ActiveModel::Validations
@@ -89,7 +91,7 @@ class TogglTimeEntry
 
   # Whether the timer is currently running.
   def running?
-    @duration < 0
+    @duration.negative?
   end
 
   # As JSON.

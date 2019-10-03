@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Toggl 2 Redmine Controller.
 class T2rTogglController < T2rController
   # Returns a Toggl Service.

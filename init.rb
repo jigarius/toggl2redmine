@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Redmine::Plugin.register :toggl2redmine do
   # Package info.
   name 'Toggl 2 Redmine'

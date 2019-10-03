@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # A mapping between a Toggl time entry and a Redmine time entry.
 class TogglMapping < ActiveRecord::Base
   belongs_to :time_entry

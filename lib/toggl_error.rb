@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # A Toggl Error.
 class TogglError < StandardError
   attr_reader :request, :response

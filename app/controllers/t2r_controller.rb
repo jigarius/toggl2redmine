@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Toggl 2 Redmine Controller.
 class T2rController < ApplicationController
   menu_item :toggl2redmine
@@ -38,14 +40,14 @@ class T2rController < ApplicationController
       # TODO: Do we need this check?
       unless @project.members.pluck(:user_id).include?(@user.id)
         return render json: {
-            errors: 'You are not a member of this project.'
+          errors: 'You are not a member of this project.'
         }, status: 403
       end
 
       # Check if the user has permission to log time on the project.
       unless @user.allowed_to?(:log_time, @time_entry.project)
         return render json: {
-            errors: 'You are not allowed to log time on this project.'
+          errors: 'You are not allowed to log time on this project.'
         }, status: 403
       end
     end
@@ -53,7 +55,7 @@ class T2rController < ApplicationController
     # Toggl IDs must be present.
     unless params[:toggl_ids].present?
       return render json: {
-          errors: "Parameter 'toggl_ids' must be present."
+        errors: "Parameter 'toggl_ids' must be present."
       }, status: 400
     end
 
@@ -61,7 +63,7 @@ class T2rController < ApplicationController
     # This prevents re-imports for databases which do not support transactions.
     unless TogglMapping.find_by_toggl_ids(*params[:toggl_ids]).empty?
       return render json: {
-          errors: 'Toggl ID has already been imported.'
+        errors: 'Toggl ID has already been imported.'
       }, status: 400
     end
 
@@ -71,8 +73,8 @@ class T2rController < ApplicationController
         @time_entry.save!
         params[:toggl_ids].each do |toggl_id|
           toggl_mapping = TogglMapping.new(
-              time_entry: @time_entry,
-              toggl_id: toggl_id
+            time_entry: @time_entry,
+            toggl_id: toggl_id
           )
           toggl_mapping.save!
         end

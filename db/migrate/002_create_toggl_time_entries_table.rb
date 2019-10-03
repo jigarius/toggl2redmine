@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Creates a "toggl_time_entries" table.
 class CreateTogglTimeEntriesTable < ActiveRecord::Migration
   def change

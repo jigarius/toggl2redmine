@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'net/http'
 
 # Toggl web service helper.
@@ -5,7 +7,7 @@ class TogglService
   attr_reader :api_key
 
   # API endpoint.
-  URL = 'https://www.toggl.com'.freeze
+  URL = 'https://www.toggl.com'
 
   # Toggl API Key.
   @api_key = nil

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Renames "Toggl API Token" field to "Toggl API Key".
 class RenameTogglApiKeyField < ActiveRecord::Migration
   def self.up

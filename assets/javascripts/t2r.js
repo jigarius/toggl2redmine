@@ -2027,7 +2027,7 @@ T2RRenderer.renderTogglRow = function (data) {
       + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.browserStorage('t2r.default-activity') + '"></select>'
     + '</td>'
     + '<td class="hours">'
-      + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Original value as on Toggl is ' + oDuration.asHHMM() + '.\n\nFormatting: 1:50 means 1 hour 50 minutes. Press \'Up\' or \'Down\' to round the nearest 5 minutes. Combine with \'Shift\' to round to the nearest 15 minutes." value="' + rDuration.asHHMM() + '" size="6" maxlength="5" />'
+      + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Value as on Toggl is ' + oDuration.asHHMM() + '." value="' + rDuration.asHHMM() + '" size="6" maxlength="5" />'
     + '</td>'
     + '</tr>';
   var $tr = $(markup);

@@ -26,6 +26,9 @@
 .t2r-table {
   margin-bottom: 2em !important;
 }
+.t2r-table th .t2r-widget-Tooltip {
+  cursor: help;
+}
 .t2r-table th,
 .t2r-table td {
   text-align: left !important;

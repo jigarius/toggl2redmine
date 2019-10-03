@@ -48,7 +48,6 @@ class T2rTogglController < T2rController
     @time_entries.values.each do |time_entry|
       hash = time_entry.as_json
       hash[:issue] = nil
-      hash[:project] = nil
       hash[:errors] = []
 
       unless time_entry.issue.nil?

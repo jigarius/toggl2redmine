@@ -1134,11 +1134,14 @@ T2R.updateRedmineTotals = function () {
  * Updates the date of the latest time entry on Redmine.
  */
 T2R.updateLastImported = function () {
+  var now = T2R.dateFormatYYYYMMDD(new Date());
   T2R.redmineRequest({
     url: '/time_entries.json',
     data: {
       user_id: 'me',
-      limit: 1
+      limit: 1,
+      // Ignore entries made in the future.
+      to: now
     },
     beforeSend: function () {
       $(this).html('&nbsp;').addClass('t2r-loading');

@@ -1277,7 +1277,13 @@ T2R.getRedmineCsrfToken = function () {
  */
 T2R.redmineRequest = function (opts) {
   opts.timeout = opts.timeout || 3000;
-  opts.url = T2R.REDMINE_URL + opts.url;
+
+  // Prepend Redmine URL for relative URLs.
+  if (opts.url.match(/^\//)) {
+    opts.url = T2R.REDMINE_URL + opts.url;
+  }
+
+  T2RConsole.log('Request to Redmine', opts);
 
   // TODO: Use CSRF Token instead of API Key?
   // For some reason Redmine throws 401 Unauthroized despite a CSRF Token.
@@ -1646,17 +1652,22 @@ T2RWidget.initialize = function (el) {
   el = ('undefined' === typeof el) ? document.body : el;
   $(el).find('[data-t2r-widget]').each(function() {
     var el = this, $el = $(this);
-    var widget = $el.attr('data-t2r-widget');
-    var widgetClass = 't2r-widget-' + widget;
-    // Initialize the widget, if required.
-    if (!$el.hasClass(widgetClass)) {
-      var method = 'init' + widget;
-      if ('undefined' !== typeof T2RWidget[method]) {
-        T2RWidget[method](el);
-        $el.addClass(widgetClass);
-      }
-      else {
-        throw 'Error: To initialize "' + widget + '" please define "T2RWidget.' + method;
+    var widgets = $el.attr('data-t2r-widget').split(' ');
+    for (var i in widgets) {
+      var widget = widgets[i];
+      var widgetFlag = 'T2RWidget' + widget + 'Init';
+      // Initialize the widget, if required.
+      if (true !== $el.data(widgetFlag)) {
+        var method = 'init' + widget;
+        if ('undefined' !== typeof T2RWidget[method]) {
+          T2RWidget[method](el);
+          $el
+              .data(widgetFlag, true)
+              .addClass('t2r-widget-' + widget);
+        }
+        else {
+          throw 'Error: To initialize "' + widget + '" please define "T2RWidget.' + method;
+        }
       }
     }
   });
@@ -1664,6 +1675,55 @@ T2RWidget.initialize = function (el) {
 
 T2RWidget.initTooltip = function(el) {
   $(el).tooltip();
+}
+
+T2RWidget.initAjaxDeleteLink = function(el) {
+  $(el).click(function (e) {
+    var $link = $(this);
+    e.preventDefault();
+
+    // Confirm action.
+    var message = 'Are you sure?';
+    if (!confirm(message)) {
+      return false;
+    }
+
+    // Determine parameters.
+    var context = $link.attr('data-t2r-delete-link-context');
+    var $context = $link.closest(context);
+    var url = $link.attr('href');
+    var callback = $link.attr('data-t2r-delete-link-callback');
+
+    // URL must be defined.
+    if (!url) {
+      throw 'T2RDeleteLink: URL must be defined in "href" attribute.';
+    }
+
+    // Context must be defined.
+    if (typeof context === 'undefined') {
+      throw 'T2RDeleteLink: Context must be defined in "data-t2r-delete-link-context" attribute.';
+    }
+
+    // Prepare AJAX request.
+    T2R.redmineRequest({
+      url: url,
+      async: true,
+      data: '{}',
+      method: 'DELETE',
+      complete: function(xhr, textStatus) {
+        if (xhr.status === 200) {
+          if (callback) {
+            eval(callback);
+          }
+        }
+        else {
+          T2R.flash('Deletion failed.', 'error');
+        }
+      },
+    });
+
+    return false;
+  });
 }
 
 T2RWidget.initTogglRow = function(el) {
@@ -2088,8 +2148,14 @@ T2RRenderer.renderTogglRow = function (data) {
 
 T2RRenderer.renderRedmineRow = function (data) {
   var issue = data.issue.id ? data.issue : false;
-  var issueUrl = issue ? T2R.redmineIssueURL(issue.id) : '#';
-  var entryUrl = T2R.REDMINE_URL + '/time_entries/' + data.id + '/edit';
+
+  // Prepare edit action.
+  var urlEdit = T2R.REDMINE_URL + '/time_entries/' + data.id + '/edit';
+  var linkEdit = '<a href="' + urlEdit + '" title="Edit" class="icon-only icon-edit" target="_blank" data-t2r-widget="Tooltip">Edit</a>'
+
+  // Prepare delete action.
+  var urlDelete = T2R.REDMINE_URL + '/time_entries/' + data.id + '.json';
+  var linkDelete = '<a href="' + urlDelete + '" title="Delete" class="icon-only icon-del" rel="nofollow" data-t2r-widget="AjaxDeleteLink Tooltip" data-t2r-delete-link-context="tr" data-t2r-delete-link-callback="T2R.updateRedmineReport();">Delete</a>'
 
   // Build a label for the issue.
   var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : false;
@@ -2107,7 +2173,8 @@ T2RRenderer.renderRedmineRow = function (data) {
     + '<td class="activity">' + T2R.htmlEntityEncode(data.activity.name) + '</td>'
     + '<td class="hours">' + T2RRenderer.render('Duration', data.duration) + '</td>'
     + '<td class="buttons">'
-      + '<a href="' + entryUrl + '" title="Edit" class="icon-only icon-edit" target="_blank">Edit</a>'
+      + linkEdit
+      + linkDelete
     + '</td>'
     + '</tr>';
   var $tr = $(markup);
@@ -2120,8 +2187,8 @@ T2RRenderer.renderRedmineRow = function (data) {
     });
   }
 
-  // Initialize tooltips.
-  $tr.find('[title]').tooltip();
+  // Initialize widgets.
+  T2RWidget.initialize($tr);
 
   return $tr;
 };

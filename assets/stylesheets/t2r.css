@@ -55,6 +55,10 @@
 .t2r-table td.hours {
   width: 50px;
 }
+.t2r-table th.buttons,
+.t2r-table td.buttons {
+  width: 40px;
+}
 .t2r-table td input,
 .t2r-table td select {
   max-width: 100%;

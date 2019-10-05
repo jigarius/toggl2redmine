@@ -1,12 +1,28 @@
 language: ruby
 
+services:
+  - postgresql
+
 rvm:
-  - 2.3
+  - 2.4
+
+env:
+  - REDMINE_VERSION=3.4.9
 
 sudo: false
 
 install:
   - gem install rubocop
 
+before_script:
+  - psql -c 'CREATE DATABASE redmine_test;' -U postgres
+
 script:
   - rubocop
+  # Prepare env variables.
+  - export TEST_PATH=$(pwd)/area19
+  - export PLUGIN_PATH=$(pwd)
+  - export PLUGIN_NAME=toggl2redmine
+  # Prepare test space.
+  - mkdir $TEST_PATH
+  - bash -x ./test/travis/main.sh

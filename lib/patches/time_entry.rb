@@ -1,7 +1,7 @@
-# Patch Redmine's TimeEntry model.
-#
-# When a time entry is deleted, all related Toggl mappings should be deleted.
+# frozen_string_literal: true
+
 module Toggl2Redmine
+  # Patch Redmine's TimeEntry model.
   module TimeEntryPatch
     def self.included(base)
       base.class_eval do
@@ -12,4 +12,4 @@ module Toggl2Redmine
   end
 end
 
-TimeEntry.send(:include, Toggl2Redmine::TimeEntryPatch)
+TimeEntry.include Toggl2Redmine::TimeEntryPatch

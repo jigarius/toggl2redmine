@@ -1,4 +1,5 @@
 language: ruby
+sudo: false
 
 services:
   - postgresql
@@ -8,8 +9,6 @@ rvm:
 
 env:
   - REDMINE_VERSION=3.4.9
-
-sudo: false
 
 install:
   - gem install rubocop

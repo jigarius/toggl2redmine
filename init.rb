@@ -15,3 +15,6 @@ Redmine::Plugin.register :toggl2redmine do
        { controller: 't2r', action: 'index' },
        caption: 'Toggl'
 end
+
+# Patches.
+require 'patches/time_entry.rb'

@@ -1709,7 +1709,7 @@ T2RWidget.initAjaxDeleteLink = function(el) {
 
     // Prepare AJAX request.
     T2R.redmineRequest({
-      url: url,
+      url: url + '.json',
       async: true,
       data: '{}',
       method: 'DELETE',
@@ -2157,7 +2157,7 @@ T2RRenderer.renderRedmineRow = function (data) {
   var linkEdit = '<a href="' + urlEdit + '" title="Edit" class="icon-only icon-edit" target="_blank" data-t2r-widget="Tooltip">Edit</a>'
 
   // Prepare delete action.
-  var urlDelete = T2R.REDMINE_URL + '/time_entries/' + data.id + '.json';
+  var urlDelete = T2R.REDMINE_URL + '/time_entries/' + data.id;
   var linkDelete = '<a href="' + urlDelete + '" title="Delete" class="icon-only icon-del" rel="nofollow" data-t2r-widget="AjaxDeleteLink Tooltip" data-t2r-delete-link-context="tr" data-t2r-delete-link-callback="T2R.updateRedmineReport();">Delete</a>'
 
   // Build a label for the issue.

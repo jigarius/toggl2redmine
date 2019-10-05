@@ -42,7 +42,7 @@ class TogglTimeEntry
   # Parses a Toggl description and returns it's components.
   def parse_description(description)
     description = '' if description.nil?
-    description.strip!
+    description = description.strip
 
     # Prepare default output.
     output = {

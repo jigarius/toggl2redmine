@@ -6,7 +6,7 @@ Redmine::Plugin.register :toggl2redmine do
   author 'Jigar Mehta'
   description 'Imports time entries from Toggl into Redmine.'
   version '3.1.3'
-  url 'https://github.com/evolvingweb/toggl2redmine'
+  url 'https://github.com/jigarius/toggl2redmine'
   author_url 'https://jigarius.com/'
 
   # Menu items.

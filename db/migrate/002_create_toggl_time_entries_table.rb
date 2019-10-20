@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Creates a "toggl_time_entries" table.
-class CreateTogglTimeEntriesTable < ActiveRecord::Migration
+class CreateTogglTimeEntriesTable < ActiveRecord::Migration[4.2]
   def change
     create_table :toggl_time_entries do |t|
       t.integer :toggl_id, null: false

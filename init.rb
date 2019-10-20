@@ -5,7 +5,7 @@ Redmine::Plugin.register :toggl2redmine do
   name 'Toggl 2 Redmine'
   author 'Jigar Mehta'
   description 'Imports time entries from Toggl into Redmine.'
-  version '3.1.3'
+  version '4.1.3'
   url 'https://github.com/jigarius/toggl2redmine'
   author_url 'https://jigarius.com/'
 

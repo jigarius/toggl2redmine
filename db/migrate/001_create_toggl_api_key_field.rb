@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Creates a "Toggl API Key" field.
-class CreateTogglApiKeyField < ActiveRecord::Migration
+class CreateTogglApiKeyField < ActiveRecord::Migration[4.2]
   def up
     custom_field = CustomField.new_subclass_instance('UserCustomField',
                                                      name: 'Toggl API Key',

@@ -15,6 +15,11 @@
 # You can also do it all in one line:
 # rake db:drop; rake db:create; rake db:migrate; rake redmine:plugins:migrate; rake db:seed;
 
+# Enable Rest API.
+setting = Setting.where name: :rest_api_enabled
+setting.value = 1
+setting.save!
+
 # Create users.
 user_admin = User.where login: 'admin'
 
@@ -99,33 +104,38 @@ issue_1 = Issue.create!({
   subject: 'Issue 1: Abstract apples',
   description: "Dummy issue for testing Toggl 2 Redmine.",
   author: user_admin,
-  project: project_alpha
+  project: project_alpha,
+  tracker: tracker_task
 })
 
 issue_2 = Issue.create!({
   subject: 'Issue 2: Boil bananas',
   description: "Dummy issue for testing Toggl 2 Redmine.",
   author: user_admin,
-  project: project_alpha
+  project: project_alpha,
+  tracker: tracker_task
 })
 
 issue_3 = Issue.create!({
   subject: 'Issue 3: Condition cherries',
   description: "Dummy issue for testing Toggl 2 Redmine.",
   author: user_admin,
-  project: project_bravo
+  project: project_bravo,
+  tracker: tracker_task
 })
 
 issue_4 = Issue.create!({
   subject: 'Issue 4: Dismantle dates',
   description: "Dummy issue for testing Toggl 2 Redmine.",
   author: user_admin,
-  project: project_bravo
+  project: project_bravo,
+  tracker: tracker_task
 })
 
 issue_5 = Issue.create!({
   subject: 'Issue 4: Extract essence',
   description: "Dummy issue for testing Toggl 2 Redmine.",
   author: user_admin,
-  project: project_charlie
+  project: project_charlie,
+  tracker: tracker_task
 })

@@ -4,6 +4,7 @@
 class T2rController < ApplicationController
   menu_item :toggl2redmine
   before_action :require_login, :validate_user
+
   attr_reader :user, :toggl_api_key
 
   # Current user.
@@ -26,17 +27,16 @@ class T2rController < ApplicationController
   end
 
   # Creates time entries from request data.
-  # TODO: Move params validation to import_validate_params().
   def import
-    # Prepare a Redmine time entry.
-    @time_entry = TimeEntry.new(params[:time_entry])
-    @time_entry.user = @user
-    if @time_entry.issue.present?
-      @time_entry.project = @time_entry.issue.project
+    begin
+      # TODO: Investigate usage of before_action with rescue_from.
+      import_parse_params
+    rescue ActionController::ParameterMissing => e
+      return render json: { errors: [e.message] }, status: 400
     end
-    @project = @time_entry.project
 
     # If project associated to the time entry could be identified.
+    @project = @time_entry.project
     unless @project.nil?
       # Check if the user is a member of the project.
       # TODO: Do we need this check?
@@ -52,13 +52,6 @@ class T2rController < ApplicationController
           errors: 'You are not allowed to log time on this project.'
         }, status: 403
       end
-    end
-
-    # Toggl IDs must be present.
-    unless params[:toggl_ids].present?
-      return render json: {
-        errors: "Parameter 'toggl_ids' must be present."
-      }, status: 400
     end
 
     # Abort if Toggl entries have already been imported.
@@ -95,5 +88,35 @@ class T2rController < ApplicationController
 
     # Render response.
     render json: { time_entry: @time_entry }, status: 201
+  end
+
+  protected
+
+  # Parses request parameters for "import" action.
+  #
+  # - Prepares a @time_entry object
+  # - Prepares a @toggl_ids array
+  def import_parse_params
+    # Prepare toggl_ids.
+    @toggl_ids = params.require :toggl_ids
+
+    # Build a time entry.
+    time_entry_data = params
+                      .require(:time_entry)
+                      .permit(
+                        :activity_id,
+                        :comments,
+                        :hours,
+                        :issue_id,
+                        :spent_on
+                      )
+    @time_entry = TimeEntry.new time_entry_data
+
+    # Assign user.
+    @time_entry.user = @user
+
+    # Assign project.
+    issue = @time_entry.issue
+    @time_entry.project = issue.project if issue.present?
   end
 end

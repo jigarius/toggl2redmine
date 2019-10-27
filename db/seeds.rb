@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Dummy data for testing Toggl 2 Redmine.
 #
 # To use this file, copy it to "redmine/db/seeds.rb" (or symlink) and execute
@@ -12,130 +14,200 @@
 # rake redmine:plugins:migrate # Runs redmine plugin migrations.
 # rake db:seed # Imports these test records.
 #
-# You can also do it all in one line:
-# rake db:drop; rake db:create; rake db:migrate; rake redmine:plugins:migrate; rake db:seed;
+# All the above commands can be run in one line as follows:
+# rake db:drop db:create db:migrate && rake redmine:plugins:migrate db:seed
 
 # Enable Rest API.
-setting = Setting.where name: :rest_api_enabled
+setting = Setting.where(name: :rest_api_enabled).first
+setting = Setting.new(name: :rest_api_enabled) if setting.nil?
 setting.value = 1
 setting.save!
 
 # Create users.
-user_admin = User.where login: 'admin'
+user_admin = User.where(login: 'admin').first
+user_admin = User.new(login: 'admin') if user_admin.nil?
+user_admin.mail = 'admin@example.com'
+user_admin.firstname = 'Jigarius'
+user_admin.lastname = 'Caesar'
+user_admin.password = 'toggl2redmine'
+user_admin.must_change_passwd = false
+user_admin.save!
 
-user_test = User.create!({
+user_test = User.create!(
   login: 'john.doe',
   mail: 'john.doe@example.com',
   firstname: 'John',
   lastname: 'Doe',
   password: 'toggl2redmine'
-})
-
-# Create roles.
-role_manager = Role.create!({
-  name: 'Manager',
-  permissions: [
-    :view_issues,
-    :view_time_entries,
-    :log_time,
-    :edit_time_entries,
-    :edit_own_time_entries
-  ]
-})
+)
 
 # Create issue trackers.
-issue_status_open = IssueStatus.create!({
+issue_status_open = IssueStatus.create!(
   name: 'Open',
   is_closed: false
-})
+)
 
-issue_status_closed = IssueStatus.create!({
+issue_status_closed = IssueStatus.create!(
   name: 'Closed',
   is_closed: true
-})
+)
 
 # Create trackers.
-tracker_task = Tracker.create!({
+tracker_task = Tracker.create!(
   name: 'Task',
   default_status: issue_status_open
-})
+)
 
 # Time tracking activities.
-time_entry_activity_development = TimeEntryActivity.create!({
+time_entry_activity_development = TimeEntryActivity.create!(
   name: 'Development',
   position: 1,
   is_default: true
-})
+)
 
-time_entry_activity_other = TimeEntryActivity.create!({
+time_entry_activity_other = TimeEntryActivity.create!(
   name: 'Other',
   position: 2
-})
+)
 
 # Create issue priorities.
-issue_priority_normal = IssuePriority.create!({
+issue_priority_normal = IssuePriority.create!(
   name: 'Normal',
   position: 1,
   is_default: true
-})
+)
 
 # Create projects.
-project_alpha = Project.create!({
+project_alpha = Project.create!(
   identifier: 'alpha',
   name: 'Project alpha',
   description: 'Dummy project for testing Toggl 2 Redmine.'
-})
+)
 
-project_bravo = Project.create!({
+project_bravo = Project.create!(
   identifier: 'bravo',
   name: 'Project bravo',
   description: 'Dummy project for testing Toggl 2 Redmine.'
-})
+)
 
-project_charlie = Project.create!({
+project_charlie = Project.create!(
   identifier: 'charlie',
   name: 'Project charlie',
   description: 'Dummy project for testing Toggl 2 Redmine.',
   status: 0
-})
+)
+
+# Create roles.
+role_manager = Role.create!(
+  name: 'Manager',
+  permissions: %i[
+    view_issues
+    view_time_entries
+    log_time
+    edit_time_entries
+    edit_own_time_entries
+  ]
+)
+
+# Create members.
+Member.create!(
+  user: user_test,
+  project: project_alpha,
+  roles: [role_manager]
+)
+
+Member.create!(
+  user: user_test,
+  project: project_bravo,
+  roles: [role_manager]
+)
 
 # Create issues.
-issue_1 = Issue.create!({
+# For some reason, assigning objects to issue properties results in fatal
+# ActiveRecord::AssociationTypeMismatch exceptions. Thus, IDs are used.
+issue1 = Issue.create!(
   subject: 'Issue 1: Abstract apples',
-  description: "Dummy issue for testing Toggl 2 Redmine.",
-  author: user_admin,
-  project: project_alpha,
-  tracker: tracker_task
-})
+  description: 'Dummy issue for testing Toggl 2 Redmine.',
+  author_id: user_admin.id,
+  project_id: project_alpha.id,
+  tracker_id: tracker_task.id,
+  priority_id: issue_priority_normal.id
+)
 
-issue_2 = Issue.create!({
+issue2 = Issue.create!(
   subject: 'Issue 2: Boil bananas',
-  description: "Dummy issue for testing Toggl 2 Redmine.",
-  author: user_admin,
-  project: project_alpha,
-  tracker: tracker_task
-})
+  description: 'Dummy issue for testing Toggl 2 Redmine.',
+  author_id: user_admin.id,
+  project_id: project_alpha.id,
+  tracker_id: tracker_task.id,
+  priority_id: issue_priority_normal.id
+)
 
-issue_3 = Issue.create!({
+Issue.create!(
   subject: 'Issue 3: Condition cherries',
-  description: "Dummy issue for testing Toggl 2 Redmine.",
-  author: user_admin,
-  project: project_bravo,
-  tracker: tracker_task
-})
+  description: 'Dummy issue for testing Toggl 2 Redmine.',
+  author_id: user_admin.id,
+  project_id: project_bravo.id,
+  tracker_id: tracker_task.id,
+  priority_id: issue_priority_normal.id
+)
 
-issue_4 = Issue.create!({
+Issue.create!(
   subject: 'Issue 4: Dismantle dates',
-  description: "Dummy issue for testing Toggl 2 Redmine.",
-  author: user_admin,
-  project: project_bravo,
-  tracker: tracker_task
-})
+  description: 'Dummy issue for testing Toggl 2 Redmine.',
+  author_id: user_admin.id,
+  project_id: project_bravo.id,
+  tracker_id: tracker_task.id,
+  priority_id: issue_priority_normal.id,
+  status_id: issue_status_closed.id
+)
 
-issue_5 = Issue.create!({
+issue5 = Issue.create!(
   subject: 'Issue 4: Extract essence',
-  description: "Dummy issue for testing Toggl 2 Redmine.",
-  author: user_admin,
-  project: project_charlie,
-  tracker: tracker_task
-})
+  description: 'Dummy issue for testing Toggl 2 Redmine.',
+  author_id: user_admin.id,
+  project_id: project_charlie.id,
+  tracker_id: tracker_task.id,
+  priority_id: issue_priority_normal.id
+)
+
+# Create time entries.
+TimeEntry.create(
+  project_id: issue1.project.id,
+  issue_id: issue1.id,
+  spent_on: '2019-02-18',
+  user_id: user_test.id,
+  activity_id: time_entry_activity_development.id,
+  hours: '0.50',
+  comments: 'Pellentesque ornare sem lacinia quam venenatis vestibulum.'
+)
+
+TimeEntry.create(
+  project_id: issue1.project.id,
+  issue_id: issue1.id,
+  spent_on: '2019-02-18',
+  user_id: user_test.id,
+  activity_id: time_entry_activity_development.id,
+  hours: '0.25',
+  comments: 'Cras mattis consectetur purus sit amet fermentum.'
+)
+
+TimeEntry.create(
+  project_id: issue2.project.id,
+  issue_id: issue2.id,
+  spent_on: '2019-02-18',
+  user_id: user_test.id,
+  activity_id: time_entry_activity_development.id,
+  hours: '1.25',
+  comments: 'Ut fermentum massa justo sit amet risus.'
+)
+
+TimeEntry.create(
+  project_id: issue5.project.id,
+  issue_id: issue5.id,
+  spent_on: '2019-02-18',
+  user_id: user_test.id,
+  activity_id: time_entry_activity_other.id,
+  hours: '2.0',
+  comments: 'Fusce dapibus, tellus ac cursus commodo tortor mauris condimentum.'
+)

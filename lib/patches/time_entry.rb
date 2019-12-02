@@ -5,7 +5,6 @@ module Toggl2Redmine
   module TimeEntryPatch
     def self.included(base)
       base.class_eval do
-        unloadable # To not unload in development?
         has_many :toggl_mappings, dependent: :destroy
       end
     end

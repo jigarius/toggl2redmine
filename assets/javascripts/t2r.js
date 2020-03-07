@@ -527,10 +527,8 @@ T2R.publishToRedmine = function () {
     };
 
     // Push the data to Redmine.
-    T2RConsole.group('Sending "' + redmine_entry.comments + '"', true);
-    T2RConsole.log('Entry data', data);
     T2R.redmineRequest({
-      async: false,
+      async: true,
       url: '/toggl2redmine/import',
       method: 'post',
       context: $tr,
@@ -578,12 +576,16 @@ T2R.publishToRedmine = function () {
       }
     });
   });
-  T2RConsole.groupEnd();
 
-  // Refresh the Redmine report and show success message.
-  T2R.unlockPublishForm();
-  T2R.updateRedmineReport();
-  T2R.updateLastImported();
+  // Refresh the Redmine report when all items are processed.
+  T2R.__publishWatcher = setInterval(function () {
+    if (T2RAjaxQueue.isEmpty()) {
+      clearInterval(T2R.__publishWatcher);
+      T2R.unlockPublishForm();
+      T2R.updateRedmineReport();
+      T2R.updateLastImported();
+    }
+  }, 250);
 };
 
 /**
@@ -1286,13 +1288,13 @@ T2R.redmineRequest = function (opts) {
     opts.url = T2R.REDMINE_URL + opts.url;
   }
 
-  T2RConsole.log('Request to Redmine', opts);
-
   // TODO: Use CSRF Token instead of API Key?
   // For some reason Redmine throws 401 Unauthroized despite a CSRF Token.
   opts.headers = opts.headers || {};
   opts.headers['X-Redmine-API-Key'] = T2R.REDMINE_API_KEY;
-  $.ajax(opts);
+
+  // Queue the request.
+  T2RAjaxQueue.addItem(opts);
 };
 
 /**
@@ -1312,6 +1314,93 @@ T2R.redmineIssueURL = function (id) {
   }
   return output;
 };
+
+/**
+ * Toggl 2 Redmine AJAX Request Queue.
+ *
+ * @type {Object}
+ */
+var T2RAjaxQueue = T2RAjaxQueue || {};
+
+/**
+ * Queue of requests to be processed.
+ *
+ * @type {Object}
+ * @private
+ */
+T2RAjaxQueue.__items = [];
+
+/**
+ * Whether a request is in progress.
+ *
+ * @type {Boolean}
+ * @private
+ */
+T2RAjaxQueue.__requestInProgress = false;
+
+/**
+ * Number or requests currently in the queue.
+ *
+ * @returns {Number}
+ */
+T2RAjaxQueue.size = function () {
+  return T2RAjaxQueue.__items.length;
+}
+
+/**
+ * Whether there are no requests in the queue.
+ *
+ * @returns {Boolean}
+ */
+T2RAjaxQueue.isEmpty = function () {
+  return T2RAjaxQueue.__items.length === 0;
+}
+
+/**
+ * Adds an AJAX request to the execution queue.
+ *
+ * Requests be executed one after the other until all items in the queue have
+ * been processed.
+ */
+T2RAjaxQueue.addItem = function (opts) {
+  T2RAjaxQueue.__items.push(opts);
+  T2RAjaxQueue.processItem();
+};
+
+/**
+ * Processes an AJAX request present in the queue.
+ */
+T2RAjaxQueue.processItem = function () {
+  // If queue is empty, do nothing.
+  if (0 === T2RAjaxQueue.__items.length) {
+    return;
+  }
+
+  // If a request is in progress, do nothing.
+  if (T2RAjaxQueue.__requestInProgress) {
+    return;
+  }
+  T2RAjaxQueue.__requestInProgress = true;
+  T2RConsole.group('Processing queue. ' + T2RAjaxQueue.size() + ' remaining.');
+
+  // Prepare current item.
+  var opts = T2RAjaxQueue.__items.shift();
+  T2RConsole.log('Sending item: ', opts);
+  var callback = opts.complete || function () {};
+  opts.complete = function (xhr, status) {
+    // Call the original callback.
+    var context = this;
+    callback.call(context, xhr, status);
+    T2RConsole.groupEnd();
+
+    // Process the next item in the queue, if any.
+    T2RAjaxQueue.__requestInProgress = false;
+    T2RAjaxQueue.processItem();
+  };
+
+  // Process current item.
+  $.ajax(opts);
+}
 
 /**
  * Toggl to Redmine time duration.

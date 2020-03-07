@@ -9,6 +9,7 @@ en:
   t2r:
     text_add_toggl_api_key: 'To use Toggl 2 Redmine, please add a Toggl API Token to your account.'
     text_db_transaction_warning: 'Your database does not support transactions. Please ask your system administrator to refer to the README for Toggle 2 Redmine.'
+    text_development_mode: 'You are in development mode. Sample data exists for Nov 03, 2012.'
     tooltip_status_column: "Put your mouse on the icon for a row to see it's status. Example: Imported, Failed, Error."
     tooltip_hours_column: "1:50 means 1 hour 50 minutes. Press 'Up' or 'Down' to round the nearest 5 minutes. Combine with 'Shift' to round to the nearest 15 minutes."
     button_import_to_redmine: 'Import to Redmine'

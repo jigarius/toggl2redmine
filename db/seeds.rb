@@ -175,7 +175,7 @@ issue5 = Issue.create!(
 TimeEntry.create(
   project_id: issue1.project.id,
   issue_id: issue1.id,
-  spent_on: '2019-02-18',
+  spent_on: '2012-11-03',
   user_id: user_test.id,
   activity_id: time_entry_activity_development.id,
   hours: '0.50',
@@ -185,7 +185,7 @@ TimeEntry.create(
 TimeEntry.create(
   project_id: issue1.project.id,
   issue_id: issue1.id,
-  spent_on: '2019-02-18',
+  spent_on: '2012-11-03',
   user_id: user_test.id,
   activity_id: time_entry_activity_development.id,
   hours: '0.25',
@@ -195,7 +195,7 @@ TimeEntry.create(
 TimeEntry.create(
   project_id: issue2.project.id,
   issue_id: issue2.id,
-  spent_on: '2019-02-18',
+  spent_on: '2012-11-03',
   user_id: user_test.id,
   activity_id: time_entry_activity_development.id,
   hours: '1.25',
@@ -205,7 +205,7 @@ TimeEntry.create(
 TimeEntry.create(
   project_id: issue5.project.id,
   issue_id: issue5.id,
-  spent_on: '2019-02-18',
+  spent_on: '2012-11-03',
   user_id: user_test.id,
   activity_id: time_entry_activity_other.id,
   hours: '2.0',

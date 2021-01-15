@@ -117,6 +117,34 @@ which you can round your time entries.
 
 To disable rounding, you can choose the *Don't round* option.
 
+## Development
+
+Want to fiddle with the code? Or just get a demo of the plugin? If you use
+Docker, you can do so with ease.
+
+  * Clone the code repository.
+    ```
+    git clone --branch 4.x git@github.com:jigarius/toggl2redmine.git
+    cd toggl2redmine
+    ```
+  * Prepare docker containers.
+    ```
+    docker-compose up -d
+    # Wait until the database container is ready.
+    docker-compose start
+    ```
+  * Seed the database, i.e. create sample data.
+    ```
+    rake prepare
+    ```
+
+Run `rake info` to learn how to access your demo installation!
+
+### Mailhog
+
+Mailhog has been included in the Docker setup so that you can easily reset
+your password or test Toggl 2 Redmine with more than one user accounts.
+
 # Acknowledgements
 
 * Thanks [Evolving Web](https://evolvingweb.ca/) for funding the initial

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 REDMINE_URL = 'http://localhost:3000'
 MAILHOG_URL = 'http://localhost:8025'
 
@@ -17,7 +19,7 @@ task :psql do |_t, args|
   args.with_defaults(
     database: 'redmine',
     user: 'redmine',
-    pass: 'redmine',
+    pass: 'redmine'
   )
 
   sh "docker-compose exec mysql mysql -u#{args.user} -p#{u.pass} #{u.database}"
@@ -30,22 +32,29 @@ task :prepare do
   sh 'docker-compose exec redmine rake db:seed'
 
   puts <<~RESULT
-
     ======
     Redmine is ready!
     ======
-
-    You can login with the following credentials:
-
-    Username: admin@example.com
-    Password: toggl2redmine
-
-    Log in to Redmine at #{REDMINE_URL}/login
   RESULT
+
+  Rake::Task[:info].invoke
 end
 
 desc 'Dev env info.'
 task :info do
-  puts "Redmine URL: #{REDMINE_URL}/"
-  puts "Mailhog URL: #{MAILHOG_URL}/"
+  puts <<~INFO
+    Sample time entries exist for john.doe on Nov 03, 2012.
+
+    ----------------------------------------------------
+    User          | Email address        | Password
+    ----------------------------------------------------
+    Administrator | admin@example.com    | toggl2redmine
+    John Doe      | john.doe@example.com | toggl2redmine
+    ----------------------------------------------------
+
+    Redmine: #{REDMINE_URL}/
+    Toggl 2 Redmine: #{REDMINE_URL}/toggl2redmine (requires login)
+    Mailhog: #{MAILHOG_URL}/
+  INFO
+
 end

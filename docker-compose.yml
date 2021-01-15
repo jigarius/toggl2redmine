@@ -20,8 +20,9 @@ services:
       REDMINE_PLUGINS_MIGRATE: 1
     volumes:
       - .:/usr/src/redmine/plugins/toggl2redmine
-      - ./.docker/redmine/configuration.yml:/usr/src/redmine/config/configuration.yml
       - ./db/seeds.rb:/usr/src/redmine/db/seeds.rb
+      - ./.docker/redmine/configuration.yml:/usr/src/redmine/config/configuration.yml
+      - ./.docker/redmine/additional_environment.rb:/usr/src/redmine/config/additional_environment.rb
   mysql:
     image: mysql:5.7
     container_name: redmine-mysql

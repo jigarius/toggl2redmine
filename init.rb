@@ -17,4 +17,4 @@ Redmine::Plugin.register :toggl2redmine do
 end
 
 # Patches.
-require 'patches/time_entry.rb'
+require 'patches/time_entry'

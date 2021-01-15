@@ -54,29 +54,27 @@ class T2rTogglController < T2rController
       hash[:issue] = nil
       hash[:errors] = []
 
-      unless time_entry.issue.nil?
-        # If the user has permission to see the project.
-        if @user.admin? ||
-           time_entry.issue.project.members.pluck(:user_id).include?(@user.id)
+      if time_entry.issue &&
+         # If the user has permission to see the project.
+         (@user.admin? || time_entry.issue.project.members.pluck(:user_id).include?(@user.id))
 
-          # Include issue.
-          issue = time_entry.issue
-          hash[:issue] = {
-            id: issue.id,
-            subject: issue.subject,
-            # Include tracker.
-            tracker: {
-              id: issue.tracker.id,
-              name: issue.tracker.name
-            },
-            # Include project.
-            project: {
-              id: issue.project.id,
-              name: issue.project.name,
-              status: issue.project.status
-            }
+        # Include issue.
+        issue = time_entry.issue
+        hash[:issue] = {
+          id: issue.id,
+          subject: issue.subject,
+          # Include tracker.
+          tracker: {
+            id: issue.tracker.id,
+            name: issue.tracker.name
+          },
+          # Include project.
+          project: {
+            id: issue.project.id,
+            name: issue.project.name,
+            status: issue.project.status
           }
-        end
+        }
       end
       output[time_entry.key] = hash
     end

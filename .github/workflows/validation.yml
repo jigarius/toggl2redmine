@@ -1,0 +1,26 @@
+name: validation
+on:
+  - push
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.6'
+      - name: Install Rubocop
+        run: gem install rubocop
+      - name: Lint
+        run: rubocop
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Redmine Plugin Test
+        uses: two-pack/redmine-plugin-test-action@v2
+        with:
+          plugin_name: toggl2redmine
+          redmine_version: v4.0
+          ruby_version: v2.6
+          database: mysql

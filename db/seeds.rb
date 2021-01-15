@@ -24,8 +24,7 @@ setting.value = 1
 setting.save!
 
 # Create users.
-user_admin = User.where(login: 'admin').first
-user_admin = User.new(login: 'admin') if user_admin.nil?
+user_admin = User.where(login: 'admin').first || User.new(login: 'admin')
 user_admin.mail = 'admin@example.com'
 user_admin.firstname = 'Jigarius'
 user_admin.lastname = 'Caesar'

@@ -149,5 +149,5 @@ your password or test Toggl 2 Redmine with more than one user accounts.
 
 * Thanks [Evolving Web](https://evolvingweb.ca/) for funding the initial
   development of this plugin.
-* Thanks [Jigar Mehta](https://github.com/jigarius) (that's me) for spending
-  many evenings and weekends to make this plugin possible.
+* Thanks [Jigar Mehta (Jigarius)](https://jigarius.com/about) (that's me)
+  for spending many evenings and weekends to make this plugin possible.

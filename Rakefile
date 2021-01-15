@@ -27,6 +27,12 @@ end
 
 desc 'Prepare dev environment.'
 task :prepare do
+  # Redmine's Gemfile seems to try to include the plugin's Gemfile
+  # but for unknown reasons, it doesn't work.
+  puts 'Installing dev packages...'
+  sleep(2)
+  sh 'docker-compose exec bundle add rubocop pry'
+
   puts 'Preparing database...'
   sleep(2)
   sh 'docker-compose exec redmine rake db:seed'
@@ -45,6 +51,7 @@ task :info do
   puts <<~INFO
     Sample time entries exist for john.doe on Nov 03, 2012.
 
+    USERS
     ----------------------------------------------------
     User          | Email address        | Password
     ----------------------------------------------------
@@ -52,9 +59,16 @@ task :info do
     John Doe      | john.doe@example.com | toggl2redmine
     ----------------------------------------------------
 
-    Redmine: #{REDMINE_URL}/
-    Toggl 2 Redmine: #{REDMINE_URL}/toggl2redmine (requires login)
-    Mailhog: #{MAILHOG_URL}/
+    URLS
+    ----------------------------------------------------
+    Redmine         | #{REDMINE_URL}/
+    Toggl 2 Redmine | #{REDMINE_URL}/toggl2redmine
+    Mailhog         | #{MAILHOG_URL}/
+    ----------------------------------------------------
   INFO
+end
 
+desc 'Run Rubocop.'
+task :rubocop do
+  sh 'docker-compose exec redmine rubocop plugins/toggl2redmine'
 end

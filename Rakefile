@@ -46,10 +46,10 @@ task :info do
 
     USERS
     ----------------------------------------------------
-    User          | Email address        | Password
+    Login    | Email address        | Password
     ----------------------------------------------------
-    Administrator | admin@example.com    | toggl2redmine
-    John Doe      | john.doe@example.com | toggl2redmine
+    admin    | admin@example.com    | toggl2redmine
+    john.doe | john.doe@example.com | toggl2redmine
     ----------------------------------------------------
 
     URLS

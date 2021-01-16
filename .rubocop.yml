@@ -17,6 +17,9 @@ Metrics/MethodLength:
 Metrics/PerceivedComplexity:
   Enabled: false
 
+Style/Documentation:
+  Exclude:
+    - test/**/*_test.rb
 Style/IfUnlessModifier:
   Enabled: false
 Style/HashEachMethods:

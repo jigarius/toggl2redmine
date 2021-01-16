@@ -138,6 +138,14 @@ Docker, you can do so with ease.
 
 Run `rake info` to learn how to access your demo installation!
 
+### Testing
+
+Thanks to the Docker setup, the plugin code can easily be linted and tested.
+
+  * `rake rubocop`: Run Rubocop.
+  * `rake test:reset`: Prepare/reset the test environment.
+  * `rake test:run`: Run tests.
+
 ### Mailhog
 
 Mailhog has been included in the Docker setup so that you can easily reset

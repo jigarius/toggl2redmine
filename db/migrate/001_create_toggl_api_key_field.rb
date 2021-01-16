@@ -3,18 +3,18 @@
 # Creates a "Toggl API Key" field.
 class CreateTogglApiKeyField < ActiveRecord::Migration[4.2]
   def up
-    custom_field = CustomField.new_subclass_instance('UserCustomField',
-                                                     name: 'Toggl API Key',
-                                                     field_format: 'string',
-                                                     min_length: 32,
-                                                     max_length: 32,
-                                                     regexp: '',
-                                                     default_value: '',
-                                                     is_required: 0,
-                                                     visible: 0,
-                                                     editable: 1,
-                                                     is_filter: 0)
-    custom_field.save!
+    UserCustomField.create!(
+      name: 'Toggl API Key',
+      field_format: 'string',
+      min_length: 32,
+      max_length: 32,
+      regexp: '',
+      default_value: '',
+      is_required: 0,
+      visible: 0,
+      editable: 1,
+      is_filter: 0
+    )
   end
 
   def down

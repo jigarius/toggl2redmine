@@ -65,3 +65,24 @@ desc 'Run Rubocop.'
 task :rubocop do
   sh 'docker-compose exec redmine rubocop plugins/toggl2redmine'
 end
+
+namespace :test do
+  desc 'Reset the test database.'
+  task :reset do
+    commands = [
+      'db:drop',
+      'db:create',
+      'db:migrate',
+      'redmine:plugins:migrate',
+      'redmine:load_default_data'
+    ]
+    commands.each do |command|
+      sh "docker-compose exec -e RAILS_ENV='test' redmine rake #{command}"
+    end
+  end
+
+  desc 'Run tests for the plugin.'
+  task :run do
+    sh "docker-compose exec -e RAILS_ENV='test' redmine rake redmine:plugins:test NAME=toggl2redmine"
+  end
+end

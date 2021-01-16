@@ -31,7 +31,7 @@ task :prepare do
   # but for unknown reasons, it doesn't work.
   puts 'Installing dev packages...'
   sleep(2)
-  sh 'docker-compose exec bundle add rubocop pry'
+  sh 'docker-compose exec redmine gem install rubocop pry'
 
   puts 'Preparing database...'
   sleep(2)

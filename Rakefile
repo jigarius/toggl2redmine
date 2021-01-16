@@ -15,23 +15,16 @@ task :rails do |_t, args|
 end
 
 desc 'Launch MySQL'
-task :psql do |_t, args|
-  args.with_defaults(
-    database: 'redmine',
-    user: 'redmine',
-    pass: 'redmine'
-  )
-
-  sh "docker-compose exec mysql mysql -u#{args.user} -p#{u.pass} #{u.database}"
+task :mysql, [:user, :pass] do |_t, args|
+  args.with_defaults(user: 'root', pass: 'root')
+  sh "docker-compose exec mysql mysql -u#{args.user} -p#{args.pass}"
 end
 
 desc 'Prepare dev environment.'
 task :prepare do
-  # Redmine's Gemfile seems to try to include the plugin's Gemfile
-  # but for unknown reasons, it doesn't work.
   puts 'Installing dev packages...'
   sleep(2)
-  sh 'docker-compose exec redmine gem install rubocop pry'
+  sh 'docker-compose exec redmine bundle install --with default development test'
 
   puts 'Preparing database...'
   sleep(2)

@@ -4,9 +4,9 @@ REDMINE_URL = 'http://localhost:3000'
 MAILHOG_URL = 'http://localhost:8025'
 
 desc "SSH into a service. Defaults to 'redmine'."
-task :ssh, [:service] do |_t, args|
-  args.with_defaults(service: 'redmine')
-  sh "docker-compose exec #{args[:service]} bash"
+task :ssh, [:service, :rails_env] do |_t, args|
+  args.with_defaults(service: 'redmine', rails_env: 'development')
+  sh "docker-compose exec -e RAILS_ENV='#{args.rails_env}' #{args.service} bash"
 end
 
 desc 'Execute a Rails command'

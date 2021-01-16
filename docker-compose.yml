@@ -1,9 +1,10 @@
 version: '3.1'
 services:
   redmine:
-    image: redmine:4.0
+    image: redmine:4-toggl2redmine
     container_name: redmine-appserver
     hostname: appserver
+    build: .docker/redmine
     ports:
       - "3000:3000"
     depends_on:
@@ -16,12 +17,12 @@ services:
       REDMINE_DB_ENCODING: utf8
       REDMINE_DB_USERNAME: redmine
       REDMINE_DB_PASSWORD: redmine
-      REDMINE_DB_DATABASE: redmine
       REDMINE_PLUGINS_MIGRATE: 1
     volumes:
       - .:/usr/src/redmine/plugins/toggl2redmine
       - ./db/seeds.rb:/usr/src/redmine/db/seeds.rb
       - ./.docker/redmine/configuration.yml:/usr/src/redmine/config/configuration.yml
+      - ./.docker/redmine/database.yml:/usr/src/redmine/config/database.yml
       - ./.docker/redmine/additional_environment.rb:/usr/src/redmine/config/additional_environment.rb
   mysql:
     image: mysql:5.7
@@ -29,10 +30,11 @@ services:
     hostname: mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: redmine
       MYSQL_USER: redmine
       MYSQL_PASSWORD: redmine
     command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+    volumes:
+      - ./.docker/mysql/init:/docker-entrypoint-initdb.d
   mailhog:
     image: mailhog/mailhog:v1.0.0
     container_name: redmine-mailhog

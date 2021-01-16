@@ -1,0 +1,15 @@
+default: &default
+  adapter: mysql2
+  host: mysql
+  port: 3306
+  username: <%= ENV.fetch('REDMINE_DB_USERNAME') %>
+  password: <%= ENV.fetch('REDMINE_DB_PASSWORD') %>
+  encoding: <%= ENV.fetch('REDMINE_DB_ENCODING') %>
+
+development:
+  <<: *default
+  database: redmine_development
+
+test:
+  <<: *default
+  database: redmine_test

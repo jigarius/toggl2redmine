@@ -17,6 +17,8 @@ Metrics/MethodLength:
 Metrics/PerceivedComplexity:
   Enabled: false
 
+Style/CaseEquality:
+  AllowOnConstant: true
 Style/Documentation:
   Exclude:
     - test/**/*_test.rb

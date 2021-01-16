@@ -9,9 +9,10 @@ jobs:
       - uses: actions/setup-ruby@v1
         with:
           ruby-version: '2.6'
-      - run: bundle install
+      - name: Prepare
+        run: gem install rubocop
       - name: Lint
-        run: bundle exec rubocop
+        run: rubocop
   test:
     runs-on: ubuntu-latest
     steps:

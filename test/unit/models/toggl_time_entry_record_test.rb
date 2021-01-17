@@ -11,6 +11,15 @@ class TogglTimeEntryRecordTest < ActiveSupport::TestCase
     description: '#19 Bunny wabbit'
   }.freeze
 
+  test 'implements TogglTimeEntry interface' do
+    assert(TogglTimeEntryRecord.include?(TogglTimeEntry))
+
+    subject = TogglTimeEntryRecord.new
+    TogglTimeEntry.instance_methods.each do |method|
+      subject.public_send method
+    end
+  end
+
   test '.new treats string and symbol keys indifferently' do
     entry1 = TogglTimeEntryRecord.new(SAMPLE_ATTRIBUTES)
     entry2 = TogglTimeEntryRecord.new(

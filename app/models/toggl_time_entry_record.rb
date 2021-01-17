@@ -2,10 +2,10 @@
 
 # A time entry tag object received from Toggl.
 class TogglTimeEntryRecord
+  include TogglTimeEntry
   include ActiveModel::Model
   include ActiveModel::Conversion
   include ActiveModel::Validations
-  include ActiveModel::Conversion
 
   extend ActiveModel::Naming
 

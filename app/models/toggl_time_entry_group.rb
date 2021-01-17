@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-# A grouping of time entries related to the same Redmine issue.
-# TODO: Create interface for TogglTimeEntryGroup and TogglTimeEntryRecord to implement?
+# A group of time entries that have the same key.
 class TogglTimeEntryGroup
-  include ActiveModel::Validations
+  include TogglTimeEntry
   include ActiveModel::Conversion
 
   extend ActiveModel::Naming
@@ -17,24 +16,41 @@ class TogglTimeEntryGroup
     @duration = 0
   end
 
-  def key
-    @entries.values.first.key unless @entries.empty?
-  end
-
+  # TODO: Do we need this method?
   def ids
     @entries.keys
   end
 
+  def wid
+    @entries.first&.wid
+  end
+
+  def at
+    @entries.first&.at
+  end
+
+  def key
+    @entries.values.first&.key
+  end
+
   def issue_id
-    return @entries.values.first.issue_id unless @entries.empty?
+    @entries.values.first&.issue_id
   end
 
   def issue
-    return @entries.values.first.issue unless @entries.empty?
+    @entries.values.first&.issue
+  end
+
+  def imported?
+    @entries.values.first&.imported? || false
+  end
+
+  def running?
+    @entries.values.first&.running? || false
   end
 
   def status
-    return @entries.values.first.status unless @entries.empty?
+    @entries.values.first&.status
   end
 
   # Add a time entry to the group.

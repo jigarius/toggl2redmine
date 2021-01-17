@@ -1,3 +1,3 @@
 # frozen_string_literal: true
 
-gem 'pry-byebug', group: :development
+gem 'pry-byebug', group: [:development, :test]

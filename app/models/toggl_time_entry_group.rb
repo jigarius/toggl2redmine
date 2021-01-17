@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 # A grouping of time entries related to the same Redmine issue.
-class GroupedTogglTimeEntry
+# TODO: Create interface for TogglTimeEntryGroup and TogglTimeEntry to implement?
+class TogglTimeEntryGroup
   include ActiveModel::Validations
   include ActiveModel::Conversion
 
@@ -53,7 +54,7 @@ class GroupedTogglTimeEntry
     entries.each do |entry|
       entry = TogglTimeEntry.new(entry)
       key = entry.key
-      output[key] = GroupedTogglTimeEntry.new if output[key].nil?
+      output[key] = TogglTimeEntryGroup.new if output[key].nil?
       output[key].add_entry(entry)
     end
     output

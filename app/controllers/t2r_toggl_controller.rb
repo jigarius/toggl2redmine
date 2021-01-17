@@ -46,7 +46,7 @@ class T2rTogglController < T2rController
     end
 
     # Prepare grouped time entries.
-    @time_entries = GroupedTogglTimeEntry.new_from_feed(time_entries)
+    @time_entries = TogglTimeEntryGroup.new_from_feed(time_entries)
     output = {}
     # Expand certain Redmine models manually.
     @time_entries.values.each do |time_entry|

@@ -56,7 +56,7 @@ class T2rController < ApplicationController
 
     # Abort if Toggl entries have already been imported.
     # This prevents re-imports for databases which do not support transactions.
-    unless TogglMapping.find_by_toggl_ids(*params[:toggl_ids]).empty?
+    unless TogglMapping.where(toggl_id: params[:toggl_ids]).empty?
       return render json: {
         errors: 'Toggl ID has already been imported.'
       }, status: 400

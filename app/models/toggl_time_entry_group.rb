@@ -2,17 +2,17 @@
 
 # A group of time entries that have the same key.
 class TogglTimeEntryGroup
+  include Enumerable
   include TogglTimeEntry
   include ActiveModel::Conversion
 
   extend ActiveModel::Naming
 
-  attr_reader :entries, :comments, :duration
+  attr_reader :duration
 
   # Constructor
-  def initialize(_attributes = {})
+  def initialize
     @entries = {}
-    @comments = nil
     @duration = 0
   end
 
@@ -22,11 +22,11 @@ class TogglTimeEntryGroup
   end
 
   def wid
-    @entries.first&.wid
+    @entries.values.first&.wid
   end
 
   def at
-    @entries.first&.at
+    @entries.values.first&.at
   end
 
   def key
@@ -41,6 +41,10 @@ class TogglTimeEntryGroup
     @entries.values.first&.issue
   end
 
+  def comments
+    @entries.values.first&.comments
+  end
+
   def imported?
     @entries.values.first&.imported? || false
   end
@@ -53,15 +57,46 @@ class TogglTimeEntryGroup
     @entries.values.first&.status
   end
 
-  # Add a time entry to the group.
-  def add_entry(entry)
-    if !key.nil? && key != entry.key
-      raise 'Only issues with the same grouping key can be grouped together.'
+  # TODO: Rename to <<.
+  def add_entry (entry)
+    unless TogglTimeEntryRecord === entry
+      raise ArgumentError, "Argument must be a #{TogglTimeEntryRecord.name}"
+    end
+
+    if !@entries.empty? && key != entry.key
+      raise ArgumentError, "Only items with key '#{key}' can be added"
     end
 
     @entries[entry.id] = entry
-    @comments = entry.comments if @comments.nil?
     @duration += entry.duration
+  end
+
+  def << (entry)
+    add_entry(entry)
+  end
+
+  # Enumerable#each
+  def each(&block)
+    @entries.each(&block)
+  end
+
+  # Enumerable#entries
+  def entries(*args)
+    @entries.values.entries(*args)
+  end
+
+  # As JSON.
+  def as_json(options = {})
+    {
+      'ids' => ids,
+      'wid' => wid,
+      'duration' => @duration,
+      'at' => at,
+      'key' => key,
+      'issue_id' => issue_id,
+      'comments' => comments,
+      'status' => status,
+    }
   end
 
   # Normalizes and groups Toggl time entries.
@@ -73,16 +108,6 @@ class TogglTimeEntryGroup
       output[key] = TogglTimeEntryGroup.new if output[key].nil?
       output[key].add_entry(entry)
     end
-    output
-  end
-
-  # As JSON.
-  def as_json(options = {})
-    output = super(options)
-    output[:key] = key
-    output[:ids] = ids
-    output[:issue_id] = issue_id
-    output[:status] = status
     output
   end
 end

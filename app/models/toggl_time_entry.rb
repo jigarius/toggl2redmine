@@ -2,6 +2,8 @@
 
 # A time entry tag object received from Toggl.
 class TogglTimeEntry
+  include ActiveModel::Model
+  include ActiveModel::Conversion
   include ActiveModel::Validations
   include ActiveModel::Conversion
 
@@ -41,17 +43,7 @@ class TogglTimeEntry
 
   # Finds the associated Redmine issue.
   def issue
-    begin
-      output = Issue.find(@issue_id) unless @issue_id.nil?
-    rescue StandardError
-      output = nil
-    end
-    output
-  end
-
-  # Finds the associated Toggl mapping.
-  def mapping
-    TogglMapping.find_by(toggl_id: @id)
+    Issue.find_by(id: @issue_id)
   end
 
   # Gets the status of the entry.
@@ -97,5 +89,10 @@ class TogglTimeEntry
 
     @issue_id = matches[0].to_i
     @comments = matches[1]
+  end
+
+  # Finds the associated Toggl mapping.
+  def mapping
+    TogglMapping.find_by(toggl_id: @id)
   end
 end

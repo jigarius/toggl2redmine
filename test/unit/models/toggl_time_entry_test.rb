@@ -24,20 +24,15 @@ class TogglTimeEntryTest < ActiveSupport::TestCase
     assert_equal(entry1, entry2)
   end
 
-  test '.id returns ID' do
-    assert_equal(SAMPLE_ATTRIBUTES[:id], build_subject.id)
-  end
+  test 'simple attribute readers work correctly' do
+    subject = build_subject
 
-  test '.wid returns workspace ID' do
-    assert_equal(SAMPLE_ATTRIBUTES[:wid], build_subject.wid)
-  end
-
-  test '.duration returns duration' do
-    assert_equal(SAMPLE_ATTRIBUTES[:duration], build_subject.duration)
-  end
-
-  test '.at returns date and time' do
-    assert_equal(SAMPLE_ATTRIBUTES[:at], build_subject.at)
+    assert_equal(SAMPLE_ATTRIBUTES[:id], subject.id)
+    assert_equal(SAMPLE_ATTRIBUTES[:wid], subject.wid)
+    assert_equal(SAMPLE_ATTRIBUTES[:duration], subject.duration)
+    assert_equal(SAMPLE_ATTRIBUTES[:at], subject.at)
+    assert_equal(19, subject.issue_id)
+    assert_equal('Bunny wabbit', subject.comments)
   end
 
   test ".new can parse the description '#123'" do
@@ -146,6 +141,20 @@ class TogglTimeEntryTest < ActiveSupport::TestCase
     subject.expects(:imported?).returns(true)
 
     assert_equal('imported', subject.status)
+  end
+
+  test '.issue returns nil if issue does not exist' do
+    subject = build_subject(description: "#999_999_999 doesn't exist")
+    assert_nil(subject.issue)
+  end
+
+  test '.issue returns Issue if issue exists' do
+    subject = build_subject
+    issue = Issue.new
+
+    Issue.expects(:find_by).with(id: subject.issue_id).once.returns(issue)
+
+    assert_same(issue, subject.issue)
   end
 
   test '.as_json' do

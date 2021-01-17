@@ -7,7 +7,7 @@ class TogglTimeEntry
 
   extend ActiveModel::Naming
 
-  attr_reader :id, :wid, :issue_id, :duration, :at, :description, :comments
+  attr_reader :id, :wid, :issue_id, :duration, :at, :comments
 
   validates :id, :wid, :duration, :at, presence: true
   validates :id, :wid, :duration,

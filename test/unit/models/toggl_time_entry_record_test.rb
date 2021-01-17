@@ -2,7 +2,7 @@
 
 require_relative '../../test_helper'
 
-class TogglTimeEntryTest < ActiveSupport::TestCase
+class TogglTimeEntryRecordTest < ActiveSupport::TestCase
   SAMPLE_ATTRIBUTES = {
     id: 900_123,
     wid: 500,
@@ -12,8 +12,8 @@ class TogglTimeEntryTest < ActiveSupport::TestCase
   }.freeze
 
   test '.new treats string and symbol keys indifferently' do
-    entry1 = TogglTimeEntry.new(SAMPLE_ATTRIBUTES)
-    entry2 = TogglTimeEntry.new(
+    entry1 = TogglTimeEntryRecord.new(SAMPLE_ATTRIBUTES)
+    entry2 = TogglTimeEntryRecord.new(
       'id' => 900_123,
       'wid' => 500,
       'duration' => 300,
@@ -173,7 +173,7 @@ class TogglTimeEntryTest < ActiveSupport::TestCase
   end
 
   test '.== compares correctly' do
-    subject = TogglTimeEntry.new(SAMPLE_ATTRIBUTES)
+    subject = TogglTimeEntryRecord.new(SAMPLE_ATTRIBUTES)
 
     assert_equal(
       subject,
@@ -205,6 +205,6 @@ class TogglTimeEntryTest < ActiveSupport::TestCase
 
   def build_subject(attributes = {})
     attributes = SAMPLE_ATTRIBUTES.merge(attributes)
-    TogglTimeEntry.new(attributes)
+    TogglTimeEntryRecord.new(attributes)
   end
 end

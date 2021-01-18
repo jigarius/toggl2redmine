@@ -11,9 +11,11 @@ class TogglTimeEntryGroup
   attr_reader :duration
 
   # Constructor
-  def initialize
+  def initialize(*entries)
     @entries = {}
     @duration = 0
+
+    entries.each { |e| self << e }
   end
 
   # TODO: Do we need this method?
@@ -57,8 +59,7 @@ class TogglTimeEntryGroup
     @entries.values.first&.status
   end
 
-  # TODO: Rename to <<.
-  def add_entry (entry)
+  def <<(entry)
     unless TogglTimeEntryRecord === entry
       raise ArgumentError, "Argument must be a #{TogglTimeEntryRecord.name}"
     end
@@ -71,8 +72,9 @@ class TogglTimeEntryGroup
     @duration += entry.duration
   end
 
-  def << (entry)
-    add_entry(entry)
+  def ==(other)
+    TogglTimeEntryGroup === other &&
+      entries.to_set == other.entries.to_set
   end
 
   # Enumerable#each
@@ -86,7 +88,7 @@ class TogglTimeEntryGroup
   end
 
   # As JSON.
-  def as_json(options = {})
+  def as_json(_options = {})
     {
       'ids' => ids,
       'wid' => wid,
@@ -95,18 +97,19 @@ class TogglTimeEntryGroup
       'key' => key,
       'issue_id' => issue_id,
       'comments' => comments,
-      'status' => status,
+      'status' => status
     }
   end
 
-  # Normalizes and groups Toggl time entries.
-  def self.new_from_feed(entries)
+  #
+  # Groups TogglTimeEntryRecord objects into TogglTimeEntryGroup objects.
+  #
+  # Items with the same .key are put in the same group.
+  def self.group(entries)
     output = {}
     entries.each do |entry|
-      entry = TogglTimeEntryRecord.new(entry)
-      key = entry.key
-      output[key] = TogglTimeEntryGroup.new if output[key].nil?
-      output[key].add_entry(entry)
+      output[entry.key] = TogglTimeEntryGroup.new unless output.key?(entry.key)
+      output[entry.key] << entry
     end
     output
   end

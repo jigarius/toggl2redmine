@@ -28,6 +28,18 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
     assert_equal(entries, subject.entries)
   end
 
+  test '.new' do
+    expected = [
+      build_time_entry_record,
+      build_time_entry_record,
+      build_time_entry_record
+    ]
+
+    subject = TogglTimeEntryGroup.new(*expected)
+
+    assert_equal(expected, subject.entries)
+  end
+
   test '.wid' do
     subject = TogglTimeEntryGroup.new
 
@@ -144,6 +156,50 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
     assert(subject.running?)
   end
 
+  test '<< inserts entries with same key' do
+    subject = TogglTimeEntryGroup.new
+
+    r1 = build_time_entry_record(description: '#150 Play video games', duration: 300)
+    r2 = build_time_entry_record(description: '#150 Play video games', duration: 500)
+
+    assert_equal(r1.key, r2.key)
+
+    subject << r1
+    subject << r2
+
+    assert_equal(2, subject.count)
+  end
+
+  test '<< inserts raises on entry type mismatch' do
+    subject = TogglTimeEntryGroup.new(
+      build_time_entry_record(description: '#150 Play video games', duration: 300)
+    )
+
+    error = assert_raises(ArgumentError) { subject << BasicObject.new }
+    assert_match('Argument must be a TogglTimeEntryRecord', error.message)
+  end
+
+  test '<< inserts raises on entry key mismatch' do
+    subject = TogglTimeEntryGroup.new(
+      build_time_entry_record(description: '#150 Play video games', duration: 300)
+    )
+
+    entries = [
+      # key different due to issue ID
+      build_time_entry_record(description: '#152 Play video games'),
+      # key different due to comments
+      build_time_entry_record(description: '#150 Play games'),
+      # key different due to status
+      build_time_entry_record(description: '#150 Play video games', duration: -1)
+    ]
+    entries.each do |entry|
+      error = assert_raises(ArgumentError) { subject << entry }
+      assert_equal("Only items with key '#{subject.key}' can be added", error.message)
+    end
+
+    assert_equal(1, subject.count)
+  end
+
   test '.as_json serializes a group without entries' do
     subject = TogglTimeEntryGroup.new
 
@@ -182,6 +238,38 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
     }
 
     assert_equal(expected, subject.as_json)
+  end
+
+  test '.group' do
+    g1e1 = build_time_entry_record(description: '#121 Board meeting')
+    g1e2 = build_time_entry_record(description: '#121 Board meeting')
+    g1e3 = build_time_entry_record(description: '#121 Board meeting')
+
+    g2e1 = build_time_entry_record(duration: -1, description: '#2 Timer running')
+
+    g3e1 = build_time_entry_record(description: '#19 Board meeting')
+    g3e2 = build_time_entry_record(description: '#19 Board meeting')
+
+    g4e1 = build_time_entry_record(description: '#19 Send post-meeting report')
+
+    expected = {
+      g1e1.key => TogglTimeEntryGroup.new(g1e1, g1e2, g1e3),
+      g2e1.key => TogglTimeEntryGroup.new(g2e1),
+      g3e1.key => TogglTimeEntryGroup.new(g3e1, g3e2),
+      g4e1.key => TogglTimeEntryGroup.new(g4e1)
+    }
+
+    assert_equal(
+      expected,
+      TogglTimeEntryGroup.group(
+        [
+          g1e1, g1e2, g1e3,
+          g2e1,
+          g3e1, g3e2,
+          g4e1
+        ]
+      )
+    )
   end
 
   private

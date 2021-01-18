@@ -61,15 +61,15 @@ class TogglService
     query[:start_date] = query[:start_date].iso8601 if query[:start_date]
     query[:end_date] = query[:end_date].iso8601 if query[:end_date]
 
-    output = get('/api/v8/time_entries', query)
+    raw_entries = get('/api/v8/time_entries', query)
 
     # The workspace filter is only supported on certain versions of the
     # Toggl API. Thus, it is easier to filter out such records ourselves.
     unless workspaces.empty?
-      output.keep_if { |time_entry| workspaces.include? time_entry['wid'] }
+      raw_entries.keep_if { |time_entry| workspaces.include? time_entry['wid'] }
     end
 
-    output
+    raw_entries
   end
 
   # Loads workspaces from Toggl.

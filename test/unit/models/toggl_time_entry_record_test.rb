@@ -20,19 +20,6 @@ class TogglTimeEntryRecordTest < ActiveSupport::TestCase
     end
   end
 
-  test '.new treats string and symbol keys indifferently' do
-    entry1 = TogglTimeEntryRecord.new(SAMPLE_ATTRIBUTES)
-    entry2 = TogglTimeEntryRecord.new(
-      'id' => 900_123,
-      'wid' => 500,
-      'duration' => 300,
-      'at' => '2021-01-16T15:30:04+00:00',
-      'description' => '#19 Bunny wabbit'
-    )
-
-    assert_equal(entry1, entry2)
-  end
-
   test 'simple attribute readers work correctly' do
     subject = build_subject
 
@@ -181,7 +168,7 @@ class TogglTimeEntryRecordTest < ActiveSupport::TestCase
     assert_equal(expected, subject.as_json)
   end
 
-  test '.== compares correctly' do
+  test '.==' do
     subject = TogglTimeEntryRecord.new(SAMPLE_ATTRIBUTES)
 
     assert_equal(

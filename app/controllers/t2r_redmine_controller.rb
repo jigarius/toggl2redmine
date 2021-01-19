@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 # Toggl 2 Redmine Controller.
-class T2rRedmineController < T2rController
-  # Reads time entries from Redmine.
+class T2rRedmineController < T2rImportController
   def read_time_entries
     # Require 'from' parameter.
     unless params[:from]

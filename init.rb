@@ -12,7 +12,7 @@ Redmine::Plugin.register :toggl2redmine do
   # Menu items.
   menu :application_menu,
        :toggl2redmine,
-       { controller: 't2r', action: 'index' },
+       { controller: 't2r_import', action: 'index' },
        caption: 'Toggl'
 end
 

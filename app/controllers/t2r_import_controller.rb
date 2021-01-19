@@ -1,30 +1,12 @@
 # frozen_string_literal: true
 
-# Toggl 2 Redmine Controller.
-class T2rController < ApplicationController
+# Toggl2Redmine Import controller.
+class T2rImportController < ApplicationController
   menu_item :toggl2redmine
-  before_action :require_login, :validate_user
 
   attr_reader :user, :toggl_api_key
 
-  # Current user.
-  @user = nil
-
-  # Toggl API token of the current user.
-  @toggl_api_key = nil
-
-  # Determines the currently logged in user.
-  def validate_user
-    @user = find_current_user
-
-    # Must have a Toggl API key.
-    field = UserCustomField.find_by_name('Toggl API Token')
-    @toggl_api_key = @user.custom_field_value(field)
-    return unless @toggl_api_key.nil? || @toggl_api_key.empty?
-
-    flash[:error] = I18n.t 't2r.text_add_toggl_api_key'
-    redirect_to controller: 'my', action: 'account'
-  end
+  before_action :require_login, :validate_user
 
   # Creates time entries from request data.
   def import
@@ -92,6 +74,19 @@ class T2rController < ApplicationController
 
   protected
 
+  # Checks if the current user has a valid Toggl API token.
+  def validate_user
+    @user = find_current_user
+
+    # Must have a Toggl API key.
+    field = UserCustomField.find_by_name('Toggl API Token')
+    @toggl_api_key = @user.custom_field_value(field)
+    return if @toggl_api_key.present?
+
+    flash[:error] = I18n.t 't2r.text_add_toggl_api_key'
+    redirect_to controller: 'my', action: 'account'
+  end
+
   # Parses request parameters for "import" action.
   #
   # - Prepares a @time_entry object
@@ -101,15 +96,16 @@ class T2rController < ApplicationController
     @toggl_ids = params.require :toggl_ids
 
     # Build a time entry.
-    time_entry_data = params
-                      .require(:time_entry)
-                      .permit(
-                        :activity_id,
-                        :comments,
-                        :hours,
-                        :issue_id,
-                        :spent_on
-                      )
+    time_entry_data =
+      params
+        .require(:time_entry)
+        .permit(
+          :activity_id,
+          :comments,
+          :hours,
+          :issue_id,
+          :spent_on
+        )
     @time_entry = TimeEntry.new time_entry_data
 
     # Assign user.

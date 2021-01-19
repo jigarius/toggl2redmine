@@ -1,14 +1,7 @@
 # frozen_string_literal: true
 
-# Toggl 2 Redmine Controller.
-class T2rTogglController < T2rController
-  # Returns a Toggl Service.
-  def toggl_service
-    @toggl_service = TogglService.new(@toggl_api_key) if @toggl_service.nil?
-    @toggl_service
-  end
-
-  # Reads time entries from Toggl.
+# Toggl Controller: Toggl API Proxy.
+class T2rTogglController < T2rImportController
   def read_time_entries
     # Require 'from' parameter.
     unless params[:from]

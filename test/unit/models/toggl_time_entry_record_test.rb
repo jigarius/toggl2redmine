@@ -11,15 +11,6 @@ class TogglTimeEntryRecordTest < ActiveSupport::TestCase
     description: '#19 Bunny wabbit'
   }.freeze
 
-  test 'implements TogglTimeEntry interface' do
-    assert(TogglTimeEntryRecord.include?(TogglTimeEntry))
-
-    subject = TogglTimeEntryRecord.new
-    TogglTimeEntry.instance_methods.each do |method|
-      subject.public_send method
-    end
-  end
-
   test 'simple attribute readers work correctly' do
     subject = build_subject
 
@@ -169,7 +160,7 @@ class TogglTimeEntryRecordTest < ActiveSupport::TestCase
   end
 
   test '.==' do
-    subject = TogglTimeEntryRecord.new(SAMPLE_ATTRIBUTES)
+    subject = TogglTimeEntry.new(SAMPLE_ATTRIBUTES)
 
     assert_equal(
       subject,
@@ -201,6 +192,6 @@ class TogglTimeEntryRecordTest < ActiveSupport::TestCase
 
   def build_subject(attributes = {})
     attributes = SAMPLE_ATTRIBUTES.merge(attributes)
-    TogglTimeEntryRecord.new(attributes)
+    TogglTimeEntry.new(attributes)
   end
 end

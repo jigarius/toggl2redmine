@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
 # A time entry tag object received from Toggl.
-class TogglTimeEntryRecord
-  include TogglTimeEntry
+class TogglTimeEntry
   include ActiveModel::Model
   include ActiveModel::Conversion
-  include ActiveModel::Validations
 
   extend ActiveModel::Naming
 
@@ -18,7 +16,6 @@ class TogglTimeEntryRecord
               greater_than: 0
             }
 
-  # Constructor
   def initialize(attributes = {})
     attributes = attributes.symbolize_keys
 
@@ -71,7 +68,7 @@ class TogglTimeEntryRecord
 
   # == operator
   def ==(other)
-    TogglTimeEntryRecord === other &&
+    TogglTimeEntry === other &&
       @id == other.id &&
       @wid == other.wid &&
       @duration == other.duration &&

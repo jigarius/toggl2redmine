@@ -3,10 +3,6 @@
 # A group of time entries that have the same key.
 class TogglTimeEntryGroup
   include Enumerable
-  include TogglTimeEntry
-  include ActiveModel::Conversion
-
-  extend ActiveModel::Naming
 
   attr_reader :duration
 
@@ -60,8 +56,8 @@ class TogglTimeEntryGroup
   end
 
   def <<(entry)
-    unless TogglTimeEntryRecord === entry
-      raise ArgumentError, "Argument must be a #{TogglTimeEntryRecord.name}"
+    unless TogglTimeEntry === entry
+      raise ArgumentError, "Argument must be a #{TogglTimeEntry.name}"
     end
 
     if !@entries.empty? && key != entry.key
@@ -102,7 +98,7 @@ class TogglTimeEntryGroup
   end
 
   #
-  # Groups TogglTimeEntryRecord objects into TogglTimeEntryGroup objects.
+  # Groups TogglTimeEntry objects into TogglTimeEntryGroup objects.
   #
   # Items with the same .key are put in the same group.
   def self.group(entries)

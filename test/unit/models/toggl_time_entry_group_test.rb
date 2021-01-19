@@ -3,15 +3,6 @@
 require_relative '../../test_helper'
 
 class TogglTimeEntryGroupTest < ActiveSupport::TestCase
-  test 'implements TogglTimeEntry interface' do
-    assert(TogglTimeEntryGroup.include?(TogglTimeEntry))
-
-    subject = TogglTimeEntryGroup.new
-    TogglTimeEntry.instance_methods.each do |method|
-      subject.public_send method
-    end
-  end
-
   test 'implements Enumerable interface' do
     assert(TogglTimeEntryGroup.include?(Enumerable))
 
@@ -176,7 +167,7 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
     )
 
     error = assert_raises(ArgumentError) { subject << BasicObject.new }
-    assert_match('Argument must be a TogglTimeEntryRecord', error.message)
+    assert_match('Argument must be a TogglTimeEntry', error.message)
   end
 
   test '<< inserts raises on entry key mismatch' do
@@ -274,7 +265,7 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
 
   private
 
-  # TODO: Create TogglTimeEntryRecord#example
+  # TODO: Create TogglTimeEntry#example
   def build_time_entry_record(attributes = {})
     attributes = {
       id: rand(1..999),
@@ -284,6 +275,6 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
       description: '#19 Lorem impsum'
     }.merge(attributes)
 
-    TogglTimeEntryRecord.new(attributes)
+    TogglTimeEntry.new(attributes)
   end
 end

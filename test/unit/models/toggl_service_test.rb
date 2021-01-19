@@ -29,7 +29,7 @@ class TogglServiceTest < ActiveSupport::TestCase
     assert_raises(TogglError) { subject.load_time_entries }
   end
 
-  test '.load_time_entries returns Array of TogglTimeEntryRecord on success' do
+  test '.load_time_entries returns Array of TogglTimeEntry on success' do
     query = {
       start_date: Time.now,
       end_date: Time.now - 24.hours
@@ -69,7 +69,7 @@ class TogglServiceTest < ActiveSupport::TestCase
       { id: 1_844_094_426, wid: 2_618_724, duration: 720, description: '#1 Feeding the llamas', at: '2021-01-17T21:22:19+00:00' },
       { id: 1_844_093_947, wid: 99, duration: 1200, description: '#2 Reticulating splines', at: '2021-01-17T21:21:01+00:00' },
       { id: 1_844_094_084, wid: 99, duration: 600, description: '#2 Reticulating splines', at: '2021-01-17T21:21:34+00:00' }
-    ].map { |r| TogglTimeEntryRecord.new(r) }
+    ].map { |r| TogglTimeEntry.new(r) }
     # rubocop:enable Layout/LineLength
 
     assert_equal(expected, result)
@@ -101,7 +101,7 @@ class TogglServiceTest < ActiveSupport::TestCase
     expected = [
       { id: 1_844_093_947, wid: 99, duration: 1200, description: '#2 Reticulating splines', at: '2021-01-17T21:21:01+00:00' },
       { id: 1_844_094_084, wid: 99, duration: 600, description: '#2 Reticulating splines', at: '2021-01-17T21:21:34+00:00' }
-    ].map { |r| TogglTimeEntryRecord.new(r) }
+    ].map { |r| TogglTimeEntry.new(r) }
     # rubocop:enable Layout/LineLength
 
     assert_equal(expected, result)

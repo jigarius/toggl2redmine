@@ -1,12 +1,8 @@
 # frozen_string_literal: true
 
 # Toggl2Redmine Import controller.
-class T2rImportController < ApplicationController
+class T2rImportController < T2rBaseController
   menu_item :toggl2redmine
-
-  attr_reader :user, :toggl_api_key
-
-  before_action :require_login, :validate_user
 
   # Creates time entries from request data.
   def import
@@ -72,20 +68,7 @@ class T2rImportController < ApplicationController
     render json: { time_entry: @time_entry }, status: 201
   end
 
-  protected
-
-  # Checks if the current user has a valid Toggl API token.
-  def validate_user
-    @user = find_current_user
-
-    # Must have a Toggl API key.
-    field = UserCustomField.find_by_name('Toggl API Token')
-    @toggl_api_key = @user.custom_field_value(field)
-    return if @toggl_api_key.present?
-
-    flash[:error] = I18n.t 't2r.text_add_toggl_api_key'
-    redirect_to controller: 'my', action: 'account'
-  end
+  private
 
   # Parses request parameters for "import" action.
   #

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-# Toggl Controller: Toggl API Proxy.
-class T2rTogglController < T2rImportController
+class T2rTogglController < T2rBaseController
   def read_time_entries
     # Require 'from' parameter.
     unless params[:from]

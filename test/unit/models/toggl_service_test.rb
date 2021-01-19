@@ -29,7 +29,7 @@ class TogglServiceTest < ActiveSupport::TestCase
     assert_raises(TogglError) { subject.load_time_entries }
   end
 
-  test '.load_time_entries returns JSON on success' do
+  test '.load_time_entries returns Array of TogglTimeEntryRecord on success' do
     query = {
       start_date: Time.now,
       end_date: Time.now - 24.hours
@@ -121,7 +121,7 @@ class TogglServiceTest < ActiveSupport::TestCase
     assert_raises(TogglError) { subject.load_workspaces }
   end
 
-  test '.load_workspaces returns JSON on success' do
+  test '.load_workspaces returns Array of TogglWorkspace on success' do
     expected = mock_json_response('workspaces')
 
     mock_response =
@@ -151,8 +151,13 @@ class TogglServiceTest < ActiveSupport::TestCase
     subject = TogglService.new(TOGGL_API_KEY)
     result = subject.load_workspaces
 
-    assert_kind_of(Array, result)
-    assert_equal(3, result.length)
+    expected = [
+      { id: 2_618_724, name: 'Workspace 1' },
+      { id: 2_721_799, name: 'Workspace 2' },
+      { id: 2_921_822, name: 'Workspace 3' }
+    ].map { |r| TogglWorkspace.new(r) }
+
+    assert_equal(expected, result)
   end
 
   private

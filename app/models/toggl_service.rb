@@ -32,6 +32,7 @@ class TogglService
   # Loads workspaces from Toggl.
   def load_workspaces
     get('/api/v8/workspaces')
+      .map { |w| TogglWorkspace.new(w.symbolize_keys) }
   end
 
   private

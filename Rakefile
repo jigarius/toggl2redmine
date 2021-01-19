@@ -20,6 +20,29 @@ task :mysql, [:user, :pass] do |_t, args|
   sh "docker-compose exec mysql mysql -u#{args.user} -p#{args.pass}"
 end
 
+desc 'Reset the database.'
+task :reset, [:rails_env] do |_t, args|
+  abort('Argument rails_env cannot be empty') unless args.rails_env
+
+  commands = [
+    'db:drop',
+    'db:create',
+    'db:migrate',
+    'redmine:plugins:migrate',
+    'redmine:load_default_data'
+  ]
+
+  commands << 'db:seed' if args.rails_env == 'development'
+
+  # If all commands are sent at once, redmine:plugins:migrate fails.
+  # Hence, the commands are being sent separately.
+  commands.each do |command|
+    sh "docker-compose exec -e RAILS_ENV='#{args.rails_env}' redmine rake #{command}"
+  end
+
+  puts "The env '#{args.rails_env}' has been reset."
+end
+
 desc 'Prepare dev environment.'
 task :prepare do
   puts 'Installing dev packages...'
@@ -66,23 +89,7 @@ task :rubocop do
   sh 'docker-compose exec redmine rubocop plugins/toggl2redmine'
 end
 
-namespace :test do
-  desc 'Reset the test database.'
-  task :reset do
-    commands = [
-      'db:drop',
-      'db:create',
-      'db:migrate',
-      'redmine:plugins:migrate',
-      'redmine:load_default_data'
-    ]
-    commands.each do |command|
-      sh "docker-compose exec -e RAILS_ENV='test' redmine rake #{command}"
-    end
-  end
-
-  desc 'Run tests for the plugin.'
-  task :run do
-    sh "docker-compose exec -e RAILS_ENV='test' redmine rake redmine:plugins:test NAME=toggl2redmine"
-  end
+desc 'Run tests.'
+task :test do
+  sh "docker-compose exec -e RAILS_ENV='test' redmine rake redmine:plugins:test NAME=toggl2redmine"
 end

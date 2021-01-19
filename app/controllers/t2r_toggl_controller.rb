@@ -37,7 +37,7 @@ class T2rTogglController < T2rController
         start_date: from,
         end_date: till,
         workspaces: workspaces
-      ).map { |raw_entry| TogglTimeEntryRecord.new(raw_entry) }
+      )
       @time_entries = TogglTimeEntryGroup.group(time_entries)
     rescue TogglError => e
       response = e.response

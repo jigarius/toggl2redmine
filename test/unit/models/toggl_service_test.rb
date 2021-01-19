@@ -35,14 +35,12 @@ class TogglServiceTest < ActiveSupport::TestCase
       end_date: Time.now - 24.hours
     }
 
-    expected = mock_json_response('time_entries')
-
     mock_response =
       Net::HTTPSuccess.new(1.0, '200', 'OK')
 
     mock_response
       .expects(:body)
-      .returns(expected)
+      .returns(mock_json_response('time_entries'))
 
     Net::HTTP
       .any_instance
@@ -64,8 +62,17 @@ class TogglServiceTest < ActiveSupport::TestCase
     subject = TogglService.new(TOGGL_API_KEY)
     result = subject.load_time_entries(query)
 
-    assert_kind_of(Array, result)
-    assert_equal(5, result.length)
+    # rubocop:disable Layout/LineLength
+    expected = [
+      { id: 1_844_094_802, wid: 2_618_724, duration: 300, description: '#1 Preparing meal', at: '2021-01-17T21:23:18+00:00' },
+      { id: 1_844_094_618, wid: 2_618_724, duration: 1800, description: '#1 Preparing meal', at: '2021-01-17T21:23:22+00:00' },
+      { id: 1_844_094_426, wid: 2_618_724, duration: 720, description: '#1 Feeding the llamas', at: '2021-01-17T21:22:19+00:00' },
+      { id: 1_844_093_947, wid: 99, duration: 1200, description: '#2 Reticulating splines', at: '2021-01-17T21:21:01+00:00' },
+      { id: 1_844_094_084, wid: 99, duration: 600, description: '#2 Reticulating splines', at: '2021-01-17T21:21:34+00:00' }
+    ].map { |r| TogglTimeEntryRecord.new(r) }
+    # rubocop:enable Layout/LineLength
+
+    assert_equal(expected, result)
   end
 
   test '.load_time_entries filters entries by workspace' do
@@ -90,9 +97,14 @@ class TogglServiceTest < ActiveSupport::TestCase
     subject = TogglService.new(TOGGL_API_KEY)
     result = subject.load_time_entries(query)
 
-    assert_equal(2, result.length)
+    # rubocop:disable Layout/LineLength
+    expected = [
+      { id: 1_844_093_947, wid: 99, duration: 1200, description: '#2 Reticulating splines', at: '2021-01-17T21:21:01+00:00' },
+      { id: 1_844_094_084, wid: 99, duration: 600, description: '#2 Reticulating splines', at: '2021-01-17T21:21:34+00:00' }
+    ].map { |r| TogglTimeEntryRecord.new(r) }
+    # rubocop:enable Layout/LineLength
 
-    result.each { |e| assert_equal(99, e['wid']) }
+    assert_equal(expected, result)
   end
 
   test '.load_workspaces raises TogglError on failure' do

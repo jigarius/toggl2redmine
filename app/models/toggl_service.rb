@@ -26,6 +26,7 @@ class TogglService
     # The workspace filter is only supported on certain versions of the
     # Toggl API. Thus, it is easier to filter out such records ourselves.
     filter_by_workspaces(raw_entries, workspaces)
+      .map { |entry| TogglTimeEntryRecord.new(entry) }
   end
 
   # Loads workspaces from Toggl.

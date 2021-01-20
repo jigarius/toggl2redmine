@@ -108,5 +108,5 @@ task :test, [:path] do |_t, args|
       'redmine:plugins:test NAME=toggl2redmine'
     end
 
-  sh "docker-compose exec -e RAILS_ENV='test' redmine rake #{command}" \
+  sh "docker-compose exec -e RAILS_ENV='test' redmine rake #{command}"
 end

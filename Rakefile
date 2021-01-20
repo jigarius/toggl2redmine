@@ -100,10 +100,12 @@ task :rubocop do
 end
 
 desc 'Run all or a specific test.'
-task :test, [:path] do |_t, args|
+task :test do
+  file = ENV.fetch('TEST', nil)
+
   command =
-    if args.path
-      "test TEST=plugins/toggl2redmine/test/#{args.path}"
+    if file
+      "test TEST=plugins/toggl2redmine/test/#{file}"
     else
       'redmine:plugins:test NAME=toggl2redmine'
     end

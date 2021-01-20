@@ -7,7 +7,7 @@ desc "SSH into a service. Defaults to 'redmine'."
 task :ssh, [:service] do |_t, args|
   args.with_defaults(
     service: 'redmine',
-    rails_env: ENV.fetch('RAILS_ENV') { 'development' }
+    rails_env: ENV.fetch('RAILS_ENV', 'development')
   )
   sh "docker-compose exec -e RAILS_ENV='#{args.rails_env}' #{args.service} bash"
 end
@@ -22,14 +22,14 @@ task :mysql do |_t, args|
   args.with_defaults(
     user: 'root',
     pass: 'root',
-    rails_env: ENV.fetch('RAILS_ENV') { 'development' }
+    rails_env: ENV.fetch('RAILS_ENV', 'development')
   )
   sh 'docker-compose exec mysql mysql' \
       " -u#{args.user} -p#{args.pass} redmine_#{args.rails_env}"
 end
 
 desc 'Reset the database.'
-task :reset do |_t, args|
+task :reset do
   rails_env = ENV.fetch('RAILS_ENV') do
     abort('Env var RAILS_ENV cannot be empty')
   end

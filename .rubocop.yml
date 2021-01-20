@@ -5,6 +5,8 @@ Layout/LineLength:
   AllowHeredoc: true
   AllowURI: true
   Max: 120
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
 
 Metrics/AbcSize:
   Enabled: false

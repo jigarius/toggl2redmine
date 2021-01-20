@@ -8,13 +8,12 @@ class T2rTestController < T2rBaseController
   end
 end
 
-class T2rBaseControllerTest < Redmine::IntegrationTest
-  include(T2r::FixtureLoader)
-
+class T2rBaseControllerTest < T2r::IntegrationTest
   fixtures :custom_fields, :users
 
   setup do
     @user = users(:jsmith)
+    @field = custom_fields(:toggl_api_token)
   end
 
   test '#index requires login' do
@@ -24,7 +23,7 @@ class T2rBaseControllerTest < Redmine::IntegrationTest
   end
 
   test '#index requires a Toggl API key' do
-    set_toggl_api_token(@user, '')
+    set_custom_field_value(@user, @field, '')
     log_user(@user.login, @user.login)
 
     get '/toggl2redmine/test'
@@ -34,32 +33,11 @@ class T2rBaseControllerTest < Redmine::IntegrationTest
   end
 
   test '#index succeeds for a user with a Toggl API key' do
-    set_toggl_api_token(@user, 'fake-toggl-api-token')
+    set_custom_field_value(@user, @field, 'fake-toggl-api-token')
     log_user(@user.login, @user.login)
 
     get '/toggl2redmine/test'
 
     assert_response :success
-  end
-
-  private
-
-  def log_user(login, password)
-    post signin_url, params: {
-      username: login,
-      password: password
-    }
-  end
-
-  def set_toggl_api_token(user, token)
-    field = custom_fields(:toggl_api_token)
-    assert_not_nil(field, "Unexpected: Field 'Toggl API Token' not found")
-
-    custom_value =
-      CustomValue.find_by(customized: user, custom_field: field) ||
-      CustomValue.new(customized: user, custom_field: field)
-
-    custom_value.value = token
-    custom_value.save!
   end
 end

@@ -20,7 +20,7 @@ class T2rBaseControllerTest < Redmine::IntegrationTest
         password: 'toggl2redmine'
       )
 
-    set_toggl_api_token(@user, nil)
+    set_toggl_api_token(@user, '')
   end
 
   test '#index requires login' do
@@ -55,7 +55,8 @@ class T2rBaseControllerTest < Redmine::IntegrationTest
   end
 
   def set_toggl_api_token(user, token)
-    field = UserCustomField.find_by_name('Toggl API Token')
+    field = UserCustomField.find_by(name: 'Toggl API Token')
+    assert_not_nil(field)
 
     custom_value =
       CustomValue.find_by(customized: user, custom_field: field) ||

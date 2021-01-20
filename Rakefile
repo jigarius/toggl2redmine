@@ -4,8 +4,11 @@ REDMINE_URL = 'http://localhost:3000'
 MAILHOG_URL = 'http://localhost:8025'
 
 desc "SSH into a service. Defaults to 'redmine'."
-task :ssh, [:service, :rails_env] do |_t, args|
-  args.with_defaults(service: 'redmine', rails_env: 'development')
+task :ssh, [:service] do |_t, args|
+  args.with_defaults(
+    service: 'redmine',
+    rails_env: ENV.fetch('RAILS_ENV') { 'development' }
+  )
   sh "docker-compose exec -e RAILS_ENV='#{args.rails_env}' #{args.service} bash"
 end
 
@@ -15,14 +18,21 @@ task :rails do |_t, args|
 end
 
 desc 'Launch MySQL'
-task :mysql, [:user, :pass] do |_t, args|
-  args.with_defaults(user: 'root', pass: 'root')
-  sh "docker-compose exec mysql mysql -u#{args.user} -p#{args.pass}"
+task :mysql do |_t, args|
+  args.with_defaults(
+    user: 'root',
+    pass: 'root',
+    rails_env: ENV.fetch('RAILS_ENV') { 'development' }
+  )
+  sh 'docker-compose exec mysql mysql' \
+      " -u#{args.user} -p#{args.pass} redmine_#{args.rails_env}"
 end
 
 desc 'Reset the database.'
-task :reset, [:rails_env] do |_t, args|
-  abort('Argument rails_env cannot be empty') unless args.rails_env
+task :reset do |_t, args|
+  rails_env = ENV.fetch('RAILS_ENV') do
+    abort('Env var RAILS_ENV cannot be empty')
+  end
 
   commands = [
     'db:drop',
@@ -32,15 +42,15 @@ task :reset, [:rails_env] do |_t, args|
     'redmine:load_default_data'
   ]
 
-  commands << 'db:seed' if args.rails_env == 'development'
+  commands << 'db:seed' if rails_env == 'development'
 
   # If all commands are sent at once, redmine:plugins:migrate fails.
   # Hence, the commands are being sent separately.
   commands.each do |command|
-    sh "docker-compose exec -e RAILS_ENV='#{args.rails_env}' redmine rake #{command}"
+    sh "docker-compose exec -e RAILS_ENV='#{rails_env}' redmine rake #{command}"
   end
 
-  puts "The env '#{args.rails_env}' has been reset."
+  puts "The env '#{rails_env}' has been reset."
 end
 
 desc 'Prepare dev environment.'

@@ -89,7 +89,14 @@ task :rubocop do
   sh 'docker-compose exec redmine rubocop plugins/toggl2redmine'
 end
 
-desc 'Run tests.'
-task :test do
-  sh "docker-compose exec -e RAILS_ENV='test' redmine rake redmine:plugins:test NAME=toggl2redmine"
+desc 'Run all or a specific test.'
+task :test, [:path] do |_t, args|
+  command =
+    if args.path
+      "test TEST=plugins/toggl2redmine/test/#{args.path}"
+    else
+      'redmine:plugins:test NAME=toggl2redmine'
+    end
+
+  sh "docker-compose exec -e RAILS_ENV='test' redmine rake #{command}" \
 end

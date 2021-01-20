@@ -1,0 +1,11 @@
+jsmith:
+  type: User
+  status: 1
+  language: en
+  # password = jsmith
+  salt: 67eb4732624d5a7753dcea7ce0bb7d7d
+  hashed_password: bfbe06043353a677d0215b26a5800d128d5413bc
+  admin: false
+  lastname: Smith
+  firstname: John
+  login: jsmith

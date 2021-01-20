@@ -1,6 +1,6 @@
 # frozen_string_literal: false
 
-require_relative '../../test_helper'
+require_relative '../test_helper'
 
 class T2rTestController < T2rBaseController
   def index
@@ -9,18 +9,12 @@ class T2rTestController < T2rBaseController
 end
 
 class T2rBaseControllerTest < Redmine::IntegrationTest
-  setup do
-    @user =
-      User.find_by(login: 't2r.user') ||
-      User.create!(
-        login: 't2r.user',
-        mail: 't2r.user@example.com',
-        firstname: 'Bunny',
-        lastname: 'Wabbit',
-        password: 'toggl2redmine'
-      )
+  include(T2r::FixtureLoader)
 
-    set_toggl_api_token(@user, '')
+  fixtures :custom_fields, :users
+
+  setup do
+    @user = users(:jsmith)
   end
 
   test '#index requires login' do
@@ -30,7 +24,8 @@ class T2rBaseControllerTest < Redmine::IntegrationTest
   end
 
   test '#index requires a Toggl API key' do
-    log_user
+    set_toggl_api_token(@user, '')
+    log_user(@user.login, @user.login)
 
     get '/toggl2redmine/test'
 
@@ -40,7 +35,7 @@ class T2rBaseControllerTest < Redmine::IntegrationTest
 
   test '#index succeeds for a user with a Toggl API key' do
     set_toggl_api_token(@user, 'fake-toggl-api-token')
-    log_user
+    log_user(@user.login, @user.login)
 
     get '/toggl2redmine/test'
 
@@ -49,14 +44,16 @@ class T2rBaseControllerTest < Redmine::IntegrationTest
 
   private
 
-  def log_user
-    post signin_url,
-         params: { username: @user.login, password: 'toggl2redmine' }
+  def log_user(login, password)
+    post signin_url, params: {
+      username: login,
+      password: password
+    }
   end
 
   def set_toggl_api_token(user, token)
-    field = UserCustomField.find_by(name: 'Toggl API Token')
-    assert_not_nil(field)
+    field = custom_fields(:toggl_api_token)
+    assert_not_nil(field, "Unexpected: Field 'Toggl API Token' not found")
 
     custom_value =
       CustomValue.find_by(customized: user, custom_field: field) ||

@@ -93,7 +93,7 @@ class T2rRedmineControllerTest < T2r::IntegrationTest
       assert_equal(
         expected_item,
         @response.parsed_body['time_entries'][i],
-        "Item #{i + 1} is not as expected."
+        "Item #{i + 1} is not as expected"
       )
     end
   end

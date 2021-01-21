@@ -22,7 +22,7 @@ module T2r
 
       custom_value =
         CustomValue.find_by(customized: user, custom_field: field) ||
-          CustomValue.new(customized: user, custom_field: field)
+        CustomValue.new(customized: user, custom_field: field)
 
       custom_value.value = value
       custom_value.save!

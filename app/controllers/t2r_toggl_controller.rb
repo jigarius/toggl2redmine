@@ -6,7 +6,7 @@ class T2rTogglController < T2rBaseController
     unless params[:from]
       return render json: {
         errors: "Parameter 'from' must be present."
-      }, status: 403
+      }, status: 400
     end
     from = Time.parse(params[:from])
 
@@ -14,15 +14,13 @@ class T2rTogglController < T2rBaseController
     unless params[:till]
       return render json: {
         errors: "Parameter 'till' must be present."
-      }, status: 403
+      }, status: 400
     end
     till = Time.parse(params[:till])
 
     # Determine 'workspaces' parameter.
-    workspaces = []
-    if params[:workspaces]
-      workspaces = params[:workspaces].split(',').map(&:to_i)
-    end
+    workspaces =
+      params.fetch(:workspaces, '').split(',').map(&:to_i)
 
     begin
       time_entries = toggl_service.load_time_entries(
@@ -41,17 +39,18 @@ class T2rTogglController < T2rBaseController
     # Prepare grouped time entries.
     output = {}
     # Expand certain Redmine models manually.
-    @time_entries.values.each do |time_entry|
-      hash = time_entry.as_json
+    @time_entries.values.each do |group|
+      hash = group.as_json
       hash[:issue] = nil
       hash[:errors] = []
 
-      if time_entry.issue &&
+      # TODO: Perform JSON conversion in Object#as_json.
+      if group.issue &&
          # If the user has permission to see the project.
-         (@user.admin? || time_entry.issue.project.members.pluck(:user_id).include?(@user.id))
+         (@user.admin? || group.issue.project.members.pluck(:user_id).include?(@user.id))
 
         # Include issue.
-        issue = time_entry.issue
+        issue = group.issue
         hash[:issue] = {
           id: issue.id,
           subject: issue.subject,
@@ -68,7 +67,7 @@ class T2rTogglController < T2rBaseController
           }
         }
       end
-      output[time_entry.key] = hash
+      output[group.key] = hash
     end
 
     render json: output

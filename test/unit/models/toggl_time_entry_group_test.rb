@@ -3,22 +3,6 @@
 require_relative '../../test_helper'
 
 class TogglTimeEntryGroupTest < ActiveSupport::TestCase
-  test 'implements Enumerable interface' do
-    assert(TogglTimeEntryGroup.include?(Enumerable))
-
-    entries = [
-      build_time_entry_record(duration: 300),
-      build_time_entry_record(duration: 50),
-      build_time_entry_record(duration: 150)
-    ]
-
-    subject = TogglTimeEntryGroup.new
-    entries.each { |e| subject << e }
-
-    assert_equal(3, subject.count)
-    assert_equal(entries, subject.entries)
-  end
-
   test '.new' do
     expected = [
       build_time_entry_record,
@@ -29,18 +13,6 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
     subject = TogglTimeEntryGroup.new(*expected)
 
     assert_equal(expected, subject.entries)
-  end
-
-  test '.wid' do
-    subject = TogglTimeEntryGroup.new
-
-    assert_nil(subject.wid)
-
-    record = build_time_entry_record
-    subject << record
-
-    refute_nil(subject.wid)
-    assert_equal(record.wid, subject.wid)
   end
 
   test '.key' do
@@ -65,18 +37,6 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
 
     refute_nil(subject.issue_id)
     assert_equal(record.issue_id, subject.issue_id)
-  end
-
-  test '.at' do
-    subject = TogglTimeEntryGroup.new
-
-    assert_nil(subject.at)
-
-    record = build_time_entry_record
-    subject << record
-
-    refute_nil(subject.at)
-    assert_equal(record.at, subject.at)
   end
 
   test '.duration' do
@@ -158,7 +118,7 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
     subject << r1
     subject << r2
 
-    assert_equal(2, subject.count)
+    assert_equal(2, subject.entries.length)
   end
 
   test '<< inserts raises on entry type mismatch' do
@@ -188,19 +148,17 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
       assert_equal("Only items with key '#{subject.key}' can be added", error.message)
     end
 
-    assert_equal(1, subject.count)
+    assert_equal(1, subject.entries.length)
   end
 
   test '.as_json serializes a group without entries' do
     subject = TogglTimeEntryGroup.new
 
     expected = {
-      'ids' => [],
-      'wid' => nil,
-      'duration' => 0,
-      'at' => nil,
       'key' => nil,
+      'ids' => [],
       'issue_id' => nil,
+      'duration' => 0,
       'comments' => nil,
       'status' => nil
     }
@@ -218,12 +176,10 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
     subject << r2
 
     expected = {
-      'ids' => [r1.id, r2.id],
-      'wid' => r1.wid,
-      'duration' => r1.duration + r2.duration,
-      'at' => r1.at,
       'key' => r1.key,
+      'ids' => [r1.id, r2.id],
       'issue_id' => r1.issue_id,
+      'duration' => r1.duration + r2.duration,
       'comments' => r1.comments,
       'status' => r1.status
     }

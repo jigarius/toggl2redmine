@@ -2,7 +2,7 @@
 
 # A group of time entries that have the same key.
 class TogglTimeEntryGroup
-  include Enumerable
+  include ActiveModel::Model
 
   attr_reader :duration
 
@@ -12,19 +12,6 @@ class TogglTimeEntryGroup
     @duration = 0
 
     entries.each { |e| self << e }
-  end
-
-  # TODO: Do we need this method?
-  def ids
-    @entries.keys
-  end
-
-  def wid
-    @entries.values.first&.wid
-  end
-
-  def at
-    @entries.values.first&.at
   end
 
   def key
@@ -73,27 +60,18 @@ class TogglTimeEntryGroup
       entries.to_set == other.entries.to_set
   end
 
-  # Enumerable#each
-  def each(&block)
-    @entries.each(&block)
+  def entries
+    @entries.values
   end
 
-  # Enumerable#entries
-  def entries(*args)
-    @entries.values.entries(*args)
-  end
-
-  # As JSON.
-  def as_json(_options = {})
+  def to_hash
     {
-      'ids' => ids,
-      'wid' => wid,
-      'duration' => @duration,
-      'at' => at,
-      'key' => key,
-      'issue_id' => issue_id,
-      'comments' => comments,
-      'status' => status
+      key: key,
+      ids: @entries.keys,
+      issue_id: issue_id,
+      comments: comments,
+      duration: duration,
+      status: status
     }
   end
 

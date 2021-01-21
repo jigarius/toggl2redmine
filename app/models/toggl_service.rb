@@ -13,13 +13,17 @@ class TogglService
   end
 
   # Loads time entries form Toggl.
-  def load_time_entries(query = {})
-    # The workspace parameter is not for Toggl, so remove it.
-    workspaces = query[:workspaces] || []
-    query.delete(:workspaces)
+  def load_time_entries(
+    start_date:,
+    end_date:,
+    workspaces: []
+  )
+    raise ArgumentError, "'workspaces' must be an Array" unless Array === workspaces
 
-    query[:start_date] = query[:start_date].iso8601 if query[:start_date]
-    query[:end_date] = query[:end_date].iso8601 if query[:end_date]
+    query = {
+      start_date: start_date.iso8601,
+      end_date: end_date.iso8601
+    }
 
     raw_entries = get('/api/v8/time_entries', query)
 

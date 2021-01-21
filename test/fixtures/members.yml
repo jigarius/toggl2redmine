@@ -1,0 +1,11 @@
+member_001:
+  user: jsmith
+  project: alpha
+  roles:
+    - manager
+
+member_002:
+  user: jsmith
+  project: bravo
+  roles:
+    - manager

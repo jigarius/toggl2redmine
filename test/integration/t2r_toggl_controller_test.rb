@@ -3,7 +3,7 @@
 require_relative '../test_helper'
 
 class T2rTogglControllerTest < T2r::IntegrationTest
-  fixtures :custom_fields, :users
+  fixtures :all
 
   def setup
     @user = users(:jsmith)
@@ -111,6 +111,157 @@ class T2rTogglControllerTest < T2r::IntegrationTest
     expectation = { errors: "Parameter 'till' must be present." }
 
     assert_response 400
+    assert_equal(expectation.as_json, @response.parsed_body)
+  end
+
+  test '.read_time_entries returns issue when it exists and the user belongs to the project' do
+    issue = issues(:alpha)
+
+    time_entries = [
+      TogglTimeEntry.new(
+        id: 246,
+        wid: 2,
+        duration: -1,
+        at: '2021-01-17T21:51:34+00:00',
+        description: "##{issue.id} Feed bunny"
+      )
+    ]
+
+    data = {
+      from: '2021-01-17T05:00:00.000Z',
+      till: '2021-01-18T04:59:59.000Z'
+    }
+
+    TogglService
+      .any_instance
+      .expects(:load_time_entries)
+      .with(
+        start_date: DateTime.parse(data[:from]),
+        end_date: DateTime.parse(data[:till]),
+        workspaces: []
+      )
+      .returns(time_entries)
+
+    get "/toggl2redmine/toggl_time_entries?#{data.to_query}"
+
+    assert_response :success
+
+    expectation = {
+      "#{issue.id}:feed bunny:running" => {
+        'key' => "#{issue.id}:feed bunny:running",
+        'ids' => [246],
+        'issue_id' => issue.id,
+        'comments' => 'Feed bunny',
+        'duration' => -1,
+        'status' => 'running',
+        'issue' => {
+          'id' => issue.id,
+          'subject' => issue.subject,
+          'tracker' => {
+            'id' => issue.tracker.id,
+            'name' => issue.tracker.name
+          },
+          'project' => {
+            'id' => issue.project.id,
+            'name' => issue.project.name,
+            'status' => issue.project.status
+          }
+        }
+      }
+    }
+
+    assert_equal(expectation.as_json, @response.parsed_body)
+  end
+
+  test ".read_time_entries returns issue as nil when it doesn't exist" do
+    time_entries = [
+      TogglTimeEntry.new(
+        id: 246,
+        wid: 2,
+        duration: 300,
+        at: '2021-01-17T21:51:34+00:00',
+        description: '#19 Feed bunny'
+      )
+    ]
+
+    data = {
+      from: '2021-01-17T05:00:00.000Z',
+      till: '2021-01-18T04:59:59.000Z'
+    }
+
+    TogglService
+      .any_instance
+      .expects(:load_time_entries)
+      .with(
+        start_date: DateTime.parse(data[:from]),
+        end_date: DateTime.parse(data[:till]),
+        workspaces: []
+      )
+      .returns(time_entries)
+
+    get "/toggl2redmine/toggl_time_entries?#{data.to_query}"
+
+    assert_response :success
+
+    expectation = {
+      '19:feed bunny:pending' => {
+        'key' => '19:feed bunny:pending',
+        'ids' => [246],
+        'issue_id' => 19,
+        'comments' => 'Feed bunny',
+        'duration' => 300,
+        'status' => 'pending',
+        'issue' => nil
+      }
+    }
+
+    assert_equal(expectation.as_json, @response.parsed_body)
+  end
+
+  test ".read_time_entries returns issue as nil when user doesn't belong to the project" do
+    issue = issues(:echo)
+
+    time_entries = [
+      TogglTimeEntry.new(
+        id: 246,
+        wid: 2,
+        duration: 300,
+        at: '2021-01-17T21:51:34+00:00',
+        description: "##{issue.id} Feed bunny"
+      )
+    ]
+
+    data = {
+      from: '2021-01-17T05:00:00.000Z',
+      till: '2021-01-18T04:59:59.000Z'
+    }
+
+    TogglService
+      .any_instance
+      .expects(:load_time_entries)
+      .with(
+        start_date: DateTime.parse(data[:from]),
+        end_date: DateTime.parse(data[:till]),
+        workspaces: []
+      )
+      .returns(time_entries)
+
+    get "/toggl2redmine/toggl_time_entries?#{data.to_query}"
+
+    assert_response :success
+
+    expectation = {
+      "#{issue.id}:feed bunny:pending" => {
+        'key' => "#{issue.id}:feed bunny:pending",
+        'ids' => [246],
+        'issue_id' => issue.id,
+        'comments' => 'Feed bunny',
+        'duration' => 300,
+        'status' => 'pending',
+        'issue' => nil
+      }
+    }
+
     assert_equal(expectation.as_json, @response.parsed_body)
   end
 

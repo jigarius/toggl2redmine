@@ -48,7 +48,7 @@ class T2rTogglController < T2rBaseController
           only: %i[id subject],
           include: {
             tracker: { only: %i[id name] },
-            project: { only: %i[id name status] },
+            project: { only: %i[id name status] }
           }
         )
     end
@@ -63,7 +63,8 @@ class T2rTogglController < T2rBaseController
   end
 
   def user_can_view_issue?(issue)
-    @user.admin? ||
-    issue.project.members.pluck(:user_id).include?(@user.id)
+    return true if @user.admin?
+
+    Member.where(user: @user, project: issue.project).count.positive?
   end
 end

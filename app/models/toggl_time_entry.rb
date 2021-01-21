@@ -9,13 +9,6 @@ class TogglTimeEntry
 
   attr_reader :id, :wid, :issue_id, :duration, :at, :comments
 
-  validates :id, :wid, :duration, :at, presence: true
-  validates :id, :wid, :duration,
-            numericality: {
-              only_integer: true,
-              greater_than: 0
-            }
-
   def initialize(attributes = {})
     attributes = attributes.symbolize_keys
 

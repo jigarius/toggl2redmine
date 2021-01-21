@@ -125,7 +125,7 @@ Member.create!(
 # For some reason, assigning objects to issue properties results in fatal
 # ActiveRecord::AssociationTypeMismatch exceptions. Thus, IDs are used.
 issue1 = Issue.create!(
-  subject: 'Issue 1: Abstract apples',
+  subject: 'Abstract apples',
   description: 'Dummy issue for testing Toggl 2 Redmine.',
   author_id: user_admin.id,
   project_id: project_alpha.id,
@@ -134,7 +134,7 @@ issue1 = Issue.create!(
 )
 
 issue2 = Issue.create!(
-  subject: 'Issue 2: Boil bananas',
+  subject: 'Boil bananas',
   description: 'Dummy issue for testing Toggl 2 Redmine.',
   author_id: user_admin.id,
   project_id: project_alpha.id,
@@ -143,7 +143,7 @@ issue2 = Issue.create!(
 )
 
 Issue.create!(
-  subject: 'Issue 3: Condition cherries',
+  subject: 'Condition cherries',
   description: 'Dummy issue for testing Toggl 2 Redmine.',
   author_id: user_admin.id,
   project_id: project_bravo.id,
@@ -152,7 +152,7 @@ Issue.create!(
 )
 
 Issue.create!(
-  subject: 'Issue 4: Dismantle dates',
+  subject: 'Dismantle dates',
   description: 'Dummy issue for testing Toggl 2 Redmine.',
   author_id: user_admin.id,
   project_id: project_bravo.id,
@@ -162,7 +162,7 @@ Issue.create!(
 )
 
 issue5 = Issue.create!(
-  subject: 'Issue 4: Extract essence',
+  subject: 'Extract essence',
   description: 'Dummy issue for testing Toggl 2 Redmine.',
   author_id: user_admin.id,
   project_id: project_charlie.id,

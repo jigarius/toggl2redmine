@@ -2,7 +2,7 @@
 
 require_relative '../../test_helper'
 
-class TogglTimeEntryRecordTest < ActiveSupport::TestCase
+class TogglTimeEntryTest < ActiveSupport::TestCase
   SAMPLE_ATTRIBUTES = {
     id: 900_123,
     wid: 500,

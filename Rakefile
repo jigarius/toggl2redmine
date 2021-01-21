@@ -102,12 +102,14 @@ end
 desc 'Run all or a specific test.'
 task :test do
   file = ENV.fetch('TEST', nil)
+  type = ENV.fetch('TYPE', nil)
+  type = type ? ":#{type}" : nil
 
   command =
     if file
       "test TEST=plugins/toggl2redmine/test/#{file}"
     else
-      'redmine:plugins:test NAME=toggl2redmine'
+      "redmine:plugins:test#{type} NAME=toggl2redmine"
     end
 
   sh "docker-compose exec -e RAILS_ENV='test' redmine rake #{command}"

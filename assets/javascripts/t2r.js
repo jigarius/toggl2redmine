@@ -2250,10 +2250,7 @@ T2RRenderer.renderRedmineRow = function (data) {
   var linkDelete = '<a href="' + urlDelete + '" title="Delete" class="icon-only icon-del" rel="nofollow" data-t2r-widget="AjaxDeleteLink Tooltip" data-t2r-delete-link-context="tr" data-t2r-delete-link-callback="T2R.updateRedmineReport();">Delete</a>'
 
   // Build a label for the issue.
-  var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : false;
-  if (!issueLabel) {
-    issueLabel = data.issueId ? data.issueId : '-';
-  }
+  var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : '-';
 
   var markup = '<tr>'
     + '<td class="subject">'

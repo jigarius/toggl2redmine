@@ -21,6 +21,9 @@ Metrics/MethodLength:
 Metrics/PerceivedComplexity:
   Enabled: false
 
+Naming/VariableNumber:
+  CheckSymbols: false
+
 Style/CaseEquality:
   AllowOnConstant: true
 Style/Documentation:

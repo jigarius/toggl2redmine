@@ -19,31 +19,28 @@ class T2rRedmineController < T2rBaseController
     till = Time.parse(params[:till])
 
     # Load time entries in range.
-    @time_entries = TimeEntry.where(
-      user: @user,
-      spent_on: from..till
-    )
+    time_entries = TimeEntry.where(user: @user, spent_on: from..till).order(:id)
 
-    # Return time entries with associations.
-    render json: { time_entries: @time_entries },
-           include: {
-             issue: {
-               only: %i[id subject],
-               include: {
-                 tracker: {
-                   only: %i[id name]
-                 }
-               }
-             },
-             project: {
-               only: %i[id name status]
-             },
-             activity: {
-               only: %i[id name]
-             },
-             user: {
-               only: %i[id login]
-             }
-           }
+    render json: {
+      time_entries: time_entries.as_json(
+        only: %i[id comments hours],
+        include: {
+          issue: {
+            only: %i[id subject],
+            include: {
+              tracker: {
+                only: %i[id name]
+              }
+            }
+          },
+          project: {
+            only: %i[id name status]
+          },
+          activity: {
+            only: %i[id name]
+          }
+        }
+      )
+    }
   end
 end

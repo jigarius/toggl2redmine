@@ -1,0 +1,15 @@
+alpha:
+  identifier: alpha
+  name: Project alpha
+  description: Dummy project for testing Toggl 2 Redmine.
+
+bravo:
+  identifier: bravo
+  name: Project bravo
+  description: Dummy project for testing Toggl 2 Redmine.
+
+charlie:
+  identifier: charlie
+  name: Project charlie
+  description: Dummy project for testing Toggl 2 Redmine.
+  status: 0

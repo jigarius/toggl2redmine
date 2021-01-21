@@ -1,0 +1,4 @@
+normal:
+  name: Normal
+  position: 1
+  is_default: true

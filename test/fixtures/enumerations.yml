@@ -1,0 +1,12 @@
+activity_development:
+  type: TimeEntryActivity
+  name: Development
+  position: 1
+  active: true
+  is_default: true
+
+activity_other:
+  type: TimeEntryActivity
+  name: Other
+  position: 2
+  active: true

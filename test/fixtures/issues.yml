@@ -1,0 +1,44 @@
+alpha:
+  subject: 'Abstract apples'
+  description: Dummy issue for testing Toggl 2 Redmine.
+  author: admin
+  project: alpha
+  tracker: task
+  priority: normal
+  status: open
+
+bravo:
+  subject: 'Boil bananas'
+  description: Dummy issue for testing Toggl 2 Redmine.
+  author: admin
+  project: alpha
+  tracker: task
+  priority: normal
+  status: open
+
+charlie:
+  subject: 'Condition cherries'
+  description: Dummy issue for testing Toggl 2 Redmine.
+  author: admin
+  project: bravo
+  tracker: task
+  priority: normal
+  status: open
+
+delta:
+  subject: 'Dismantle dates'
+  description: Dummy issue for testing Toggl 2 Redmine.
+  author: admin
+  project: bravo
+  tracker: task
+  priority: normal
+  status: closed
+
+echo:
+  subject: 'Extract essence'
+  description: Dummy issue for testing Toggl 2 Redmine.
+  author: admin
+  project: charlie
+  tracker: task
+  priority: normal
+  status: open

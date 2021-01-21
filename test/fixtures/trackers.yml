@@ -1,0 +1,3 @@
+task:
+  name: Task
+  default_status: open

@@ -64,34 +64,32 @@ class T2rTogglControllerTest < T2r::IntegrationTest
 
     expectation = {
       '19:prepare food:pending' => {
-        'ids' => [154, 155],
-        'wid' => 2,
-        'duration' => 450,
-        'at' => '2021-01-17T21:21:34+00:00',
         'key' => '19:prepare food:pending',
+        'ids' => [154, 155],
         'issue_id' => 19,
         'comments' => 'Prepare food',
+        'duration' => 450,
         'status' => 'pending',
-        'issue' => nil,
-        'errors' => []
+        'issue' => nil
       },
       '19:feed bunny:running' => {
-        'ids' => [246],
-        'wid' => 2,
-        'duration' => -1,
-        'at' => '2021-01-17T21:51:34+00:00',
         'key' => '19:feed bunny:running',
+        'ids' => [246],
         'issue_id' => 19,
         'comments' => 'Feed bunny',
+        'duration' => -1,
         'status' => 'running',
-        'issue' => nil,
-        'errors' => []
+        'issue' => nil
       }
     }
-    assert_equal(
-      expectation.as_json,
-      @response.parsed_body
-    )
+
+    expectation.each do |key, expected_entry|
+      assert_equal(
+        expected_entry,
+        @response.parsed_body[key],
+        "Item with key #{key} is not as expected"
+      )
+    end
   end
 
   test ".read_time_entries fails if param 'from' is missing" do

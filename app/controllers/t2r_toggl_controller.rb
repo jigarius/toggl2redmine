@@ -28,7 +28,7 @@ class T2rTogglController < T2rBaseController
         end_date: till,
         workspaces: workspaces
       )
-      @time_entries = TogglTimeEntryGroup.group(time_entries)
+      time_entry_groups = TogglTimeEntryGroup.group(time_entries)
     rescue TogglError => e
       response = e.response
       return render json: { errors: response.body }, status: response.code
@@ -36,46 +36,34 @@ class T2rTogglController < T2rBaseController
       return render json: { errors: e.message }, status: 400
     end
 
-    # Prepare grouped time entries.
-    output = {}
-    # Expand certain Redmine models manually.
-    @time_entries.values.each do |group|
-      hash = group.as_json
-      hash[:issue] = nil
-      hash[:errors] = []
+    result = {}
+    time_entry_groups.each do |key, group|
+      result[key] = group.as_json
+      result[key]['issue'] = nil
 
-      # TODO: Perform JSON conversion in Object#as_json.
-      if group.issue &&
-         # If the user has permission to see the project.
-         (@user.admin? || group.issue.project.members.pluck(:user_id).include?(@user.id))
+      next unless group.issue && user_can_view_issue?(group.issue)
 
-        # Include issue.
-        issue = group.issue
-        hash[:issue] = {
-          id: issue.id,
-          subject: issue.subject,
-          # Include tracker.
-          tracker: {
-            id: issue.tracker.id,
-            name: issue.tracker.name
-          },
-          # Include project.
-          project: {
-            id: issue.project.id,
-            name: issue.project.name,
-            status: issue.project.status
+      result[key]['issue'] =
+        group.issue.as_json(
+          only: %i[id subject],
+          include: {
+            tracker: { only: %i[id name] },
+            project: { only: %i[id name status] },
           }
-        }
-      end
-      output[group.key] = hash
+        )
     end
 
-    render json: output
+    render json: result
   end
 
   # Reads workspaces from Toggl.
   def read_workspaces
     @workspaces = toggl_service.load_workspaces
     render json: @workspaces
+  end
+
+  def user_can_view_issue?(issue)
+    @user.admin? ||
+    issue.project.members.pluck(:user_id).include?(@user.id)
   end
 end

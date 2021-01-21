@@ -6,7 +6,7 @@ class T2rRedmineController < T2rBaseController
     unless params[:from]
       return render json: {
         errors: "Parameter 'from' must be present."
-      }, status: 403
+      }, status: 400
     end
     from = Time.parse(params[:from])
 
@@ -14,7 +14,7 @@ class T2rRedmineController < T2rBaseController
     unless params[:till]
       return render json: {
         errors: "Parameter 'till' must be present."
-      }, status: 403
+      }, status: 400
     end
     till = Time.parse(params[:till])
 

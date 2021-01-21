@@ -3,15 +3,10 @@
 # A time entry tag object received from Toggl.
 class TogglTimeEntry
   include ActiveModel::Model
-  include ActiveModel::Conversion
-
-  extend ActiveModel::Naming
 
   attr_reader :id, :wid, :issue_id, :duration, :at, :comments
 
   def initialize(attributes = {})
-    attributes = attributes.symbolize_keys
-
     @id = attributes[:id].to_i
     @wid = attributes[:wid].to_i
     @duration = attributes[:duration].to_i
@@ -54,9 +49,8 @@ class TogglTimeEntry
     @duration.negative?
   end
 
-  # As JSON.
-  def as_json(options = {})
-    super(options).merge('status' => status)
+  def to_hash
+    instance_values.merge({ status: status})
   end
 
   # == operator

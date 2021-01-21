@@ -11,7 +11,7 @@ end
 class T2rBaseControllerTest < T2r::IntegrationTest
   fixtures :custom_fields, :users
 
-  setup do
+  def setup
     @user = users(:jsmith)
     @field = custom_fields(:toggl_api_token)
   end

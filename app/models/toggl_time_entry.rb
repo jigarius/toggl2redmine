@@ -50,7 +50,7 @@ class TogglTimeEntry
   end
 
   def to_hash
-    instance_values.merge({ status: status})
+    instance_values.merge({ status: status })
   end
 
   # == operator

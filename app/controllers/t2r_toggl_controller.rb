@@ -4,19 +4,12 @@ class T2rTogglController < T2rBaseController
   def read_time_entries
     parse_params
 
-    begin
-      time_entries = toggl_service.load_time_entries(
-        start_date: params[:from],
-        end_date: params[:till],
-        workspaces: params[:workspaces]
-      )
-      time_entry_groups = TogglTimeEntryGroup.group(time_entries)
-    rescue TogglService::Error => e
-      response = e.response
-      return render json: { errors: response.body }, status: response.code
-    rescue StandardError => e
-      return render json: { errors: e.message }, status: 400
-    end
+    time_entries = toggl_service.load_time_entries(
+      start_date: params[:from],
+      end_date: params[:till],
+      workspaces: params[:workspaces]
+    )
+    time_entry_groups = TogglTimeEntryGroup.group(time_entries)
 
     result = {}
     time_entry_groups.each do |key, group|
@@ -38,6 +31,9 @@ class T2rTogglController < T2rBaseController
     render json: result
   rescue ActionController::ParameterMissing => e
     render json: { errors: [e.message] }, status: 400
+  rescue TogglService::Error => e
+    response = e.response
+    render json: { errors: response.body }, status: response.code
   end
 
   def read_workspaces

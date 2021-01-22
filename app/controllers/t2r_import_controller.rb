@@ -9,7 +9,8 @@ class T2rImportController < T2rBaseController
     begin
       # TODO: Investigate usage of before_action with rescue_from.
       import_parse_params
-    rescue ActionController::ParameterMissing => e
+    rescue ActionController::ParameterMissing,
+           ActiveRecord::RecordInvalid => e
       return render json: { errors: [e.message] }, status: 400
     end
 
@@ -20,14 +21,14 @@ class T2rImportController < T2rBaseController
       # TODO: Do we need this check?
       unless @project.members.pluck(:user_id).include?(@user.id)
         return render json: {
-          errors: 'You are not a member of this project.'
+          errors: ['You are not a member of this project.']
         }, status: 403
       end
 
       # Check if the user has permission to log time on the project.
       unless @user.allowed_to?(:log_time, @time_entry.project)
         return render json: {
-          errors: 'You are not allowed to log time on this project.'
+          errors: ['You are not allowed to log time on this project.']
         }, status: 403
       end
     end
@@ -36,12 +37,12 @@ class T2rImportController < T2rBaseController
     # This prevents re-imports for databases which do not support transactions.
     unless TogglMapping.where(toggl_id: params[:toggl_ids]).empty?
       return render json: {
-        errors: 'Toggl ID has already been imported.'
+        errors: ['Toggl ID has already been imported.']
       }, status: 400
     end
 
     begin
-      # Save the Redmine time entry and map each Toggl entry to it.
+      # Save the Redmine time entry and map Toggl time entries to it.
       ActiveRecord::Base.transaction do
         @time_entry.save!
         params[:toggl_ids].each do |toggl_id|
@@ -52,7 +53,7 @@ class T2rImportController < T2rBaseController
           toggl_mapping.save!
         end
       end
-    rescue StandardError => e
+    rescue ActiveRecord::ActiveRecordError => e
       messages = [e.message]
 
       # If the transaction couldn't be rolled back, raise an alert.
@@ -61,11 +62,10 @@ class T2rImportController < T2rBaseController
         messages.push(I18n.t('t2r.text_db_transaction_warning'))
       end
 
-      return render json: { errors: messages }, status: 400
+      return render json: { errors: messages }, status: 503
     end
 
-    # Render response.
-    render json: { time_entry: @time_entry }, status: 201
+    render json: true, status: 201
   end
 
   private
@@ -75,13 +75,11 @@ class T2rImportController < T2rBaseController
   # - Prepares a @time_entry object
   # - Prepares a @toggl_ids array
   def import_parse_params
-    # Prepare toggl_ids.
-    @toggl_ids = params.require :toggl_ids
+    params[:toggl_ids]&.keep_if { |id| id.respond_to?(:to_i) && id.to_i.positive? }
+    @toggl_ids = params.require(:toggl_ids)
 
-    # Build a time entry.
-    time_entry_data =
-      params
-        .require(:time_entry)
+    @time_entry = TimeEntry.new do |te|
+      attributes = params.require(:time_entry)
         .permit(
           :activity_id,
           :comments,
@@ -89,13 +87,10 @@ class T2rImportController < T2rBaseController
           :issue_id,
           :spent_on
         )
-    @time_entry = TimeEntry.new time_entry_data
-
-    # Assign user.
-    @time_entry.user = @user
-
-    # Assign project.
-    issue = @time_entry.issue
-    @time_entry.project = issue.project if issue.present?
+      te.assign_attributes(attributes)
+      te.user = @user
+      te.project = te.issue&.project
+      te.validate!
+    end
   end
 end

@@ -50,10 +50,10 @@ class T2rRedmineControllerTest < T2r::IntegrationTest
           'comments' => 'Fusce dapibus, tellus ac cursus commodo tortor mauris condimentum.',
           'issue' => {
             'id' => e4.issue.id,
-            'subject' => 'Extract essence',
+            'subject' => 'Condition cherries',
             'tracker' => { 'id' => e4.issue.tracker.id, 'name' => 'Task' }
           },
-          'project' => { 'id' => e4.project.id, 'name' => 'Project charlie', 'status' => 0 },
+          'project' => { 'id' => e4.project.id, 'name' => 'Project bravo', 'status' => 1 },
           'activity' => { 'id' => e4.activity.id, 'name' => 'Other' }
         },
         {

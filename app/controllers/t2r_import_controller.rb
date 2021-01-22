@@ -13,7 +13,7 @@ class T2rImportController < T2rBaseController
   class DuplicateImportError < StandardError; end
 
   def import
-    import_parse_params
+    parse_params
     import_check_permissions
 
     # Save the Redmine time entry and map Toggl time entries to it.
@@ -50,7 +50,7 @@ class T2rImportController < T2rBaseController
   #
   # - Prepares a @time_entry object
   # - Prepares a @toggl_ids array
-  def import_parse_params
+  def parse_params
     params[:toggl_ids]&.keep_if { |id| id.respond_to?(:to_i) && id.to_i.positive? }
     @toggl_ids = params.require(:toggl_ids)
 

@@ -2,7 +2,7 @@
 
 class T2rRedmineController < T2rBaseController
   def read_time_entries
-    read_time_entries_parse_params
+    parse_params
 
     time_entries = TimeEntry.where(
       user: @user,
@@ -30,7 +30,7 @@ class T2rRedmineController < T2rBaseController
 
   private
 
-  def read_time_entries_parse_params
+  def parse_params
     params[:from] = Time.parse(params.require(:from))
     params[:till] = Time.parse(params.require(:till))
   end

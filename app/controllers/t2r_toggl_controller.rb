@@ -2,7 +2,7 @@
 
 class T2rTogglController < T2rBaseController
   def read_time_entries
-    read_time_entries_parse_params
+    parse_params
 
     begin
       time_entries = toggl_service.load_time_entries(
@@ -47,7 +47,7 @@ class T2rTogglController < T2rBaseController
 
   private
 
-  def read_time_entries_parse_params
+  def parse_params
     params[:from] = Time.parse(params.require(:from))
     params[:till] = Time.parse(params.require(:till))
 

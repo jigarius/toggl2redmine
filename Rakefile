@@ -38,8 +38,7 @@ task :reset do
     'db:drop',
     'db:create',
     'db:migrate',
-    'redmine:plugins:migrate',
-    'redmine:load_default_data'
+    'redmine:plugins:migrate'
   ]
 
   commands << 'db:seed' if rails_env == 'development'
@@ -79,10 +78,10 @@ task :info do
 
     USERS
     ----------------------------------------------------
-    Login    | Email address        | Password
+    Login  | Email address      | Password
     ----------------------------------------------------
-    admin    | admin@example.com    | toggl2redmine
-    john.doe | john.doe@example.com | toggl2redmine
+    admin  | admin@example.com  | admin
+    jsmith | jsmith@example.com | jsmith
     ----------------------------------------------------
 
     URLS

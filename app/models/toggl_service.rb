@@ -8,6 +8,17 @@ class TogglService
 
   ENDPOINT = 'https://www.toggl.com'
 
+  class Error < StandardError
+    attr_reader :request, :response
+
+    def initialize(message = nil, request = nil, response = nil)
+      super(message)
+
+      @request = request
+      @response = response
+    end
+  end
+
   def initialize(api_key)
     @api_key = api_key
   end
@@ -68,6 +79,6 @@ class TogglService
   def raise_on_error(request, response)
     return if response.code == '200'
 
-    raise TogglError.new("Toggl error: #{response.body}.", request, response)
+    raise Error.new("Toggl error: #{response.body}.", request, response)
   end
 end

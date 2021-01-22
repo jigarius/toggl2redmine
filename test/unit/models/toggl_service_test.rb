@@ -15,7 +15,7 @@ class TogglServiceTest < ActiveSupport::TestCase
     assert_equal('foobar', subject.api_key)
   end
 
-  test '.load_time_entries raises TogglError on failure' do
+  test '.load_time_entries raises Error on failure' do
     query = {
       start_date: Time.now,
       end_date: Time.now - 24.hours
@@ -31,7 +31,7 @@ class TogglServiceTest < ActiveSupport::TestCase
       .returns(mock_response)
 
     subject = TogglService.new(TOGGL_API_KEY)
-    assert_raises(TogglError) { subject.load_time_entries(query) }
+    assert_raises(TogglService::Error) { subject.load_time_entries(query) }
   end
 
   test '.load_time_entries returns Array of TogglTimeEntry on success' do
@@ -122,7 +122,7 @@ class TogglServiceTest < ActiveSupport::TestCase
     assert_equal(expected, result)
   end
 
-  test '.load_workspaces raises TogglError on failure' do
+  test '.load_workspaces raises Error on failure' do
     mock_response =
       Net::HTTPServerError.new(1.0, '500', 'Service unavailable')
     mock_response.expects(:body).returns(nil)
@@ -133,7 +133,7 @@ class TogglServiceTest < ActiveSupport::TestCase
       .returns(mock_response)
 
     subject = TogglService.new(TOGGL_API_KEY)
-    assert_raises(TogglError) { subject.load_workspaces }
+    assert_raises(TogglService::Error) { subject.load_workspaces }
   end
 
   test '.load_workspaces returns Array of TogglWorkspace on success' do

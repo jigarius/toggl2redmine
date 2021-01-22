@@ -11,7 +11,7 @@ class T2rTogglController < T2rBaseController
         workspaces: params[:workspaces]
       )
       time_entry_groups = TogglTimeEntryGroup.group(time_entries)
-    rescue TogglError => e
+    rescue TogglService::Error => e
       response = e.response
       return render json: { errors: response.body }, status: response.code
     rescue StandardError => e

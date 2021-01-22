@@ -179,7 +179,7 @@ class TogglServiceTest < ActiveSupport::TestCase
 
   # type: time_entries|workspaces
   def mock_json_response(type)
-    File.read("#{Rails.root}/plugins/toggl2redmine/test/fixtures/toggl/#{type}.json")
+    File.read("#{Toggl2Redmine.root}/test/fixtures/toggl/#{type}.json")
   end
 
   def authorization_header(username, password)

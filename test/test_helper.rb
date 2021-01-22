@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
 require "#{Rails.root}/test/test_helper"
-# require 'active_record/fixtures'
 
 module T2r
   class IntegrationTest < Redmine::IntegrationTest
     self.fixture_path =
-      "#{Rails.root}/plugins/toggl2redmine/test/fixtures/"
+      "#{Toggl2Redmine.root}/test/fixtures"
 
     protected
 

@@ -68,7 +68,7 @@ class T2rImportControllerTest < T2r::IntegrationTest
     )
   end
 
-  test ".import returns 400 response if 'time_entry' param is not a valid time entry" do
+  test ".import returns 400 response if 'time_entry' param is not valid" do
     data = {
       toggl_ids: [999],
       time_entry: {
@@ -176,7 +176,7 @@ class T2rImportControllerTest < T2r::IntegrationTest
       end
     end
 
-    assert_response 503
+    assert_response 400
     assert_equal(
       { 'errors' => ['Validation failed: Toggl ID has already been imported'] },
       @response.parsed_body

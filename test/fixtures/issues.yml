@@ -1,6 +1,6 @@
 alpha:
   subject: 'Abstract apples'
-  description: Dummy issue for testing Toggl 2 Redmine.
+  description: John Smith is a 'Manager' of project 'Alpha'.
   author: admin
   project: alpha
   tracker: task
@@ -9,7 +9,7 @@ alpha:
 
 bravo:
   subject: 'Boil bananas'
-  description: Dummy issue for testing Toggl 2 Redmine.
+  description: John Smith is a 'Manager' of project 'Alpha'.
   author: admin
   project: alpha
   tracker: task
@@ -18,7 +18,7 @@ bravo:
 
 charlie:
   subject: 'Condition cherries'
-  description: Dummy issue for testing Toggl 2 Redmine.
+  description: John Smith is a 'Reviewer' of project 'Bravo'.
   author: admin
   project: bravo
   tracker: task
@@ -27,7 +27,7 @@ charlie:
 
 delta:
   subject: 'Dismantle dates'
-  description: Dummy issue for testing Toggl 2 Redmine.
+  description: John Smith is a 'Reviewer' of project 'Bravo'.
   author: admin
   project: bravo
   tracker: task
@@ -36,7 +36,7 @@ delta:
 
 echo:
   subject: 'Extract essence'
-  description: Dummy issue for testing Toggl 2 Redmine.
+  description: John Smith is not a member of project 'Charlie'.
   author: admin
   project: charlie
   tracker: task

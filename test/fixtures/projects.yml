@@ -1,15 +1,22 @@
 alpha:
   identifier: alpha
   name: Project alpha
-  description: Dummy project for testing Toggl 2 Redmine.
+  description: John Smith has 'manager' access to this project.
+  trackers:
+    - task
 
 bravo:
   identifier: bravo
   name: Project bravo
-  description: Dummy project for testing Toggl 2 Redmine.
+  description: John Smith has 'reviewer' access to this project.
 
 charlie:
   identifier: charlie
   name: Project charlie
-  description: Dummy project for testing Toggl 2 Redmine.
+  description: John Smith doesn't have access to this project.
   status: 0
+
+delta:
+  identifier: delta
+  name: Project delta
+  description: John Smith doesn't have access to this project.

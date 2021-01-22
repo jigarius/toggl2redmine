@@ -1,0 +1,9 @@
+admin:
+  user: admin
+  address: admin@example.com
+  is_default: true
+
+jsmith:
+  user: jsmith
+  address: jsmith@example.com
+  is_default: true

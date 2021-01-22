@@ -3,7 +3,7 @@
 require_relative '../test_helper'
 
 class T2rRedmineControllerTest < T2r::IntegrationTest
-  fixtures :custom_fields, :users, :time_entries, :issues, :issue_statuses, :projects, :trackers, :enumerations
+  fixtures :all
 
   def setup
     @user = users(:jsmith)

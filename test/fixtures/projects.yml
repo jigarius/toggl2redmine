@@ -2,6 +2,8 @@ alpha:
   identifier: alpha
   name: Project alpha
   description: John Smith has 'manager' access to this project.
+  lft: 1
+  rgt: 2
   trackers:
     - task
 
@@ -9,14 +11,20 @@ bravo:
   identifier: bravo
   name: Project bravo
   description: John Smith has 'reviewer' access to this project.
+  lft: 3
+  rgt: 4
 
 charlie:
   identifier: charlie
   name: Project charlie
   description: John Smith doesn't have access to this project.
+  lft: 5
+  rgt: 6
   status: 0
 
 delta:
   identifier: delta
   name: Project delta
   description: John Smith doesn't have access to this project.
+  lft: 7
+  rgt: 8

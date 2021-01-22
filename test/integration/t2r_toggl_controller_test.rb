@@ -97,10 +97,11 @@ class T2rTogglControllerTest < T2r::IntegrationTest
 
     get "/toggl2redmine/toggl_time_entries?#{data.to_query}"
 
-    expectation = { errors: "Parameter 'from' must be present." }
-
     assert_response 400
-    assert_equal(expectation.as_json, @response.parsed_body)
+    assert_equal(
+      { 'errors' => ['param is missing or the value is empty: from'] },
+      @response.parsed_body
+    )
   end
 
   test ".read_time_entries fails if param 'till' is missing" do
@@ -108,10 +109,11 @@ class T2rTogglControllerTest < T2r::IntegrationTest
 
     get "/toggl2redmine/toggl_time_entries?#{data.to_query}"
 
-    expectation = { errors: "Parameter 'till' must be present." }
-
     assert_response 400
-    assert_equal(expectation.as_json, @response.parsed_body)
+    assert_equal(
+      { 'errors' => ['param is missing or the value is empty: till'] },
+      @response.parsed_body
+    )
   end
 
   test '.read_time_entries returns issue when it exists and the user belongs to the project' do

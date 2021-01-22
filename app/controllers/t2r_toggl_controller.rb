@@ -2,31 +2,13 @@
 
 class T2rTogglController < T2rBaseController
   def read_time_entries
-    # Require 'from' parameter.
-    unless params[:from]
-      return render json: {
-        errors: "Parameter 'from' must be present."
-      }, status: 400
-    end
-    from = Time.parse(params[:from])
-
-    # Require 'till' parameter.
-    unless params[:till]
-      return render json: {
-        errors: "Parameter 'till' must be present."
-      }, status: 400
-    end
-    till = Time.parse(params[:till])
-
-    # Determine 'workspaces' parameter.
-    workspaces =
-      params.fetch(:workspaces, '').split(',').map(&:to_i)
+    read_time_entries_parse_params
 
     begin
       time_entries = toggl_service.load_time_entries(
-        start_date: from,
-        end_date: till,
-        workspaces: workspaces
+        start_date: params[:from],
+        end_date: params[:till],
+        workspaces: params[:workspaces]
       )
       time_entry_groups = TogglTimeEntryGroup.group(time_entries)
     rescue TogglError => e
@@ -54,11 +36,22 @@ class T2rTogglController < T2rBaseController
     end
 
     render json: result
+  rescue ActionController::ParameterMissing => e
+    render json: { errors: [e.message] }, status: 400
   end
 
-  # Reads workspaces from Toggl.
   def read_workspaces
     @workspaces = toggl_service.load_workspaces
     render json: @workspaces
+  end
+
+  private
+
+  def read_time_entries_parse_params
+    params[:from] = Time.parse(params.require(:from))
+    params[:till] = Time.parse(params.require(:till))
+
+    params[:workspaces] =
+      params.fetch(:workspaces, '').split(',').map(&:to_i)
   end
 end

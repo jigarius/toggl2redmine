@@ -1,0 +1,54 @@
+alpha_001:
+  subject: 'Abstract apples'
+  description: John Smith is a 'Manager' of project 'Alpha'.
+  author: admin
+  project: alpha
+  tracker: task
+  priority: normal
+  status: open
+  lft: 1
+  rgt: 2
+
+alpha_002:
+  subject: 'Boil bananas'
+  description: John Smith is a 'Manager' of project 'Alpha'.
+  author: admin
+  project: alpha
+  tracker: task
+  priority: normal
+  status: open
+  lft: 3
+  rgt: 4
+
+bravo_001:
+  subject: 'Condition cherries'
+  description: John Smith is a 'Reviewer' of project 'Bravo'.
+  author: admin
+  project: bravo
+  tracker: task
+  priority: normal
+  status: open
+  lft: 5
+  rgt: 6
+
+bravo_002:
+  subject: 'Dismantle dates'
+  description: John Smith is a 'Reviewer' of project 'Bravo'.
+  author: admin
+  project: bravo
+  tracker: task
+  priority: normal
+  status: closed
+  lft: 7
+  rgt: 8
+
+charlie_001:
+  subject: 'Extract essence'
+  description: John Smith is not a member of project 'Charlie'.
+  author: admin
+  project: charlie
+  tracker: task
+  priority: normal
+  status: open
+  lft: 9
+  rgt: 10

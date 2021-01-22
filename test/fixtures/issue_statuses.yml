@@ -1,0 +1,7 @@
+open:
+  name: Open
+  is_closed: false
+
+close:
+  name: Close
+  is_closed: true

@@ -4,3 +4,6 @@
 # OS Files
 .DS_Store
 
+# Miscellaneous.
+.rails
+.redmine

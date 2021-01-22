@@ -1,0 +1,11 @@
+jsmith_alpha:
+  user: jsmith
+  project: alpha
+  roles:
+    - manager
+
+jsmith_bravo:
+  user: jsmith
+  project: bravo
+  roles:
+    - reviewer

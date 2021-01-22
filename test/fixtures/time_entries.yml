@@ -1,0 +1,59 @@
+entry_001:
+  project: alpha
+  issue: alpha_001
+  spent_on: 2012-11-03
+  tyear: 2012
+  tmonth: 11
+  tweek: 45
+  user: jsmith
+  activity: activity_development
+  hours: 0.50
+  comments: Pellentesque ornare sem lacinia quam venenatis vestibulum.
+
+entry_002:
+  project: alpha
+  issue: alpha_001
+  spent_on: 2012-11-03
+  tyear: 2012
+  tmonth: 11
+  tweek: 45
+  user: jsmith
+  activity: activity_development
+  hours: 0.25
+  comments: Cras mattis consectetur purus sit amet fermentum.
+
+entry_003:
+  project: alpha
+  issue: alpha_002
+  spent_on: 2012-11-03
+  tyear: 2012
+  tmonth: 11
+  tweek: 45
+  user: jsmith
+  activity: activity_development
+  hours: 1.25
+  comments: Ut fermentum massa justo sit amet risus.
+
+entry_004:
+  project: bravo
+  issue: bravo_001
+  spent_on: 2012-11-03
+  tyear: 2012
+  tmonth: 11
+  tweek: 45
+  user: jsmith
+  activity: activity_other
+  hours: 2.0
+  comments: Fusce dapibus, tellus ac cursus commodo tortor mauris condimentum.
+
+entry_005:
+  project: charlie
+  issue: charlie_001
+  spent_on: 2012-11-03
+  tyear: 2012
+  tmonth: 11
+  tweek: 45
+  user: admin
+  activity: activity_other
+  hours: 3.0
+  comments: Lorem ipsum dolor sit amet.

@@ -1,0 +1,7 @@
+[
+  {"id":1844094802,"guid":"775a91f797597df01275d852073e6710","wid":2618724,"billable":false,"start":"2021-01-17T18:50:04+00:00","stop":"2021-01-17T18:55:04+00:00","duration":300,"description":"#1 Preparing meal","duronly":false,"at":"2021-01-17T21:23:18+00:00","uid":3008088},
+  {"id":1844094618,"guid":"4d663aef640ced57f41fdc0ade3e9f12","wid":2618724,"billable":false,"start":"2021-01-17T19:00:37+00:00","stop":"2021-01-17T19:30:37+00:00","duration":1800,"description":"#1 Preparing meal","duronly":false,"at":"2021-01-17T21:23:22+00:00","uid":3008088},
+  {"id":1844094426,"guid":"ea9212850ca5809b7b60f6f65ce659e4","wid":2618724,"billable":false,"start":"2021-01-17T20:00:56+00:00","stop":"2021-01-17T20:12:56+00:00","duration":720,"description":"#1 Feeding the llamas","duronly":false,"at":"2021-01-17T21:22:19+00:00","uid":3008088},
+  {"id":1844093947,"guid":"87cbd93770ea3bac9d27ef456d91b1f9","wid":99,"billable":false,"start":"2021-01-17T21:00:51+00:00","stop":"2021-01-17T21:20:51+00:00","duration":1200,"description":"#2 Reticulating splines","duronly":false,"at":"2021-01-17T21:21:01+00:00","uid":3008088},
+  {"id":1844094084,"guid":"229e0d2cc35c020e73f23d88931eead6","wid":99,"billable":false,"start":"2021-01-17T21:20:21+00:00","stop":"2021-01-17T21:30:21+00:00","duration":600,"description":"#2 Reticulating splines","duronly":false,"at":"2021-01-17T21:21:34+00:00","uid":3008088}
+]

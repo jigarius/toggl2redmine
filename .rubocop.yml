@@ -1,29 +1,36 @@
-# Classes can contain many methods and it is normal for them
-# to be long, so allow a higher class length.
-Metrics/ClassLength:
-  Max: 1024
+AllCops:
+  NewCops: enable
 
-# The default allowed method length (10) is ridiculously low.
-Metrics/MethodLength:
-  CountComments: false
-  Max: 64
-
-# Disallow long lines, except for "if" and "unless" statements.
-Metrics/LineLength:
+Layout/LineLength:
   AllowHeredoc: true
   AllowURI: true
-  IgnoredPatterns:
-    - '\sif|unless\s'
+  Max: 120
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
 
-# Assignment Branches and Conditions metric.
-# See http://c2.com/cgi/wiki?AbcMetric
 Metrics/AbcSize:
-  Max: 60
-
-# Adds one for every decision point.
+  Enabled: false
 Metrics/CyclomaticComplexity:
-  Max: 10
-
-# See https://www.rubydoc.info/gems/rubocop/0.27.0/RuboCop/Cop/Metrics/PerceivedComplexity
+  Enabled: false
+Metrics/BlockLength:
+  Enabled: false
+Metrics/ClassLength:
+  Enabled: false
+Metrics/MethodLength:
+  Enabled: false
 Metrics/PerceivedComplexity:
-  Max: 10
+  Enabled: false
+
+Naming/VariableNumber:
+  CheckSymbols: false
+
+Style/CaseEquality:
+  AllowOnConstant: true
+Style/Documentation:
+  Enabled: false
+Style/IfUnlessModifier:
+  Enabled: false
+Style/HashEachMethods:
+  Enabled: false
+Style/SymbolArray:
+  Enabled: false

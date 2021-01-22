@@ -2,78 +2,33 @@
 
 # A time entry tag object received from Toggl.
 class TogglTimeEntry
-  include ActiveModel::Validations
-  include ActiveModel::Conversion
+  include ActiveModel::Model
 
-  extend ActiveModel::Naming
+  attr_reader :id, :wid, :issue_id, :duration, :at, :comments
 
-  attr_reader :id, :wid, :issue_id, :duration, :at, :description, :comments
-
-  validates :id, :wid, :duration, :at, presence: true
-  validates :id, :wid, :duration,
-            numericality: {
-              only_integer: true,
-              greater_than: 0
-            }
-
-  # Constructor
   def initialize(attributes = {})
-    @id = attributes['id'].to_i
-    @wid = attributes['wid'].to_i
-    @duration = attributes['duration'].to_i
-    @at = attributes['at']
+    @id = attributes[:id].to_i
+    @wid = attributes[:wid].to_i
+    @duration = attributes[:duration].to_i
+    @at = attributes[:at]
+    @issue_id = nil
+    @comments = nil
 
-    # Interpret the description
-    description = parse_description(attributes['description'])
-    @description = description[:original]
-    @issue_id = description[:issue_id]
-    @comments = description[:comments]
+    parse_description(attributes[:description])
   end
 
   # Returns a key for grouping the time entry.
   def key
-    key = []
-    key.push(@issue_id.nil? ? '0' : @issue_id.to_s)
-    key.push(@comments.downcase)
-    key.push(status)
-    key.join(':')
-  end
-
-  # Parses a Toggl description and returns it's components.
-  def parse_description(description)
-    description = '' if description.nil?
-    description = description.strip
-
-    # Prepare default output.
-    output = {
-      original: description,
-      issue_id: nil,
-      comments: description
-    }
-
-    # Scan the description.
-    matches = description.scan(/^[^#]*#(\d+)\s*(.*)?$/).first
-    if !matches.nil? && matches.count == 2
-      output[:issue_id] = matches[0].to_i
-      output[:comments] = matches[1]
-    end
-
-    output
+    [
+      (@issue_id || 0).to_s,
+      @comments.to_s.downcase,
+      status
+    ].join(':')
   end
 
   # Finds the associated Redmine issue.
   def issue
-    begin
-      output = Issue.find(@issue_id) unless @issue_id.nil?
-    rescue StandardError
-      output = nil
-    end
-    output
-  end
-
-  # Finds the associated Toggl mapping.
-  def mapping
-    TogglMapping.find_by(toggl_id: @id)
+    Issue.find_by(id: @issue_id)
   end
 
   # Gets the status of the entry.
@@ -86,7 +41,7 @@ class TogglTimeEntry
 
   # Whether the record has already been imported to Redmine.
   def imported?
-    !mapping.nil?
+    mapping.present?
   end
 
   # Whether the timer is currently running.
@@ -94,10 +49,34 @@ class TogglTimeEntry
     @duration.negative?
   end
 
-  # As JSON.
-  def as_json(options = {})
-    output = super(options)
-    output[:status] = status
-    output
+  def to_hash
+    instance_values.merge({ status: status })
+  end
+
+  # == operator
+  def ==(other)
+    TogglTimeEntry === other &&
+      @id == other.id &&
+      @wid == other.wid &&
+      @duration == other.duration &&
+      @at == other.at &&
+      @issue_id == other.issue_id &&
+      @comments == other.comments
+  end
+
+  private
+
+  # Parses a Toggl description and returns its components.
+  def parse_description(description)
+    matches = description.to_s.strip.scan(/^[^#]*#+(\d+)\s*(.*)?$/).first
+    return unless matches&.count == 2
+
+    @issue_id = matches[0].to_i
+    @comments = matches[1]
+  end
+
+  # Finds the associated Toggl mapping.
+  def mapping
+    TogglMapping.find_by(toggl_id: @id)
   end
 end

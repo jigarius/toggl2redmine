@@ -1,0 +1,4 @@
+# frozen_string_literal: true
+
+gem 'pry-byebug', group: [:development, :test]
+gem 'pry-rails', group: [:development, :test]

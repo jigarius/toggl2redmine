@@ -1,0 +1,23 @@
+admin:
+  type: User
+  status: 1
+  language: en
+  # password = admin
+  salt: 82090c953c4a0000a7db253b0691a6b4
+  hashed_password: b5b6ff9543bf1387374cdfa27a54c96d236a7150
+  admin: true
+  lastname: Caesar
+  firstname: Jigarius
+  login: admin
+
+jsmith:
+  type: User
+  status: 1
+  language: en
+  # password = jsmith
+  salt: 67eb4732624d5a7753dcea7ce0bb7d7d
+  hashed_password: bfbe06043353a677d0215b26a5800d128d5413bc
+  admin: false
+  lastname: Smith
+  firstname: John
+  login: jsmith

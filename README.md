@@ -1,8 +1,6 @@
 # Toggle 2 Redmine
 
-![Redmine Version](https://img.shields.io/badge/Redmine-4.x-blue.svg)
-![Rails Version](https://img.shields.io/badge/Rails-5.x-blue.svg)
-[![Build Status](https://travis-ci.org/jigarius/toggl2redmine.svg?branch=4.x)](https://travis-ci.org/jigarius/toggl2redmine)
+![Redmine Version](https://img.shields.io/badge/Redmine-4.x-green.svg)
 
 This dandy Redmine plugin imports time entries from Toggl to Redmine using
 REST API service calls for both Toggl and Redmine.
@@ -117,9 +115,45 @@ which you can round your time entries.
 
 To disable rounding, you can choose the *Don't round* option.
 
+## Development
+
+Want to fiddle with the code? Or just get a demo of the plugin? If you use
+Docker, you can do so with ease.
+
+  * Clone the code repository.
+    ```
+    git clone --branch 4.x git@github.com:jigarius/toggl2redmine.git
+    cd toggl2redmine
+    ```
+  * Prepare docker containers.
+    ```
+    docker-compose up -d
+    # Wait until the database container is ready.
+    docker-compose start
+    ```
+  * Seed the database, i.e. create sample data.
+    ```
+    rake prepare
+    ```
+
+Run `rake info` to learn how to access your demo installation!
+
+### Testing
+
+Thanks to the Docker setup, the plugin code can easily be linted and tested.
+
+  * `rake rubocop`: Run Rubocop.
+  * `rake reset RAILS_ENV=test`: Prepare/reset the test environment.
+  * `rake test`: Run tests.
+
+### Mailhog
+
+Mailhog has been included in the Docker setup so that you can easily reset
+your password or test Toggl 2 Redmine with more than one user accounts.
+
 # Acknowledgements
 
 * Thanks [Evolving Web](https://evolvingweb.ca/) for funding the initial
   development of this plugin.
-* Thanks [Jigar Mehta](https://github.com/jigarius) (that's me) for spending
-  many evenings and weekends to make this plugin possible.
+* Thanks [Jigar Mehta (Jigarius)](https://jigarius.com/about) (that's me)
+  for spending many evenings and weekends to make this plugin possible.

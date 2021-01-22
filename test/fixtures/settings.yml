@@ -1,0 +1,3 @@
+rest_api_enabled:
+  name: rest_api_enabled
+  value: 1

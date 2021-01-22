@@ -1,9 +1,5 @@
 <h2>Toggle 2 Redmine <span class="date"></span></h2>
 
-<% if ENV['RAILS_ENV'] == 'development' %>
-  <div class="flash warning"><%= I18n.t 't2r.text_development_mode' %></div>
-<% end %>
-
 <form id="filter-form" class="t2r-form">
   <fieldset class="collapsible" id="basic-options">
     <legend onclick="toggleFieldset(this);">Basic options</legend>

@@ -1,0 +1,12 @@
+toggl_api_token:
+  type: UserCustomField
+  name: 'Toggl API Token'
+  field_format: 'string'
+  min_length: 32
+  max_length: 32
+  regexp: ''
+  default_value: ''
+  is_required: 0
+  visible: 0
+  editable: 1
+  is_filter: 0

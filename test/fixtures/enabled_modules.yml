@@ -1,0 +1,31 @@
+alpha_time_tracking:
+  project: alpha
+  name: time_tracking
+
+alpha_issue_tracking:
+  project: alpha
+  name: issue_tracking
+
+bravo_time_tracking:
+  project: bravo
+  name: time_tracking
+
+bravo_issue_tracking:
+  project: bravo
+  name: issue_tracking
+
+charlie_time_tracking:
+  project: charlie
+  name: time_tracking
+
+charlie_issue_tracking:
+  project: charlie
+  name: issue_tracking
+
+delta_time_tracking:
+  project: delta
+  name: time_tracking
+
+delta_issue_tracking:
+  project: delta
+  name: issue_tracking

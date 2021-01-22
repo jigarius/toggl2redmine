@@ -61,10 +61,4 @@ class T2rTogglController < T2rBaseController
     @workspaces = toggl_service.load_workspaces
     render json: @workspaces
   end
-
-  def user_can_view_issue?(issue)
-    return true if @user.admin?
-
-    Member.where(user: @user, project: issue.project).count.positive?
-  end
 end

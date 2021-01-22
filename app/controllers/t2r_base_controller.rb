@@ -23,4 +23,14 @@ class T2rBaseController < ApplicationController
     flash[:error] = I18n.t 't2r.text_add_toggl_api_key'
     redirect_to my_account_path
   end
+
+  def user_can_view_issue?(issue)
+    return true if @user.admin?
+
+    user_is_member_of?(@user, issue.project)
+  end
+
+  def user_is_member_of?(user, project)
+    Member.where(user: user, project: project).count.positive?
+  end
 end

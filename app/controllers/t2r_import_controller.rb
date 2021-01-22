@@ -79,16 +79,12 @@ class T2rImportController < T2rBaseController
   def import_check_permissions
     return if @user.admin? || @time_entry.project.nil?
 
-    unless user_is_member_of_project?(@user, @time_entry.project)
+    unless user_is_member_of?(@user, @time_entry.project)
       raise MembershipError, 'You are not a member of this project.'
     end
 
     return if @user.allowed_to?(:log_time, @time_entry.project)
 
     raise PermissionError, 'You are not allowed to log time on this project.'
-  end
-
-  def user_is_member_of_project?(user, project)
-    Member.where(user: user, project: project).count.positive?
   end
 end

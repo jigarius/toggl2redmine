@@ -1,6 +1,6 @@
 entry_001:
   project: alpha
-  issue: alpha
+  issue: alpha_001
   spent_on: 2012-11-03
   tyear: 2012
   tmonth: 11
@@ -12,7 +12,7 @@ entry_001:
 
 entry_002:
   project: alpha
-  issue: alpha
+  issue: alpha_001
   spent_on: 2012-11-03
   tyear: 2012
   tmonth: 11
@@ -24,7 +24,7 @@ entry_002:
 
 entry_003:
   project: alpha
-  issue: bravo
+  issue: alpha_002
   spent_on: 2012-11-03
   tyear: 2012
   tmonth: 11
@@ -36,7 +36,7 @@ entry_003:
 
 entry_004:
   project: charlie
-  issue: echo
+  issue: charlie_001
   spent_on: 2012-11-03
   tyear: 2012
   tmonth: 11
@@ -48,7 +48,7 @@ entry_004:
 
 entry_005:
   project: charlie
-  issue: echo
+  issue: charlie_001
   spent_on: 2012-11-03
   tyear: 2012
   tmonth: 11

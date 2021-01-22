@@ -75,7 +75,7 @@ class T2rImportControllerTest < T2r::IntegrationTest
         activity_id: enumerations(:activity_development).id,
         comments: 'Special delivery!',
         hours: -1,
-        issue_id: issues(:alpha).id,
+        issue_id: issues(:alpha_001).id,
         spent_on: '2021-01-17'
       }
     }
@@ -96,7 +96,7 @@ class T2rImportControllerTest < T2r::IntegrationTest
         activity_id: enumerations(:activity_development).id,
         comments: 'Special delivery!',
         hours: 4.0,
-        issue_id: issues(:echo).id,
+        issue_id: issues(:charlie_001).id,
         spent_on: '2021-01-17'
       }
     }
@@ -117,7 +117,7 @@ class T2rImportControllerTest < T2r::IntegrationTest
         activity_id: enumerations(:activity_development).id,
         comments: 'Special delivery!',
         hours: 4.0,
-        issue_id: issues(:charlie).id,
+        issue_id: issues(:bravo_001).id,
         spent_on: '2021-01-17'
       }
     }
@@ -138,7 +138,7 @@ class T2rImportControllerTest < T2r::IntegrationTest
         activity_id: enumerations(:activity_other).id,
         comments: "Listen to Friday I'm in Love",
         hours: 2.0,
-        issue_id: issues(:alpha).id,
+        issue_id: issues(:alpha_001).id,
         spent_on: '2021-01-17'
       }
     }
@@ -159,7 +159,7 @@ class T2rImportControllerTest < T2r::IntegrationTest
         activity_id: enumerations(:activity_other).id,
         comments: 'Get rich or die trying',
         hours: 2.0,
-        issue_id: issues(:alpha).id,
+        issue_id: issues(:alpha_001).id,
         spent_on: '2021-01-17'
       }
     }
@@ -194,7 +194,7 @@ class T2rImportControllerTest < T2r::IntegrationTest
         activity_id: enumerations(:activity_other).id,
         comments: 'Get rich or die trying',
         hours: 8.0,
-        issue_id: issues(:alpha).id,
+        issue_id: issues(:alpha_001).id,
         spent_on: '2021-01-17'
       }
     }

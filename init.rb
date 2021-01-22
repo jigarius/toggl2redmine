@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+require_relative 'lib/toggl_2_redmine'
+
 Redmine::Plugin.register :toggl2redmine do
   # Package info.
   name 'Toggl 2 Redmine'
   author 'Jigar Mehta'
   description 'Imports time entries from Toggl into Redmine.'
-  version '4.1.3'
+  version Toggl2Redmine::VERSION
   url 'https://github.com/jigarius/toggl2redmine'
   author_url 'https://jigarius.com/'
 

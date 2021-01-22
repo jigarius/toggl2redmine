@@ -695,7 +695,7 @@ T2R.getTogglWorkspaces = function (callback) {
 
   // Fetch data from Toggl.
   T2R.redmineRequest({
-    url: '/toggl2redmine/toggl_workspaces',
+    url: '/toggl2redmine/toggl/workspaces',
     success: function(data, status, xhr) {
       workspaces = data;
       T2R.cache(key, workspaces);
@@ -746,7 +746,7 @@ T2R._getRawTogglTimeEntries = function (opts, callback) {
 
   try {
     T2R.redmineRequest({
-      url: '/toggl2redmine/toggl_time_entries',
+      url: '/toggl2redmine/toggl/time_entries',
       data: data,
       success: function(data, status, xhr) {
         data = ('undefined' === typeof data) ? {} : data;
@@ -998,7 +998,7 @@ T2R._getRawRedmineTimeEntries = function (query, callback) {
     T2R.redmineRequest({
       async: true,
       method: 'get',
-      url: '/toggl2redmine/redmine_time_entries',
+      url: '/toggl2redmine/redmine/time_entries',
       data: {
         from: query.from,
         till: query.till

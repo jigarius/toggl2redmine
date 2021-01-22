@@ -58,7 +58,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
       )
       .returns(time_entries)
 
-    get "/toggl2redmine/toggl_time_entries?#{data.to_query}"
+    get "/toggl2redmine/toggl/time_entries?#{data.to_query}"
 
     assert_response :success
 
@@ -95,7 +95,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
   test ".read_time_entries fails if param 'from' is missing" do
     data = { till: DateTime.now }
 
-    get "/toggl2redmine/toggl_time_entries?#{data.to_query}"
+    get "/toggl2redmine/toggl/time_entries?#{data.to_query}"
 
     assert_response 400
     assert_equal(
@@ -107,7 +107,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
   test ".read_time_entries fails if param 'till' is missing" do
     data = { from: DateTime.now }
 
-    get "/toggl2redmine/toggl_time_entries?#{data.to_query}"
+    get "/toggl2redmine/toggl/time_entries?#{data.to_query}"
 
     assert_response 400
     assert_equal(
@@ -144,7 +144,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
       )
       .returns(time_entries)
 
-    get "/toggl2redmine/toggl_time_entries?#{data.to_query}"
+    get "/toggl2redmine/toggl/time_entries?#{data.to_query}"
 
     assert_response :success
 
@@ -201,7 +201,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
       )
       .returns(time_entries)
 
-    get "/toggl2redmine/toggl_time_entries?#{data.to_query}"
+    get "/toggl2redmine/toggl/time_entries?#{data.to_query}"
 
     assert_response :success
 
@@ -248,7 +248,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
       )
       .returns(time_entries)
 
-    get "/toggl2redmine/toggl_time_entries?#{data.to_query}"
+    get "/toggl2redmine/toggl/time_entries?#{data.to_query}"
 
     assert_response :success
 
@@ -278,7 +278,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
       .expects(:load_workspaces)
       .returns(workspaces)
 
-    get '/toggl2redmine/toggl_workspaces'
+    get '/toggl2redmine/toggl/workspaces'
 
     expectation = [
       { 'id' => 1, 'name' => 'Workspace 1' },

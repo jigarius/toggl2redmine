@@ -23,7 +23,7 @@ class T2rRedmineControllerTest < T2r::IntegrationTest
       till: '2012-11-03T00:00:00Z'
     }
 
-    get "/toggl2redmine/redmine_time_entries?#{data.to_query}"
+    get "/toggl2redmine/redmine/time_entries?#{data.to_query}"
 
     e1 = time_entries(:entry_001)
     e2 = time_entries(:entry_002)
@@ -101,7 +101,7 @@ class T2rRedmineControllerTest < T2r::IntegrationTest
   test ".read_time_entries fails if param 'from' is missing" do
     data = { till: DateTime.now }
 
-    get "/toggl2redmine/redmine_time_entries?#{data.to_query}"
+    get "/toggl2redmine/redmine/time_entries?#{data.to_query}"
 
     assert_response 400
     assert_equal(
@@ -113,7 +113,7 @@ class T2rRedmineControllerTest < T2r::IntegrationTest
   test ".read_time_entries fails if param 'till' is missing" do
     data = { from: DateTime.now }
 
-    get "/toggl2redmine/redmine_time_entries?#{data.to_query}"
+    get "/toggl2redmine/redmine/time_entries?#{data.to_query}"
 
     assert_response 400
     assert_equal(

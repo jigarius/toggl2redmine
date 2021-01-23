@@ -2,28 +2,39 @@
 
 <form id="filter-form" class="t2r-form">
   <fieldset class="collapsible" id="basic-options">
-    <legend onclick="toggleFieldset(this);">Basic options</legend>
+    <legend onclick="toggleFieldset(this);">
+      <%= t 't2r.label_basic_options' %></legend>
+    </legend>
     <div>
       <table class="t2r-options-table">
         <tbody>
           <tr class="filter">
             <td class="field">
-              <label for="date">Date<span class="required"> *</span></label>
+              <label for="date">
+                <%= t :label_date %><span class="required"> *</span>
+              </label>
             </td>
             <td class="values">
-              <input id="date" name="date" type="date" required="required" autofocus="autofocus" class="value date_value" title="Choose the date for which you want to import time entries into Redmine. Make sure your timezone is set correctly for your Redmine and Toggl accounts." />
-              <span class="date_suffix last-imported" title="The latest date for which a time entry has been found.">
-                <span class="label">Last imported on</span>
-                <span class="value" id="last-imported">&nbsp;</span>
+              <input id="date" name="date" type="date" required="required"
+                     autofocus="autofocus" class="value date_value"
+                     title="<%= t 't2r.tooltip_date_filter' %>" />
+              <span class="date_suffix last-imported">
+                <%= t('t2r.label_last_imported', date: '<span class="value" id="last-imported">&nbsp;</span>').html_safe %>
               </span>
             </td>
           </tr>
           <tr class="filter">
             <td class="field">
-              <label for="default-activity">Default activity</label>
+              <label for="default-activity">
+                <%= t 't2r.label_default_activity' %>
+              </label>
             </td>
             <td class="values">
-              <select id="default-activity" name="default-activity" data-t2r-widget="RedmineActivityDropdown" placeholder="-" class="value" title="This activity will be applied to all time entries by default. You will still be able the activity for individual items before importing."></select>
+              <select id="default-activity"
+                      name="default-activity"
+                      data-t2r-widget="RedmineActivityDropdown"
+                      placeholder="-"
+                      class="value"></select>
             </td>
           </tr>
         </tbody>
@@ -31,27 +42,36 @@
     </div>
   </fieldset>
   <fieldset class="collapsible collapsed" id="advanced-options">
-    <legend onclick="toggleFieldset(this);">Advanced options</legend>
+    <legend onclick="toggleFieldset(this);">
+      <%= t 't2r.label_advanced_options' %></legend>
     <div style="display: none;">
       <table class="t2r-options-table">
         <tbody>
           <tr class="filter">
             <td class="field">
-              <label for="toggl-workspace">Toggl workspace</label>
+              <label for="toggl-workspace">
+                <%= t 't2r.label_toggl_workspace' %>
+              </label>
             </td>
             <td class="values">
-              <select id="toggl-workspace" name="toggl-workspace" data-t2r-widget="TogglWorkspaceDropdown" placeholder="-" class="value" title="Choose a Toggl workspace or leave blank to use all workspaces. If you don't use separate workspaces in Toggl, you can ignore this field."></select>
+              <select id="toggl-workspace" name="toggl-workspace" data-t2r-widget="TogglWorkspaceDropdown"
+                      placeholder="-" class="value"></select>
             </td>
           </tr>
           <tr class="filter">
             <td class="field">
-              <label for="rounding">Duration rounding</label>
+              <label for="rounding">
+                <%= t 't2r.label_duration_rounding' %>
+              </label>
             </td>
             <td class="values">
-              <select id="rounding-direction" name="rounding-direction" class="value" data-t2r-widget="DurationRoundingDirection" title="Choose the logic to be used for rounding Toggl durations."></select>
+              <select id="rounding-direction" name="rounding-direction"
+                      class="value" data-t2r-widget="DurationRoundingDirection"
+                      title="<%= t 't2r.tooltip_duration_rounding_logic' %>"></select>
               <span class="rounding-text">&nbsp;|&nbsp;</span>
-              <input id="rounding-value" name="rounding-value" class="value" type="number" min="0" max="30" step="5" title="All time entries from Toggl will automatically be rounded to this number of minutes." />
-              <span class="rounding-text">minutes</span>
+              <input id="rounding-value" name="rounding-value" class="value"
+                     type="number" min="0" max="30" step="5"
+                     title="<%= t 't2r.tooltip_duration_rounding_value' %>" />
             </td>
           </tr>
         </tbody>
@@ -59,22 +79,27 @@
     </div>
   </fieldset>
   <p class="buttons">
-    <a aria-role="button" href="#" id="btn-apply-filters" class="icon icon-checked" title="This will reload the tables below with the filters you've selected.">Apply</a>
-    <a aria-role="button" href="#" id="btn-reset-filters" class="icon icon-reload">Reset</a>
-    <a aria-role="button" href="https://github.com/jigarius/toggl2redmine#usage" target="_blank" id="btn-help" class="icon icon-help" title="Confused? Get started by reading the user guide.">Help</a>
+    <a aria-role="button" href="#" id="btn-apply-filters"
+       class="icon icon-checked"><%= t :button_apply %></a>
+    <a aria-role="button" href="#" id="btn-reset-filters"
+       class="icon icon-reload"><%= t :button_reset %></a>
+    <a aria-role="button" href="https://github.com/jigarius/toggl2redmine#usage"
+       target="_blank" id="btn-help" class="icon icon-help"
+       title="<%= t 't2r.tooltip_help' %>"><%= t 't2r.button_help' %></a>
     <input type="submit" hidden="hidden" />
   </p>
 </form>
 
 <div id="redmine-report-container">
-  <h3>Time logged on <a href="<%= @redmine_url %>/time_entries/report" id="redmine-report-link" target="_blank">Redmine</a></h3>
+  <h3><a href="<%= @redmine_url %>/time_entries/report" id="redmine-report-link" target="_blank">
+    <%= t 't2r.caption_redmine_report' %></a></h3>
   <table id="redmine-report" class="list t2r-table">
     <thead>
       <tr>
-        <th class="issue">Issue</th>
-        <th class="comments">Comment</th>
-        <th class="activity">Activity</th>
-        <th class="hours">Hours</th>
+        <th class="issue"><%= t :label_issue %></th>
+        <th class="comments"><%= t :label_comment_plural %></th>
+        <th class="activity"><%= t :label_activity %></th>
+        <th class="hours"><%= t 't2r.label_hour_plural' %></th>
         <th></th>
       </tr>
     </thead>
@@ -82,7 +107,7 @@
     </tbody>
     <tfoot>
       <tr>
-        <td><strong>Time already logged</strong></td>
+        <td><strong><%= t 't2r.redmine_report_footer' %></strong></td>
         <td></td>
         <td></td>
         <td data-property="total-hours" class="hours"></td>
@@ -93,21 +118,22 @@
 </div>
 
 <form id="publish-form">
-  <h3>Time logged on <a href="https://toggl.com/app/timer" id="toggl-report-link" target="_blank">Toggl</a></h3>
+  <h3><a href="https://toggl.com/app/timer" id="toggl-report-link" target="_blank">
+    <%= t 't2r.caption_toggl_report' %></a></h3>
   <table id="toggl-report" class="list t2r-table">
     <thead>
       <tr>
         <th class="checkbox">
-          <input type="checkbox" class="check-all" value="" class="toggle-selection" title="Mark / unmark all items for editing and import. Alternatively, you can mark / unmark individual rows.">
+          <input type="checkbox" class="check-all toggl-selection" value=""
+                 title="<%= t :button_check_all %> / <%= t :button_uncheck_all %>">
         </th>
-        <th class="status">
-          <span class="icon icon-help" title="<%= I18n.t 't2r.tooltip_status_column' %>" data-t2r-widget="Tooltip">Status</span>
-        </th>
-        <th class="issue">Issue</th>
-        <th class="comments">Comments</th>
-        <th class="activity">Activity</th>
+        <th class="status"><%= t 't2r.label_status' %></th>
+        <th class="issue"><%= t :label_issue %></th>
+        <th class="comments"><%= t :label_comment_plural %></th>
+        <th class="activity"><%= t :label_activity %></th>
         <th class="hours">
-          <span class="icon icon-help" title="<%= I18n.t 't2r.tooltip_hours_column' %>" data-t2r-widget="Tooltip">Hours</span>
+          <span class="icon icon-help" title="<%= t 't2r.tooltip_hours_column_header' %>"
+                data-t2r-widget="Tooltip"><%= t 't2r.label_hour_plural' %></span>
         </th>
       </tr>
     </thead>
@@ -117,7 +143,7 @@
       <tr>
         <td></td>
         <td></td>
-        <td><strong>Time to be imported</strong></td>
+        <td><strong><%= t 't2r.toggl_report_footer' %></strong></td>
         <td></td>
         <td></td>
         <td data-property="total-hours" class="hours"></td>
@@ -125,7 +151,7 @@
     </tfoot>
   </table>
   <div class="form-actions">
-    <input id="btn-publish" type="submit" value="<%= I18n.t 't2r.button_import_to_redmine' %>" />
+    <input id="btn-publish" type="submit" value="<%= t 't2r.button_import_to_redmine' %>" />
   </div>
 </form>
 

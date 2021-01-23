@@ -1,16 +1,32 @@
-# English strings go here for Rails i18n
 en:
   activerecord:
     models:
-      toggl_mapping: Dude
+      toggl_mapping: 'Toggl mapping'
     attributes:
       toggl_mapping:
         id: 'ID'
         toggl_id: 'Toggl ID'
         time_entry_id: 'Time entry ID'
   t2r:
+    button_help: 'Help'
+    button_import_to_redmine: 'Import to Redmine'
+    caption_redmine_report: 'Time logged on Redmine'
+    caption_toggl_report: 'Time logged on Toggl'
+    label_default_activity: 'Default activity'
+    label_basic_options: 'Basic options'
+    label_advanced_options: 'Advanced options'
+    label_toggl_workspace: 'Toggl workspace'
+    label_duration_rounding: 'Duration rounding'
+    label_hour_plural: 'Hours'
+    label_last_imported: 'Last imported on %{date}'
+    label_status: 'Status'
     text_add_toggl_api_key: 'To use Toggl 2 Redmine, please add a Toggl API Token to your account.'
     text_db_transaction_warning: 'Your database does not support transactions. Please ask your system administrator to refer to the README for Toggle 2 Redmine.'
-    tooltip_status_column: "Put your mouse on the icon for a row to see it's status. Example: Imported, Failed, Error."
-    tooltip_hours_column: "1:50 means 1 hour 50 minutes. Press 'Up' or 'Down' to round the nearest 5 minutes. Combine with 'Shift' to round to the nearest 15 minutes."
-    button_import_to_redmine: 'Import to Redmine'
+    tooltip_date_filter: 'Choose the date for which you want to import time entries.'
+    tooltip_duration_rounding_logic: 'Choose a logic for rounding Toggl durations.'
+    tooltip_duration_rounding_value: 'All time entries from Toggl will be rounded to this number (minutes).'
+    tooltip_hours_column_header: "1:50 means 1 hour 50 minutes. Press 'Up' or 'Down' to round the nearest 5 minutes. Combine with 'Shift' to round to the nearest 15 minutes."
+    tooltip_status_column_header: "Put your mouse on the icon for a row to see it's status. Example: Imported, Failed, Error."
+    tooltip_help: 'Confused? Watch a short video tutorial.'
+    redmine_report_footer: 'Time already logged'
+    toggl_report_footer: 'Time to be imported'

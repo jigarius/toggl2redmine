@@ -41,6 +41,13 @@ T2R.REDMINE_REPORT_URL_FORMAT = T2R.REDMINE_REPORT_URL_FORMAT || '';
 T2R.TOGGL_REPORT_URL_FORMAT = T2R.TOGGL_REPORT_URL_FORMAT || '';
 
 /**
+ * Translations for UI elements.
+ *
+ * @type {{}}
+ */
+T2R.TRANSLATIONS = T2R.TRANSLATIONS || {};
+
+/**
  * Cached data.
  *
  * @type {Object}
@@ -122,6 +129,36 @@ T2R.browserStorage = function (key, value) {
       ? window.localStorage.getItem(key) : value;
   }
 };
+
+/**
+ * Equivalent of I18n.t().
+ *
+ * @param {string} key
+ *   String ID.
+ * @param {{}} vars
+ *   Key-value pair of variables to replace.
+ *
+ * @example
+ *   T2R.t('hello', { name: 'Junior' });
+ *
+ *   This replaces '@name' with 'Junior'.
+ *
+ * @returns {string}
+ *   Translated string if available.
+ */
+T2R.t = function(key, vars = {}) {
+  if (T2R.TRANSLATIONS[key] === undefined) {
+    var lang = $('html').attr('lang') || '??';
+    return 'translation missing: ' + lang + '.' + key;
+  }
+
+  var result = T2R.TRANSLATIONS[key];
+  for (var v in vars) {
+    result = result.replace('@' + v, vars[v])
+  }
+
+  return result;
+}
 
 /**
  * A callback which simply logs all arguments to the console.

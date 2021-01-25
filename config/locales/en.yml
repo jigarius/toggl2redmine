@@ -30,3 +30,6 @@ en:
     tooltip_help: 'Confused? Watch a short video tutorial.'
     redmine_report_footer: 'Time already logged'
     toggl_report_footer: 'Time to be imported'
+    error:
+      ajax_load: 'Could not retrieve data from server. Please refresh the page to try again.'
+      list_empty: 'There are no items to display here.'

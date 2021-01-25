@@ -739,7 +739,8 @@ T2R.getTogglWorkspaces = function (callback) {
       callback(workspaces);
     },
     error: function (xhr, textStatus) {
-      T2R.flash('Could not fetch Toggl Workspaces. Please refresh the page to try again.', 'error');
+      T2RConsole.error('Could not load Toggl workspaces.');
+      T2R.flash(T2R.t('t2r.error.ajax_load'), 'error');
       callback([]);
     }
   });
@@ -934,7 +935,7 @@ T2R.updateTogglReport = function () {
     // Display empty table message, if required.
     if (0 === entries.length) {
       var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
-        + 'There are no items to display here. Did you log your time on Toggl?'
+        + T2R.t('t2r.error.list_empty')
         + '</td></tr>';
       $table.find('tbody').append(markup);
     }
@@ -1124,7 +1125,7 @@ T2R.updateRedmineReport = function () {
     // Display empty table message, if required.
     if (0 === entries.length) {
       var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
-        + 'There are no items to display here.'
+        + T2R.t('t2r.error.list_empty')
         + '</td></tr>';
       $table.find('tbody').html(markup);
     }
@@ -1224,7 +1225,8 @@ T2R.getRedmineActivities = function (callback) {
       callback(activities);
     },
     error: function (xhr, textStatus) {
-      T2R.flash('Could not fetch Redmine Activities. Please refresh the page to try again.', 'error');
+      T2RConsole.error('Could not load Redmine activities.');
+      T2R.flash(T2R.t('t2r.error.ajax_load'), 'error');
       callback([]);
     }
   });

@@ -12,6 +12,13 @@ class T2rImportController < T2rBaseController
 
   class DuplicateImportError < StandardError; end
 
+  def index
+    @translations = translation_hash(
+      't2r.error.ajax_load',
+      't2r.error.list_empty'
+    )
+  end
+
   def import
     parse_params
     import_check_permissions
@@ -86,5 +93,11 @@ class T2rImportController < T2rBaseController
     return if @user.allowed_to?(:log_time, @time_entry.project)
 
     raise PermissionError, 'You are not allowed to log time on this project.'
+  end
+
+  def translation_hash(*keys)
+    result = {}
+    keys.each { |k| result[k] = I18n.t(k) }
+    result
   end
 end

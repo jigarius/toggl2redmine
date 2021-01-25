@@ -1,0 +1,32 @@
+es:
+  activerecord:
+    attributes:
+      toggl_mapping:
+        id: 'ID'
+        toggl_id: 'Toggl ID'
+        time_entry_id: 'ID del registro de tiempo'
+  t2r:
+    button_help: 'Ayuda'
+    button_import_to_redmine: 'Importar a Redmine'
+    caption_redmine_report: 'Tiempo registrado en Redmine'
+    caption_toggl_report: 'Tiempo registrado en Toggl'
+    label_default_activity: 'Actividad predeterminada'
+    label_basic_options: 'Opciones basicas'
+    label_advanced_options: 'Opciones avanzadas'
+    label_toggl_workspace: 'Workspace de Toggl'
+    label_duration_rounding: 'Redondeo de duraciones'
+    label_hour_plural: 'Horas'
+    label_status: 'Estado'
+    label_last_imported: 'Última importación el %{date}'
+    text_add_toggl_api_key: 'Para usar Toggl 2 Redmine, agregue su clave de API de Toggl a su cuenta.'
+    text_db_transaction_warning: 'Su base de datos no permite transacciones. Pídale al administrador del sistema que consulte el archivo README de Toggle 2 Redmine.'
+    tooltip_date_filter: 'Eliga la fecha por la que desea importar registros de tiempo.'
+    tooltip_duration_rounding_logic: 'Elija la lógica para el redondeo de duraciones.'
+    tooltip_duration_rounding_value: 'Todos los registros de tiempo de Toggl se redondearán a este número (minutos).'
+    tooltip_hours_column_header: "1:50 quiere decir 1 hora y 50 minutos. Presione 'Arriba' o 'Abajo' para redondear a los 5 minutos cercanos. Combine con 'Shift' para redondear a los 15 minutos más cercanos."
+    tooltip_help: '¿Está confundido? Vea un breve tutorial.'
+    redmine_report_footer: 'Tiempo ya registrado'
+    toggl_report_footer: 'Tiempo a importar'
+    error:
+      ajax_load: 'No se pudieron leer los datos del servidor. Actualice la página para volver a intentarlo.'
+      list_empty: 'No hay elementos para mostrar aquí.'

@@ -127,8 +127,10 @@ Docker, you can do so with ease.
     ```
   * Prepare docker containers.
     ```
-    docker-compose up -d
-    # Wait until the database container is ready.
+    docker-compose up
+    # When Redmine is ready, you'll see a message like:
+    # INFO  WEBrick::HTTPServer#start: pid=X port=3000
+    # At this point, press Ctrl+C and run the next command.
     docker-compose start
     ```
   * Seed the database, i.e. create sample data.

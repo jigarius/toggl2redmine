@@ -4,7 +4,7 @@ alpha_001:
   author: admin
   project: alpha
   tracker: task
-  priority: normal
+  priority: priority_normal
   status: open
   lft: 1
   rgt: 2
@@ -15,7 +15,7 @@ alpha_002:
   author: admin
   project: alpha
   tracker: task
-  priority: normal
+  priority: priority_normal
   status: open
   lft: 3
   rgt: 4
@@ -26,7 +26,7 @@ bravo_001:
   author: admin
   project: bravo
   tracker: task
-  priority: normal
+  priority: priority_normal
   status: open
   lft: 5
   rgt: 6
@@ -37,7 +37,7 @@ bravo_002:
   author: admin
   project: bravo
   tracker: task
-  priority: normal
+  priority: priority_normal
   status: closed
   lft: 7
   rgt: 8
@@ -48,7 +48,7 @@ charlie_001:
   author: admin
   project: charlie
   tracker: task
-  priority: normal
+  priority: priority_normal
   status: open
   lft: 9
   rgt: 10

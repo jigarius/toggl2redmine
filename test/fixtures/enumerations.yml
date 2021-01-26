@@ -1,3 +1,4 @@
+# TimeEntryActivity
 activity_development:
   type: TimeEntryActivity
   name: Development
@@ -10,3 +11,11 @@ activity_other:
   name: Other
   position: 2
   active: true
+
+# IssuePriority
+priority_normal:
+  type: IssuePriority
+  name: Normal
+  position: 1
+  is_default: true
+

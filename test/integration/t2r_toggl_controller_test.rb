@@ -3,6 +3,8 @@
 require_relative '../test_helper'
 
 class T2rTogglControllerTest < T2r::IntegrationTest
+  make_my_diffs_pretty!
+
   fixtures :all
 
   def setup

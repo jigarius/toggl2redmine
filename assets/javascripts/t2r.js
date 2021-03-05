@@ -560,7 +560,8 @@ T2R.publishToRedmine = function () {
     // Finalize POST data.
     var data = {
       time_entry: redmine_entry,
-      toggl_ids: toggl_entry.ids
+      toggl_ids: toggl_entry.ids,
+      project_info: toggl_entry.project
     };
 
     // Push the data to Redmine.
@@ -840,8 +841,13 @@ T2R.getTogglTimeEntries = function (opts, callback) {
       }
 
       // If there is no issue ID associated to the entry.
-      if (!entry.issue_id) {
-        entry.errors.push('Could not determine issue ID. Please mention the Redmine issue ID in your Toggl task description. Example: "#1919 Feed the bunny wabbit"');
+      if (!entry.issue_id){
+        if (entry.pid == 0){
+          entry.errors.push('Could not determine issue ID and there is no project attached to this timeentry. Please mention the Redmine issue ID in your Toggl task description. Example: "#1919 Feed the bunny wabbit"');
+        }
+        else if (entry.project == null){
+          entry.errors.push('The toggle project especified for this TimeEntry does not have an exact match in the Redmine projects that you have access');
+        }
       }
 
       // If an issue ID exists, but no issue could be found.
@@ -1266,7 +1272,7 @@ T2R.getRedmineIssues = function (ids) {
     T2R.redmineRequest({
       async: false,
       cache: true,
-      timeout: 1000,
+      timeout: 10000,
       url: '/issues.json',
       data: {
         issue_id: ids.join(','),
@@ -1320,7 +1326,7 @@ T2R.getRedmineCsrfToken = function () {
  *   Request options.
  */
 T2R.redmineRequest = function (opts) {
-  opts.timeout = opts.timeout || 3000;
+  opts.timeout = opts.timeout || 10000;
 
   // Prepend Redmine URL for relative URLs.
   if (opts.url.match(/^\//)) {
@@ -1350,6 +1356,25 @@ T2R.redmineIssueURL = function (id) {
   var output = false;
   if (!isNaN(id) && id > 0) {
     output = T2R.REDMINE_URL + '/issues/' + id;
+  }
+  return output;
+};
+
+
+/**
+ * Returns the URL to a Redmine project.
+ *
+ * @param {string} id
+ *   Redmine project ID.
+ *
+ * @return {string|boolean}
+ *   Redmine project URL if the project ID is a valid number. False otherwise.
+ */
+T2R.redmineProjectURL = function (id) {
+  id = parseInt(id);
+  var output = false;
+  if (!isNaN(id) && id > 0) {
+    output = T2R.REDMINE_URL + '/projects/' + id;
   }
   return output;
 };
@@ -1842,13 +1867,13 @@ T2RWidget.initAjaxDeleteLink = function(el) {
       data: '{}',
       method: 'DELETE',
       complete: function(xhr, textStatus) {
-        if (xhr.status === 200) {
+        if (xhr.status === 200 || xhr.status === 204) {
           if (callback) {
             eval(callback);
           }
         }
         else {
-          T2R.flash('Deletion failed.', 'error');
+          T2R.flash(`Deletion failed. Error code:${xhr.status}`, 'error');
         }
       },
     });
@@ -2193,15 +2218,35 @@ T2RRenderer.renderRedmineIssueLabel = function (data) {
   return markup;
 };
 
+T2RRenderer.renderRedmineProjectLabel = function (data) {
+  // If the project is invalid, do nothing.
+  var project = data;
+  if (!project || !project.id) {
+    return false;
+  }
+
+  // Render a clickable project label.
+  var markup = '<a href="' + T2R.redmineProjectURL(project.id) + '" target="_blank">'
+  + T2R.htmlEntityEncode(project ? project.name : '-')
+  + '</a>';
+  return markup;
+};
+
 T2RRenderer.renderTogglRow = function (data) {
   var issue = data.issue || false;
+  var project = data.project || false
   var oDuration = data.duration;
   var rDuration = data.roundedDuration;
 
   // Build a label for the issue.
-  var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : false;
-  if (!issueLabel) {
-    issueLabel = data.issue_id || '-';
+  var issueProjectLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : false;
+  if (!issueProjectLabel) {
+    if (project && !data.issue_id){
+      issueProjectLabel = 'Tempo será importado diretamente no projeto ' + T2RRenderer.render('RedmineProjectLabel', project);
+    }
+    else{
+      issueProjectLabel = data.issue_id || '-';
+    }
   }
 
   var markup = '<tr data-t2r-widget="TogglRow">'
@@ -2209,9 +2254,9 @@ T2RRenderer.renderTogglRow = function (data) {
     + '<td class="status"></td>'
     + '<td class="issue">'
       + '<input data-property="issue_id" type="hidden" data-value="' + T2R.htmlEntityEncode(issue ? issue.id : '') + '" value="' + issue.id + '" />'
-      + '<strong>' + T2R.htmlEntityEncode(issue ? issue.project.name : 'Unknown') + '</strong>'
+      + '<strong>' + T2R.htmlEntityEncode(issue ? issue.project.name : (project ? project.name : 'Unknown')) + '</strong>'
       + '<br />'
-      + issueLabel
+      + issueProjectLabel
     + '</td>'
     + '<td class="comments"><input data-property="comments" type="text" value="' + T2R.htmlEntityEncode(data.comments) + '" maxlength="255" /></td>'
     + '<td class="activity">'
@@ -2279,6 +2324,7 @@ T2RRenderer.renderTogglRow = function (data) {
 
 T2RRenderer.renderRedmineRow = function (data) {
   var issue = data.issue.id ? data.issue : false;
+  var project = data.project || false
 
   // Prepare edit action.
   var urlEdit = T2R.REDMINE_URL + '/time_entries/' + data.id + '/edit';
@@ -2286,16 +2332,25 @@ T2RRenderer.renderRedmineRow = function (data) {
 
   // Prepare delete action.
   var urlDelete = T2R.REDMINE_URL + '/time_entries/' + data.id;
-  var linkDelete = '<a href="' + urlDelete + '" title="Delete" class="icon-only icon-del" rel="nofollow" data-t2r-widget="AjaxDeleteLink Tooltip" data-t2r-delete-link-context="tr" data-t2r-delete-link-callback="T2R.updateRedmineReport();">Delete</a>'
+  var linkDelete = '<a href="' + urlDelete + '" title="Delete" class="icon-only icon-del" rel="nofollow" data-t2r-widget="AjaxDeleteLink Tooltip" data-t2r-delete-link-context="tr" data-t2r-delete-link-callback="T2R.updateRedmineReport();T2R.updateTogglReport();">Delete</a>'
 
+  // debugger;
   // Build a label for the issue.
-  var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : '-';
+  var issueProjectLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : false;
+  if (!issueProjectLabel) {
+    if (project && !data.issue_id){
+      issueProjectLabel = 'Tempo importado no projeto ' + T2RRenderer.render('RedmineProjectLabel', project);
+    }
+    else{
+      issueProjectLabel = data.issue_id || '-';
+    }
+  }
 
   var markup = '<tr>'
     + '<td class="subject">'
       + '<strong>' + T2R.htmlEntityEncode(data.project.name || 'Unknown') + '</strong>'
       + '<br />'
-      + issueLabel
+      + issueProjectLabel
     + '</td>'
     + '<td class="comments">' + T2R.htmlEntityEncode(data.comments) + '</td>'
     + '<td class="activity">' + T2R.htmlEntityEncode(data.activity.name) + '</td>'

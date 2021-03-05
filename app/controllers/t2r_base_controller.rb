@@ -30,6 +30,12 @@ class T2rBaseController < ApplicationController
     user_is_member_of?(@user, issue.project)
   end
 
+  def user_can_view_project?(project)
+    return true if @user.admin?
+    
+    user_is_member_of?(@user, project)
+  end
+
   def user_is_member_of?(user, project)
     Member.where(user: user, project: project).count.positive?
   end

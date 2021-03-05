@@ -22,8 +22,20 @@ class TogglTimeEntryGroup
     @entries.values.first&.issue_id
   end
 
+  def pid
+    @entries.values.first&.pid
+  end
+
+  def pid_name
+    @entries.values.first&.pid_name
+  end
+
   def issue
-    @entries.values.first&.issue
+    @entries.values.first&.issue()
+  end
+
+  def redmine_project
+    @entries.values.first&.redmine_project()
   end
 
   def comments
@@ -43,7 +55,7 @@ class TogglTimeEntryGroup
   end
 
   def <<(entry)
-    unless TogglTimeEntry === entry
+    if !(TogglTimeEntry === entry)
       raise ArgumentError, "Argument must be a #{TogglTimeEntry.name}"
     end
 
@@ -71,7 +83,9 @@ class TogglTimeEntryGroup
       issue_id: issue_id,
       comments: comments,
       duration: duration,
-      status: status
+      status: status,
+      pid: pid,
+      pid_name: pid_name
     }
   end
 

@@ -78,7 +78,7 @@ class T2rImportController < T2rBaseController
         )
       te.assign_attributes(attributes)
       te.user = @user
-      te.project = te.issue&.project
+      te.project = te&.issue&.project || Project.find_by_id(params.dig(:project_info, :id))
       te.validate!
     end
   end

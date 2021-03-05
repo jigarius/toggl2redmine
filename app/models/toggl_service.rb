@@ -38,16 +38,30 @@ class TogglService
 
     raw_entries = get('/api/v8/time_entries', query)
 
+    projects_reference = load_projects()
+
     # The workspace filter is only supported on certain versions of the
     # Toggl API. Thus, it is easier to filter out such records ourselves.
-    filter_by_workspaces(raw_entries, workspaces)
-      .map { |e| TogglTimeEntry.new(e.symbolize_keys) }
+    records = filter_by_workspaces(raw_entries, workspaces)
+  
+    # Pull the project name from toggl
+    records.each {|r| r["pid_name"] = projects_reference[r["pid"]]}
+    
+    # Return the records mapped in a TogglTimeEntry object
+    records.map { |e| TogglTimeEntry.new(e.symbolize_keys) }
+
   end
 
   # Loads workspaces from Toggl.
-  def load_workspaces
+  def load_workspaces()
     get('/api/v8/workspaces')
       .map { |w| TogglWorkspace.new(w.symbolize_keys) }
+  end
+
+  # Loads projects from Toggl.
+  def load_projects()
+    get('/api/v8/me?with_related_data=true')["data"]["projects"]
+      .map { |pr| [pr["id"], pr["name"]] }.to_h
   end
 
   private

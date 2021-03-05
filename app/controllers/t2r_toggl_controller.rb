@@ -9,23 +9,32 @@ class T2rTogglController < T2rBaseController
       end_date: params[:till],
       workspaces: params[:workspaces]
     )
+    
     time_entry_groups = TogglTimeEntryGroup.group(time_entries)
 
     result = {}
     time_entry_groups.each do |key, group|
       result[key] = group.as_json
       result[key]['issue'] = nil
-
-      next unless group.issue && user_can_view_issue?(group.issue)
-
-      result[key]['issue'] =
-        group.issue.as_json(
-          only: %i[id subject],
-          include: {
-            tracker: { only: %i[id name] },
-            project: { only: %i[id name status] }
-          }
-        )
+      result[key]['project'] = nil
+      
+      if group.issue() && user_can_view_issue?(group.issue)
+        result[key]['issue'] =
+          group.issue.as_json(
+            only: %i[id subject],
+            include: {
+              tracker: { only: %i[id name] },
+              project: { only: %i[id name status] }
+            }
+          )
+      elsif group.pid > 0 && group.redmine_project().select{|pr| user_can_view_project?(pr)}.first
+        result[key]['project'] =
+          group.redmine_project().select{|pr| user_can_view_project?(pr)}.first.as_json(
+            only: %i[id name status]
+          )
+      else
+        next
+      end
     end
 
     render json: result

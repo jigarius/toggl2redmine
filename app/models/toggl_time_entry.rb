@@ -37,8 +37,8 @@ class TogglTimeEntry
 
   # Finds the most aproximate associated Redmine project if applicable
   def redmine_project
-    #Project.where("lower(identifier) LIKE ?", "%#{@pid_name.downcase}%")
-    Project.where("lower(name) = ?", @pid_name.downcase)
+    # Project.where("trim(lower(identifier)) = ?", @pid_name.downcase.strip)
+    Project.where("trim(lower(name)) = ?", @pid_name.downcase.strip)
   end
 
   # Gets the status of the entry.

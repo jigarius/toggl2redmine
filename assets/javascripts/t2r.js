@@ -846,7 +846,7 @@ T2R.getTogglTimeEntries = function (opts, callback) {
           entry.errors.push('Could not determine issue ID and there is no project attached to this timeentry. Please mention the Redmine issue ID in your Toggl task description. Example: "#1919 Feed the bunny wabbit"');
         }
         else if (entry.project == null){
-          entry.errors.push('The toggle project especified for this TimeEntry does not have an exact match in the Redmine projects that you have access');
+          entry.errors.push('The toggl project especified for this TimeEntry does not have an exact match in the Redmine projects that you have access');
         }
       }
 

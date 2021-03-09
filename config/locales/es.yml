@@ -19,7 +19,7 @@ es:
     label_status: 'Estado'
     label_last_imported: 'Última importación el %{date}'
     text_add_toggl_api_key: 'Para usar Toggl 2 Redmine, agregue su clave de API de Toggl a su cuenta.'
-    text_db_transaction_warning: 'Su base de datos no permite transacciones. Pídale al administrador del sistema que consulte el archivo README de Toggle 2 Redmine.'
+    text_db_transaction_warning: 'Su base de datos no permite transacciones. Pídale al administrador del sistema que consulte el archivo README de Toggl 2 Redmine.'
     tooltip_date_filter: 'Eliga la fecha por la que desea importar registros de tiempo.'
     tooltip_duration_rounding_logic: 'Elija la lógica para el redondeo de duraciones.'
     tooltip_duration_rounding_value: 'Todos los registros de tiempo de Toggl se redondearán a este número (minutos).'

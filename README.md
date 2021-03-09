@@ -1,4 +1,4 @@
-# Toggle 2 Redmine
+# Toggl 2 Redmine
 
 ![Redmine Version](https://img.shields.io/badge/Redmine-4.x-green.svg)
 

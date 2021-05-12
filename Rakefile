@@ -9,12 +9,12 @@ task :ssh, [:service] do |_t, args|
     service: 'redmine',
     rails_env: ENV.fetch('RAILS_ENV', 'development')
   )
-  sh "docker-compose exec -e RAILS_ENV='#{args.rails_env}' #{args.service} bash"
+  sh "docker compose exec -e RAILS_ENV='#{args.rails_env}' #{args.service} bash"
 end
 
 desc 'Execute a Rails command'
 task :rails do |_t, args|
-  sh "docker-compose exec redmine rails #{args.extras.join(' ')}"
+  sh "docker compose exec redmine rails #{args.extras.join(' ')}"
 end
 
 desc 'Launch MySQL'
@@ -24,7 +24,7 @@ task :mysql do |_t, args|
     pass: 'root',
     rails_env: ENV.fetch('RAILS_ENV', 'development')
   )
-  sh 'docker-compose exec mysql mysql' \
+  sh 'docker compose exec mysql mysql' \
       " -u#{args.user} -p#{args.pass} redmine_#{args.rails_env}"
 end
 
@@ -46,7 +46,7 @@ task :reset do
   # If all commands are sent at once, redmine:plugins:migrate fails.
   # Hence, the commands are being sent separately.
   commands.each do |command|
-    sh "docker-compose exec -e RAILS_ENV='#{rails_env}' redmine rake #{command}"
+    sh "docker compose exec -e RAILS_ENV='#{rails_env}' redmine rake #{command}"
   end
 
   puts "The env '#{rails_env}' has been reset."
@@ -56,11 +56,11 @@ desc 'Prepare dev environment.'
 task :prepare do
   puts 'Installing dev packages...'
   sleep(2)
-  sh 'docker-compose exec redmine bundle install --with default development test'
+  sh 'docker compose exec redmine bundle install --with default development test'
 
   puts 'Preparing database...'
   sleep(2)
-  sh 'docker-compose exec redmine rake db:seed'
+  sh 'docker compose exec redmine rake db:seed'
 
   puts <<~RESULT
     ======
@@ -95,7 +95,7 @@ end
 
 desc 'Run Rubocop.'
 task :rubocop do
-  sh 'docker-compose exec redmine rubocop plugins/toggl2redmine'
+  sh 'docker compose exec redmine rubocop plugins/toggl2redmine'
 end
 
 desc 'Run all or a specific test.'
@@ -111,5 +111,5 @@ task :test do
       "redmine:plugins:test#{type} NAME=toggl2redmine"
     end
 
-  sh "docker-compose exec -e RAILS_ENV='test' redmine rake #{command}"
+  sh "docker compose exec -e RAILS_ENV='test' redmine rake #{command}"
 end

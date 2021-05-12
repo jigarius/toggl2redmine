@@ -1,7 +1,7 @@
 version: '3.1'
 services:
   redmine:
-    image: redmine:4.1-toggl2redmine
+    image: redmine:4.2-toggl2redmine
     container_name: redmine-appserver
     hostname: appserver
     build: .docker/redmine

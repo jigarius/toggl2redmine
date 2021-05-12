@@ -7,7 +7,7 @@ class TogglServiceTest < ActiveSupport::TestCase
   TOGGL_API_KEY = 'foobar'
 
   test '::ENDPOINT' do
-    assert_equal('https://www.toggl.com', TogglService::ENDPOINT)
+    assert_equal('https://api.track.toggl.com', TogglService::ENDPOINT)
   end
 
   test '.api_key' do

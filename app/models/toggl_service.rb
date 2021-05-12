@@ -6,7 +6,7 @@ require 'net/http'
 class TogglService
   attr_reader :api_key
 
-  ENDPOINT = 'https://www.toggl.com'
+  ENDPOINT = 'https://api.track.toggl.com'
 
   class Error < StandardError
     attr_reader :request, :response

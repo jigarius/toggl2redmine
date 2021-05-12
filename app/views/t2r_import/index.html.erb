@@ -118,7 +118,7 @@
 </div>
 
 <form id="publish-form">
-  <h3><a href="https://toggl.com/app/timer" id="toggl-report-link" target="_blank">
+  <h3><a href="https://track.toggl.com/timer" id="toggl-report-link" target="_blank">
     <%= t 't2r.caption_toggl_report' %></a></h3>
   <table id="toggl-report" class="list t2r-table">
     <thead>
@@ -160,7 +160,7 @@
   <%= javascript_include_tag "t2r.js", :plugin => 'toggl2redmine' %>
   <script>
     T2R.REDMINE_API_KEY = '<%= @user.api_key %>';
-    T2R.TOGGL_REPORT_URL_FORMAT = 'https://www.toggl.com/app/reports/summary/[@workspace]/from/[@date]/to/[@date]';
+    T2R.TOGGL_REPORT_URL_FORMAT = 'https://track.toggl.com/reports/summary/[@workspace]/from/[@date]/to/[@date]';
     T2R.REDMINE_REPORT_URL_FORMAT = '<%= @redmine_url %>/time_entries?utf8=✓&set_filter=1&sort=spent_on:desc&f[]=spent_on&op[spent_on]=%3D&v[spent_on][]=[@date]&f[]=user_id&op[user_id]=%3D&v[user_id][]=me&c[]=project&c[]=spent_on&c[]=user&c[]=activity&c[]=issue&c[]=comments&c[]=hours&group_by=spent_on&t[]=hours&t[]=';
     T2R.TRANSLATIONS = <%= @translations.to_json.html_safe %>;
   </script>

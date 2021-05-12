@@ -179,7 +179,8 @@ class TogglServiceTest < ActiveSupport::TestCase
 
   # type: time_entries|workspaces
   def mock_json_response(type)
-    File.read("#{Toggl2Redmine.root}/test/fixtures/toggl/#{type}.json")
+    path = File.join(Toggl2Redmine.root, 'test', 'fixtures', 'toggl', "#{type}.json")
+    File.read(path)
   end
 
   def authorization_header(username, password)

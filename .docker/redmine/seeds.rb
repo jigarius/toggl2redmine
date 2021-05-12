@@ -14,8 +14,8 @@ lambda {
   # For DEVELOPMENT use only.
   return unless Rails.env == 'development'
 
-  fixture_directory = "#{Toggl2Redmine.root}/test/fixtures"
-  fixture_set_names = Dir["#{fixture_directory}/*.yml"].map do |f|
+  fixture_directory = File.join(Toggl2Redmine.root, 'test', 'fixtures')
+  fixture_set_names = Dir[File.join(fixture_directory, '*.yml')].map do |f|
     File.basename(f, '.yml')
   end
 

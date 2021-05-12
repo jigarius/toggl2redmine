@@ -9,7 +9,7 @@ class Toggl2RedmineTest < ActiveSupport::TestCase
 
   test '.root' do
     assert_equal(
-      File.dirname(File.dirname(File.dirname(__FILE__))),
+      File.join(Rails.root.to_s, 'plugins', 'toggl2redmine'),
       Toggl2Redmine.root
     )
   end

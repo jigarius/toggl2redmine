@@ -5,7 +5,7 @@ require "#{Rails.root}/test/test_helper"
 module T2r
   class IntegrationTest < Redmine::IntegrationTest
     self.fixture_path =
-      "#{Toggl2Redmine.root}/test/fixtures"
+      File.join(Toggl2Redmine.root, 'test', 'fixtures')
 
     protected
 

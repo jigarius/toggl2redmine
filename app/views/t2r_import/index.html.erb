@@ -90,10 +90,11 @@
   </p>
 </form>
 
+<%= form_tag({}, :data => {:cm_url => time_entries_context_menu_path}) do -%>
 <div id="redmine-report-container">
   <h3><a href="<%= @redmine_url %>/time_entries/report" id="redmine-report-link" target="_blank">
     <%= t 't2r.caption_redmine_report' %></a></h3>
-  <table id="redmine-report" class="list t2r-table">
+  <table id="redmine-report" class="list time-entries t2r-table">
     <thead>
       <tr>
         <th class="issue"><%= t :label_issue %></th>
@@ -111,11 +112,12 @@
         <td></td>
         <td></td>
         <td data-property="total-hours" class="hours"></td>
-        <td></td>
+        <td class="buttons"></td>
       </tr>
     </tfoot>
   </table>
 </div>
+<% end -%>
 
 <form id="publish-form">
   <h3><a href="https://track.toggl.com/timer" id="toggl-report-link" target="_blank">
@@ -163,7 +165,9 @@
     T2R.TOGGL_REPORT_URL_FORMAT = 'https://track.toggl.com/reports/summary/[@workspace]/from/[@date]/to/[@date]';
     T2R.REDMINE_REPORT_URL_FORMAT = '<%= @redmine_url %>/time_entries?utf8=✓&set_filter=1&sort=spent_on:desc&f[]=spent_on&op[spent_on]=%3D&v[spent_on][]=[@date]&f[]=user_id&op[user_id]=%3D&v[user_id][]=me&c[]=project&c[]=spent_on&c[]=user&c[]=activity&c[]=issue&c[]=comments&c[]=hours&group_by=spent_on&t[]=hours&t[]=';
     T2R.TRANSLATIONS = <%= @translations.to_json.html_safe %>;
+    T2R.BUTTON_ACTIONS = '<%= link_to_context_menu %>';
   </script>
 <% end %>
 
 <% html_title "Toggl 2 Redmine" %>
+<%= context_menu %>

@@ -2280,30 +2280,20 @@ T2RRenderer.renderTogglRow = function (data) {
 T2RRenderer.renderRedmineRow = function (data) {
   var issue = data.issue.id ? data.issue : false;
 
-  // Prepare edit action.
-  var urlEdit = T2R.REDMINE_URL + '/time_entries/' + data.id + '/edit';
-  var linkEdit = '<a href="' + urlEdit + '" title="Edit" class="icon-only icon-edit" target="_blank" data-t2r-widget="Tooltip">Edit</a>'
-
-  // Prepare delete action.
-  var urlDelete = T2R.REDMINE_URL + '/time_entries/' + data.id;
-  var linkDelete = '<a href="' + urlDelete + '" title="Delete" class="icon-only icon-del" rel="nofollow" data-t2r-widget="AjaxDeleteLink Tooltip" data-t2r-delete-link-context="tr" data-t2r-delete-link-callback="T2R.updateRedmineReport();">Delete</a>'
-
   // Build a label for the issue.
   var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : '-';
 
-  var markup = '<tr>'
+  var markup = '<tr id="time-entry-' + data.id + '"  class="time-entry hascontextmenu">'
     + '<td class="subject">'
       + '<strong>' + T2R.htmlEntityEncode(data.project.name || 'Unknown') + '</strong>'
       + '<br />'
       + issueLabel
+      + '<input type="checkbox" name="ids[]" value="' + data.id + '" hidden />'
     + '</td>'
     + '<td class="comments">' + T2R.htmlEntityEncode(data.comments) + '</td>'
     + '<td class="activity">' + T2R.htmlEntityEncode(data.activity.name) + '</td>'
     + '<td class="hours">' + T2RRenderer.render('Duration', data.duration) + '</td>'
-    + '<td class="buttons">'
-      + linkEdit
-      + linkDelete
-    + '</td>'
+    + '<td class="buttons">' + T2R.BUTTON_ACTIONS + '</td>'
     + '</tr>';
   var $tr = $(markup);
 
@@ -2317,6 +2307,8 @@ T2RRenderer.renderRedmineRow = function (data) {
 
   // Initialize widgets.
   T2RWidget.initialize($tr);
+
+  $tr.find('.js-contextmenu').bind('click', contextMenuRightClick);
 
   return $tr;
 };

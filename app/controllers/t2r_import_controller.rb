@@ -2,6 +2,8 @@
 
 # Toggl2Redmine Import controller.
 class T2rImportController < T2rBaseController
+  include ApplicationHelper
+
   menu_item :toggl2redmine
 
   class ImportError < StandardError; end

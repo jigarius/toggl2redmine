@@ -48,6 +48,13 @@ T2R.TOGGL_REPORT_URL_FORMAT = T2R.TOGGL_REPORT_URL_FORMAT || '';
 T2R.TRANSLATIONS = T2R.TRANSLATIONS || {};
 
 /**
+ * If no workspace is selected, this one is used for certain purposes.
+ *
+ * @type {number}
+ */
+T2R.TOGGL_DEFAULT_WORKSPACE = 0;
+
+/**
  * Cached data.
  *
  * @type {Object}
@@ -736,6 +743,12 @@ T2R.getTogglWorkspaces = function (callback) {
     success: function(data, status, xhr) {
       workspaces = data;
       T2R.cache(key, workspaces);
+
+      // Determine default Toggl workspace.
+      if (workspaces.length > 0) {
+        T2R.TOGGL_DEFAULT_WORKSPACE = workspaces[0].id;
+      }
+
       callback(workspaces);
     },
     error: function (xhr, textStatus) {
@@ -975,7 +988,8 @@ T2R.updateTogglReport = function () {
  *     - workspace: Workspace ID.
  */
 T2R.updateTogglReportLink = function (data) {
-  data.workspace = data.workspace || 0;
+  data.workspace = data.workspace || T2R.TOGGL_DEFAULT_WORKSPACE;
+
   var url = T2R.TOGGL_REPORT_URL_FORMAT
     .replace(/\[@date\]/g, data.date)
     .replace('[@workspace]', data.workspace);

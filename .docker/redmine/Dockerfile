@@ -1,4 +1,4 @@
-FROM redmine:4.1
+FROM redmine:4.2
 
 ENV TERM=xterm-256color
 

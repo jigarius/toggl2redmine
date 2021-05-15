@@ -16,8 +16,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Redmine Plugin Test
+      - name: Test Redmine Plugin
         uses: two-pack/redmine-plugin-test-action@v2
         with:
           plugin_name: toggl2redmine

@@ -52,8 +52,8 @@ task :reset do
   puts "The env '#{rails_env}' has been reset."
 end
 
-desc 'Prepare dev environment.'
-task :prepare do
+desc 'Provision the environment.'
+task :provision do
   puts 'Installing dev packages...'
   sleep(2)
   sh 'docker compose exec redmine bundle install --with default development test'

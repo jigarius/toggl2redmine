@@ -133,9 +133,9 @@ Docker, you can do so with ease.
     # At this point, press Ctrl+C and run the next command.
     docker compose start
     ```
-  * Seed the database, i.e. create sample data.
+  * Provision the environment, e.g. create seed data, etc.
     ```
-    rake prepare
+    rake provision
     ```
 
 Run `rake info` to learn how to access your demo installation!

@@ -144,9 +144,9 @@ Run `rake info` to learn how to access your demo installation!
 
 Thanks to the Docker setup, the plugin code can easily be linted and tested.
 
-  * `rake rubocop`: Run Rubocop.
-  * `rake reset RAILS_ENV=test`: Prepare/reset the test environment.
-  * `rake test`: Run tests.
+* `rake reset RAILS_ENV=test`: Prepare/reset the test environment.
+* `rake lint`: Run Rubocop.
+* `rake test`: Run tests.
 
 ### Mailhog
 

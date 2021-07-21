@@ -3,6 +3,11 @@
 require "#{Rails.root}/test/test_helper"
 
 module T2r
+  class TestCase < ActiveSupport::TestCase
+    self.fixture_path =
+      File.join(Toggl2Redmine.root, 'test', 'fixtures')
+  end
+
   class IntegrationTest < Redmine::IntegrationTest
     self.fixture_path =
       File.join(Toggl2Redmine.root, 'test', 'fixtures')

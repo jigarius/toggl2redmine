@@ -47,3 +47,14 @@ charlie_001:
   status: open
   lft: 9
   rgt: 10
+
+
+delta_001:
+  subject: 'Make perfume'
+  author: admin
+  project: delta
+  tracker: task
+  priority: priority_normal
+  status: open
+  lft: 9
+  rgt: 10

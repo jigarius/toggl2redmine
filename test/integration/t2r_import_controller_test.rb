@@ -96,7 +96,7 @@ class T2rImportControllerTest < T2r::IntegrationTest
         activity_id: enumerations(:activity_development).id,
         comments: 'Special delivery!',
         hours: 4.0,
-        issue_id: issues(:charlie_001).id,
+        issue_id: issues(:delta_001).id,
         spent_on: '2021-01-17'
       }
     }

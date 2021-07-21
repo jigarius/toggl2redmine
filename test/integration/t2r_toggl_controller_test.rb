@@ -223,7 +223,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
   end
 
   test ".read_time_entries returns issue as nil when user doesn't belong to the project" do
-    issue = issues(:charlie_001)
+    issue = issues(:delta_001)
 
     time_entries = [
       TogglTimeEntry.new(

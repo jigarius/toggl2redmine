@@ -9,3 +9,9 @@ jsmith_bravo:
   project: bravo
   roles:
     - reviewer
+
+jsmith_charlie:
+  user: jsmith
+  project: charlie
+  roles:
+    - manager

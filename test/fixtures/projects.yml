@@ -17,10 +17,10 @@ bravo:
 charlie:
   identifier: charlie
   name: Project charlie
-  description: John Smith doesn't have access to this project.
+  description: John Smith has 'manager' access to this project, but the project is closed.
   lft: 5
   rgt: 6
-  status: 0
+  status: 5  # Project.STATUS_CLOSED
 
 delta:
   identifier: delta

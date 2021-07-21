@@ -72,6 +72,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
         'comments' => 'Prepare food',
         'duration' => 450,
         'status' => 'pending',
+        'errors' => [],
         'issue' => nil
       },
       '19:feed bunny:running' => {
@@ -81,6 +82,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
         'comments' => 'Feed bunny',
         'duration' => -1,
         'status' => 'running',
+        'errors' => [],
         'issue' => nil
       }
     }
@@ -170,7 +172,8 @@ class T2rTogglControllerTest < T2r::IntegrationTest
             'name' => issue.project.name,
             'status' => issue.project.status
           }
-        }
+        },
+        'errors' => []
       }
     }
 
@@ -215,6 +218,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
         'comments' => 'Feed bunny',
         'duration' => 300,
         'status' => 'pending',
+        'errors' => [],
         'issue' => nil
       }
     }
@@ -262,6 +266,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
         'comments' => 'Feed bunny',
         'duration' => 300,
         'status' => 'pending',
+        'errors' => [],
         'issue' => nil
       }
     }

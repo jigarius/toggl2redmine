@@ -160,7 +160,8 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
       'issue_id' => nil,
       'duration' => 0,
       'comments' => nil,
-      'status' => nil
+      'status' => nil,
+      'errors' => []
     }
 
     assert_equal(expected, subject.as_json)
@@ -181,7 +182,8 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
       'issue_id' => r1.issue_id,
       'duration' => r1.duration + r2.duration,
       'comments' => r1.comments,
-      'status' => r1.status
+      'status' => r1.status,
+      'errors' => []
     }
 
     assert_equal(expected, subject.as_json)

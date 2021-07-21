@@ -3,9 +3,9 @@
 require_relative '../test_helper'
 
 class T2rTogglControllerTest < T2r::IntegrationTest
-  make_my_diffs_pretty!
-
+  include Rails.application.routes.url_helpers
   fixtures :all
+  make_my_diffs_pretty!
 
   def setup
     @user = users(:jsmith)
@@ -174,7 +174,8 @@ class T2rTogglControllerTest < T2r::IntegrationTest
         'project' => {
           'id' => issue.project.id,
           'name' => issue.project.name,
-          'status' => issue.project.status
+          'status' => issue.project.status,
+          'path' => project_path(issue.project)
         }
       }
     }

@@ -152,6 +152,27 @@ class T2rImportControllerTest < T2r::IntegrationTest
     )
   end
 
+  test '.import returns 400 response if the project is closed' do
+    data = {
+      toggl_ids: [50],
+      time_entry: {
+        activity_id: enumerations(:activity_other).id,
+        comments: 'Organize party for the year 2020',
+        hours: 4,
+        issue_id: issues(:charlie_001).id,
+        spent_on: '2021-07-20'
+      }
+    }
+
+    post '/toggl2redmine/import', params: data
+
+    assert_response 403
+    assert_equal(
+      { 'errors' => ['You are not allowed to log time on this project.'] },
+      @response.parsed_body
+    )
+  end
+
   test '.import returns 503 response and rolls back if time entries cannot be saved' do
     data = {
       toggl_ids: [2001, 2002, 1003],

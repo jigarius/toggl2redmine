@@ -86,7 +86,8 @@ class T2rImportController < T2rBaseController
   end
 
   def import_check_permissions
-    return if @user.admin? || @time_entry.project.nil?
+    # If there's no project, we cannot check permissions.
+    return unless @time_entry.project
 
     unless user_is_member_of?(@user, @time_entry.project)
       raise MembershipError, 'You are not a member of this project.'

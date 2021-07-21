@@ -2247,7 +2247,7 @@ T2RRenderer.renderTogglRow = function (data) {
     + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" title="Check this box if you want to import this entry." /></td>'
     + '<td class="status"></td>'
     + '<td class="issue">'
-      + '<input data-property="issue_id" type="hidden" data-value="' + T2R.htmlEntityEncode(issue ? issue.id : '') + '" value="' + issue.id + '" />'
+      + '<input data-property="issue_id" type="hidden" data-value="' + T2R.htmlEntityEncode(issue ? issue.id : '') + '" value="' + (issue ? issue.id : '') + '" />'
       + T2RRenderer.render('RedmineProjectLabel', project)
       + '<br />'
       + issueLabel

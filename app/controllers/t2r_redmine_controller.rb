@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class T2rRedmineController < T2rBaseController
+  include Rails.application.routes.url_helpers
+
   def read_time_entries
     parse_params
 
@@ -10,7 +12,7 @@ class T2rRedmineController < T2rBaseController
     ).order(:id)
 
     result = time_entries.map do |time_entry|
-      time_entry.as_json(
+      item = time_entry.as_json(
         only: %i[id comments hours],
         include: {
           issue: {
@@ -23,6 +25,11 @@ class T2rRedmineController < T2rBaseController
           activity: { only: %i[id name] }
         }
       )
+
+      item['issue']['path'] = issue_path(time_entry.issue) if item['issue']
+      item['project']['path'] = project_path(time_entry.project) if item['project']
+
+      item
     end
 
     render json: { time_entries: result }

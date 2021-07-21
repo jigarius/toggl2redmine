@@ -3,9 +3,9 @@
 require_relative '../test_helper'
 
 class T2rRedmineControllerTest < T2r::IntegrationTest
-  make_my_diffs_pretty!
-
+  include Rails.application.routes.url_helpers
   fixtures :all
+  make_my_diffs_pretty!
 
   def setup
     @user = users(:jsmith)
@@ -41,9 +41,15 @@ class T2rRedmineControllerTest < T2r::IntegrationTest
           'issue' => {
             'id' => e3.issue.id,
             'subject' => 'Boil bananas',
-            'tracker' => { 'id' => e3.issue.tracker.id, 'name' => 'Task' }
+            'tracker' => { 'id' => e3.issue.tracker.id, 'name' => 'Task' },
+            'path' => issue_path(e3.issue)
           },
-          'project' => { 'id' => e3.project.id, 'name' => 'Project alpha', 'status' => 1 },
+          'project' => {
+            'id' => e3.project.id,
+            'name' => 'Project alpha',
+            'status' => 1,
+            'path' => project_path(e3.project)
+          },
           'activity' => { 'id' => e3.activity.id, 'name' => 'Development' }
         },
         {
@@ -53,9 +59,15 @@ class T2rRedmineControllerTest < T2r::IntegrationTest
           'issue' => {
             'id' => e4.issue.id,
             'subject' => 'Condition cherries',
-            'tracker' => { 'id' => e4.issue.tracker.id, 'name' => 'Task' }
+            'tracker' => { 'id' => e4.issue.tracker.id, 'name' => 'Task' },
+            'path' => issue_path(e4.issue)
           },
-          'project' => { 'id' => e4.project.id, 'name' => 'Project bravo', 'status' => 1 },
+          'project' => {
+            'id' => e4.project.id,
+            'name' => 'Project bravo',
+            'status' => 1,
+            'path' => project_path(e4.project)
+          },
           'activity' => { 'id' => e4.activity.id, 'name' => 'Other' }
         },
         {
@@ -65,9 +77,15 @@ class T2rRedmineControllerTest < T2r::IntegrationTest
           'issue' => {
             'id' => e1.issue.id,
             'subject' => 'Abstract apples',
-            'tracker' => { 'id' => e1.issue.tracker.id, 'name' => 'Task' }
+            'tracker' => { 'id' => e1.issue.tracker.id, 'name' => 'Task' },
+            'path' => issue_path(e1.issue)
           },
-          'project' => { 'id' => e1.project.id, 'name' => 'Project alpha', 'status' => 1 },
+          'project' => {
+            'id' => e1.project.id,
+            'name' => 'Project alpha',
+            'status' => 1,
+            'path' => project_path(e1.project)
+          },
           'activity' => { 'id' => e1.activity.id, 'name' => 'Development' }
         },
         {
@@ -77,9 +95,15 @@ class T2rRedmineControllerTest < T2r::IntegrationTest
           'issue' => {
             'id' => e2.issue.id,
             'subject' => 'Abstract apples',
-            'tracker' => { 'id' => e2.issue.tracker.id, 'name' => 'Task' }
+            'tracker' => { 'id' => e2.issue.tracker.id, 'name' => 'Task' },
+            'path' => issue_path(e2.issue)
           },
-          'project' => { 'id' => e2.project.id, 'name' => 'Project alpha', 'status' => 1 },
+          'project' => {
+            'id' => e2.project.id,
+            'name' => 'Project alpha',
+            'status' => 1,
+            'path' => project_path(e2.project)
+          },
           'activity' => { 'id' => e2.activity.id, 'name' => 'Development' }
         }
       ]

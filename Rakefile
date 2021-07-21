@@ -94,7 +94,7 @@ end
 
 desc 'Run Rubocop.'
 task :rubocop do
-  sh 'docker compose exec redmine rubocop plugins/toggl2redmine'
+  sh 'docker compose exec redmine rubocop -c plugins/toggl2redmine/.rubocop.yml plugins/toggl2redmine'
 end
 
 desc 'Run all or a specific test.'

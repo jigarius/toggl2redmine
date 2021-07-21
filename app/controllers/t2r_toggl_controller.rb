@@ -15,17 +15,22 @@ class T2rTogglController < T2rBaseController
     time_entry_groups.each do |key, group|
       result[key] = group.as_json
       result[key]['issue'] = nil
+      result[key]['project'] = nil
 
-      next unless group.issue && user_can_view_issue?(group.issue)
+      if group.issue && user_can_view_issue?(group.issue)
+        result[key]['issue'] =
+          group.issue.as_json(
+            only: %i[id subject],
+            include: {
+              tracker: { only: %i[id name] }
+            }
+          )
+      end
 
-      result[key]['issue'] =
-        group.issue.as_json(
-          only: %i[id subject],
-          include: {
-            tracker: { only: %i[id name] },
-            project: { only: %i[id name status] }
-          }
-        )
+      if group.project && user_is_member_of?(@user, group.project)
+        result[key]['project'] =
+          group.project.as_json(only: %i[id name status])
+      end
     end
 
     render json: result

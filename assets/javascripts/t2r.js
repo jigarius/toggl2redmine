@@ -2203,6 +2203,18 @@ T2RRenderer.renderDuration = function (data) {
   return output;
 };
 
+T2RRenderer.renderRedmineProjectLabel = function (project) {
+  project ||= { name: 'Unknown', path: 'javascript:void(0)', status: 1 };
+  project.classes = ['project'];
+  if (project.status != 1) {
+    project.classes.push('closed');
+  }
+
+  return '<a href="' + project.path + '" class="' + project.classes.join(' ') + '"><strong>'
+      + T2R.htmlEntityEncode(project.name)
+      + '</strong></a>';
+}
+
 T2RRenderer.renderRedmineIssueLabel = function (data) {
   // If the issue is invalid, do nothing.
   var issue = data;
@@ -2220,7 +2232,8 @@ T2RRenderer.renderRedmineIssueLabel = function (data) {
 };
 
 T2RRenderer.renderTogglRow = function (data) {
-  var issue = data.issue || false;
+  var issue = data.issue || null;
+  var project = data.project || null;
   var oDuration = data.duration;
   var rDuration = data.roundedDuration;
 
@@ -2235,7 +2248,7 @@ T2RRenderer.renderTogglRow = function (data) {
     + '<td class="status"></td>'
     + '<td class="issue">'
       + '<input data-property="issue_id" type="hidden" data-value="' + T2R.htmlEntityEncode(issue ? issue.id : '') + '" value="' + issue.id + '" />'
-      + '<strong>' + T2R.htmlEntityEncode(issue ? issue.project.name : 'Unknown') + '</strong>'
+      + T2RRenderer.render('RedmineProjectLabel', project)
       + '<br />'
       + issueLabel
     + '</td>'
@@ -2304,14 +2317,15 @@ T2RRenderer.renderTogglRow = function (data) {
 };
 
 T2RRenderer.renderRedmineRow = function (data) {
-  var issue = data.issue.id ? data.issue : false;
+  var issue = data.issue.id ? data.issue : null;
+  var project = data.project ? data.project : null;
 
   // Build a label for the issue.
   var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : '-';
 
   var markup = '<tr id="time-entry-' + data.id + '"  class="time-entry hascontextmenu">'
     + '<td class="subject">'
-      + '<strong>' + T2R.htmlEntityEncode(data.project.name || 'Unknown') + '</strong>'
+      + T2RRenderer.render('RedmineProjectLabel', project)
       + '<br />'
       + issueLabel
       + '<input type="checkbox" name="ids[]" value="' + data.id + '" hidden />'

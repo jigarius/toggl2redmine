@@ -9,7 +9,7 @@ class T2rTestController < T2rBaseController
 end
 
 class T2rBaseControllerTest < T2r::IntegrationTest
-  fixtures :custom_fields, :users
+  fixtures :all
 
   def setup
     @user = users(:jsmith)

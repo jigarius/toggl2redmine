@@ -2,8 +2,8 @@
 
 require_relative '../../test_helper'
 
-class TogglTimeEntryGroupTest < ActiveSupport::TestCase
-  fixtures :projects, :issues
+class TogglTimeEntryGroupTest < T2r::TestCase
+  fixtures :all
 
   test '.new' do
     expected = [

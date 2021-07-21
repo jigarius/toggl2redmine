@@ -33,3 +33,4 @@ en:
     error:
       ajax_load: 'Could not retrieve data from server. Please refresh the page to try again.'
       list_empty: 'There are no items to display here.'
+      project_closed: 'The project is closed.'

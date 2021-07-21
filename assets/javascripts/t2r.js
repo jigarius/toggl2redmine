@@ -1575,7 +1575,7 @@ T2RDuration.prototype.setSeconds = function (seconds) {
  *   Duration in seconds.
  */
 T2RDuration.prototype.getSeconds = function (imprecise) {
-  imprecise = 'undefined' === typeof imprecise ? false : imprecise;
+  imprecise = imprecise === true;
   var output = this.__seconds;
 
   // For imprecise output, round-down to the nearest full minute.

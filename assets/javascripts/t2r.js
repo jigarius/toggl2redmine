@@ -849,7 +849,19 @@ T2R.getTogglTimeEntries = function (opts, callback) {
       // Prepare rounded duration as per rounding rules.
       if (roundingDirection !== '' && roundingValue > 0) {
         entry.roundedDuration.roundTo(roundingValue, roundingDirection);
-        T2RConsole.log('Duration rounded from ' + entry.duration.asHHMM() + ' to ' + entry.roundedDuration.asHHMM());
+      }
+      else {
+        entry.roundedDuration.roundTo(1, T2RDuration.ROUND_REGULAR);
+      }
+
+      if (entry.duration.getSeconds(false) !== entry.roundedDuration.getSeconds(false)) {
+        T2RConsole.log('Duration rounded.', {
+          from: entry.duration.asHHMM(),
+          to: entry.roundedDuration.asHHMM()
+        });
+      }
+      else {
+        T2RConsole.log('Duration not rounded.', entry.duration.asHHMM());
       }
 
       // If there is no issue ID associated to the entry.
@@ -1752,7 +1764,7 @@ T2RDuration.prototype.roundTo = function (minutes, direction) {
   var seconds = minutes * 60;
 
   // Determine the amount of correction required.
-  var correction = this.getSeconds(true) % seconds;
+  var correction = this.getSeconds(false) % seconds;
 
   // Do nothing if no correction / rounding is required.
   if (correction === 0) {

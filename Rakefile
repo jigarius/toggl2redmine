@@ -9,7 +9,7 @@ task :ssh, [:service] do |_t, args|
     service: 'redmine',
     rails_env: ENV.fetch('RAILS_ENV', 'development')
   )
-  sh "docker compose exec -e RAILS_ENV='#{args.rails_env}' #{args.service} bash"
+  sh "docker compose exec -e RAILS_ENV=#{args.rails_env} #{args.service} bash"
 end
 
 desc 'Execute a Rails command'
@@ -46,7 +46,7 @@ task :reset do
   # If all commands are sent at once, redmine:plugins:migrate fails.
   # Hence, the commands are being sent separately.
   commands.each do |command|
-    sh "docker compose exec -e RAILS_ENV='#{rails_env}' redmine rake #{command}"
+    sh "docker compose exec -e RAILS_ENV=#{rails_env} redmine rake #{command}"
   end
 
   puts "The env '#{rails_env}' has been reset."
@@ -111,5 +111,5 @@ task :test do
       "redmine:plugins:test#{type} NAME=toggl2redmine"
     end
 
-  sh "docker compose exec -e RAILS_ENV='test' redmine rake #{command}"
+  sh "docker compose exec -e RAILS_ENV=test redmine rake #{command}"
 end

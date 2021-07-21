@@ -9,8 +9,8 @@ class T2rRedmineController < T2rBaseController
       spent_on: params[:from]..params[:till]
     ).order(:id)
 
-    render json: {
-      time_entries: time_entries.as_json(
+    result = time_entries.map do |time_entry|
+      time_entry.as_json(
         only: %i[id comments hours],
         include: {
           issue: {
@@ -23,7 +23,9 @@ class T2rRedmineController < T2rBaseController
           activity: { only: %i[id name] }
         }
       )
-    }
+    end
+
+    render json: { time_entries: result }
   rescue ActionController::ParameterMissing => e
     render json: { errors: [e.message] }, status: 400
   end

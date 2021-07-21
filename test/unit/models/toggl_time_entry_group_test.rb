@@ -41,6 +41,15 @@ class TogglTimeEntryGroupTest < T2r::TestCase
     assert_equal(record.issue_id, subject.issue_id)
   end
 
+  test '.project' do
+    subject = TogglTimeEntryGroup.new
+    issue = issues(:alpha_001)
+    subject << build_time_entry_record(description: "##{issue.id} Lorem ipsum")
+
+    refute_nil(subject.project)
+    assert_equal(issue.project, subject.project)
+  end
+
   test '.duration' do
     subject = TogglTimeEntryGroup.new
 

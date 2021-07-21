@@ -26,6 +26,10 @@ class TogglTimeEntryGroup
     @entries.values.first&.issue
   end
 
+  def project
+    issue&.project
+  end
+
   def comments
     @entries.values.first&.comments
   end

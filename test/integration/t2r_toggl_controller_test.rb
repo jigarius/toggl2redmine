@@ -73,7 +73,8 @@ class T2rTogglControllerTest < T2r::IntegrationTest
         'duration' => 450,
         'status' => 'pending',
         'errors' => [],
-        'issue' => nil
+        'issue' => nil,
+        'project' => nil
       },
       '19:feed bunny:running' => {
         'key' => '19:feed bunny:running',
@@ -83,7 +84,8 @@ class T2rTogglControllerTest < T2r::IntegrationTest
         'duration' => -1,
         'status' => 'running',
         'errors' => [],
-        'issue' => nil
+        'issue' => nil,
+        'project' => nil
       }
     }
 
@@ -160,20 +162,20 @@ class T2rTogglControllerTest < T2r::IntegrationTest
         'comments' => 'Feed bunny',
         'duration' => -1,
         'status' => 'running',
+        'errors' => [],
         'issue' => {
           'id' => issue.id,
           'subject' => issue.subject,
           'tracker' => {
             'id' => issue.tracker.id,
             'name' => issue.tracker.name
-          },
-          'project' => {
-            'id' => issue.project.id,
-            'name' => issue.project.name,
-            'status' => issue.project.status
           }
         },
-        'errors' => []
+        'project' => {
+          'id' => issue.project.id,
+          'name' => issue.project.name,
+          'status' => issue.project.status
+        }
       }
     }
 
@@ -219,7 +221,8 @@ class T2rTogglControllerTest < T2r::IntegrationTest
         'duration' => 300,
         'status' => 'pending',
         'errors' => [],
-        'issue' => nil
+        'issue' => nil,
+        'project' => nil
       }
     }
 
@@ -267,7 +270,8 @@ class T2rTogglControllerTest < T2r::IntegrationTest
         'duration' => 300,
         'status' => 'pending',
         'errors' => [],
-        'issue' => nil
+        'issue' => nil,
+        'project' => nil
       }
     }
 

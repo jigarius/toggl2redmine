@@ -24,8 +24,7 @@ task :mysql do |_t, args|
     pass: 'root',
     rails_env: ENV.fetch('RAILS_ENV', 'development')
   )
-  sh 'docker compose exec mysql mysql' \
-      " -u#{args.user} -p#{args.pass} redmine_#{args.rails_env}"
+  sh "docker compose exec mysql mysql -u#{args.user} -p#{args.pass} redmine_#{args.rails_env}"
 end
 
 desc 'Reset the database.'

@@ -92,8 +92,8 @@ task :info do
   INFO
 end
 
-desc 'Run Rubocop.'
-task :rubocop do
+desc 'Lint with Rubocop.'
+task :lint do
   sh 'docker compose exec redmine rubocop -c plugins/toggl2redmine/.rubocop.yml plugins/toggl2redmine'
 end
 

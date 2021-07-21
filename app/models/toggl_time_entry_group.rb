@@ -71,7 +71,8 @@ class TogglTimeEntryGroup
       issue_id: issue_id,
       comments: comments,
       duration: duration,
-      status: status
+      status: status,
+      errors: []
     }
   end
 

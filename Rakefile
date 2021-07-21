@@ -97,7 +97,7 @@ task :lint do
   sh 'docker compose exec redmine rubocop -c plugins/toggl2redmine/.rubocop.yml plugins/toggl2redmine'
 end
 
-desc 'Run all or a specific test.'
+desc 'Run all tests or a specific test.'
 task :test do
   file = ENV.fetch('TEST', nil)
   type = ENV.fetch('TYPE', nil)
@@ -105,7 +105,7 @@ task :test do
 
   command =
     if file
-      "test TEST=plugins/toggl2redmine/test/#{file}"
+      "test TEST=plugins/toggl2redmine/#{file}"
     else
       "redmine:plugins:test#{type} NAME=toggl2redmine"
     end

@@ -1446,7 +1446,7 @@ T2RAjaxQueue.processItem = function () {
     return;
   }
   T2RAjaxQueue.__requestInProgress = true;
-  T2RConsole.group('Processing queue. ' + T2RAjaxQueue.size() + ' remaining.');
+  T2RConsole.group('Processing AJAX queue. ' + T2RAjaxQueue.size() + ' remaining.', true);
 
   // Prepare current item.
   var opts = T2RAjaxQueue.__items.shift();

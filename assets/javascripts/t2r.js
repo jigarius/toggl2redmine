@@ -1456,7 +1456,6 @@ T2RAjaxQueue.processItem = function () {
     // Call the original callback.
     var context = this;
     callback.call(context, xhr, status);
-    T2RConsole.groupEnd();
 
     // Process the next item in the queue, if any.
     T2RAjaxQueue.__requestInProgress = false;
@@ -1465,6 +1464,7 @@ T2RAjaxQueue.processItem = function () {
 
   // Process current item.
   $.ajax(opts);
+  T2RConsole.groupEnd();
 }
 
 /**

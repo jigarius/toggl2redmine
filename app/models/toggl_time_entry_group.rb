@@ -64,6 +64,12 @@ class TogglTimeEntryGroup
     @entries.values
   end
 
+  def errors
+    result = []
+    result << I18n.t('t2r.error.project_closed') if issue&.project&.closed?
+    result
+  end
+
   def to_hash
     {
       key: key,
@@ -72,7 +78,7 @@ class TogglTimeEntryGroup
       comments: comments,
       duration: duration,
       status: status,
-      errors: []
+      errors: errors
     }
   end
 

@@ -30,3 +30,4 @@ es:
     error:
       ajax_load: 'No se pudieron leer los datos del servidor. Actualice la página para volver a intentarlo.'
       list_empty: 'No hay elementos para mostrar aquí.'
+      project_closed: 'El proyecto está cerrado.'

@@ -3,6 +3,8 @@
 require_relative '../../test_helper'
 
 class TogglTimeEntryGroupTest < ActiveSupport::TestCase
+  fixtures :projects, :issues
+
   test '.new' do
     expected = [
       build_time_entry_record,
@@ -73,6 +75,15 @@ class TogglTimeEntryGroupTest < ActiveSupport::TestCase
 
     refute_nil(subject.status)
     assert_equal(record.status, subject.status)
+  end
+
+  test '.errors contains a message for closed project' do
+    issue = issues(:charlie_001)
+    subject = TogglTimeEntryGroup.new
+    record = build_time_entry_record(description: "##{issue.id} Lorem ipsum")
+    subject << record
+
+    assert_equal(['The project is closed.'], subject.errors)
   end
 
   test '.imported?' do

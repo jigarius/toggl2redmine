@@ -30,7 +30,6 @@ let T2R: any = {
  * This is where it starts.
  */
 T2R.initialize = function () {
-    T2RConsole.initialize();
     T2RWidget.initialize();
     T2R.initTogglReport();
     T2R.initFilterForm();
@@ -75,7 +74,7 @@ T2R.t = function(key, vars = {}) {
  *   Arguments.
  */
 T2R.FAKE_CALLBACK = function (data) {
-    T2RConsole.warn('No callback was provided to handle this data: ', data);
+    console.warn('No callback was provided to handle this data: ', data);
 };
 
 /**
@@ -343,8 +342,7 @@ T2R.handleFilterForm = function() {
     $('h2 .date').html('(' + oDate.toLocaleDateString() + ')');
 
     // Log the event.
-    T2RConsole.separator();
-    T2RConsole.log('Filter form updated: ', {
+    console.info('Filter form updated: ', {
         'date': T2R.tempStorage.get('date'),
         'default-activity': T2R.localStorage.get('t2r.default-activity'),
         'toggl-workspace': T2R.localStorage.get('t2r.toggl-workspace'),
@@ -407,7 +405,7 @@ T2R.getDateFromLocationHash = function () {
     if (output && !T2R.dateStringToObject(output)) {
         output = false;
     }
-    T2RConsole.log('Got date from URL fragment', output);
+    console.debug('Got date from URL fragment', output);
     return output;
 }
 
@@ -429,8 +427,7 @@ T2R.publishToRedmine = function () {
     }
 
     // Post eligible entries to Redmine.
-    T2RConsole.separator();
-    T2RConsole.log('Pushing time entries to Redmine.');
+    console.info('Pushing time entries to Redmine.');
     $('#toggl-report tbody tr').each(function () {
         var $tr = $(this);
         var toggl_entry = $tr.data('t2r.entry');
@@ -456,13 +453,13 @@ T2R.publishToRedmine = function () {
             duration.setHHMM(durationInput);
             redmine_entry.hours = duration.asDecimal(true);
         } catch (e) {
-            T2RConsole.warn('Invalid duration. Ignoring entry.', redmine_entry);
+            console.warn('Invalid duration. Ignoring entry.', redmine_entry);
             return;
         }
 
         // Ignore entries with 0 duration.
         if (duration.getSeconds(true) <= 0) {
-            T2RConsole.warn('Duration is zero. Ignoring entry.', redmine_entry);
+            console.warn('Duration is zero. Ignoring entry.', redmine_entry);
         }
 
         // Finalize POST data.
@@ -480,7 +477,7 @@ T2R.publishToRedmine = function () {
             data: JSON.stringify(data),
             contentType: 'application/json',
             success: function(data, status, xhr) {
-                T2RConsole.log('Request successful', data);
+                console.debug('Request successful', data);
                 var $tr = $(this).addClass('t2r-success');
 
                 // Disable checkboxes.
@@ -495,7 +492,7 @@ T2R.publishToRedmine = function () {
                 $tr.find('td.status').html($message);
             },
             error: function(xhr, textStatus) {
-                T2RConsole.log('Request failed');
+                console.error('Request failed');
                 var $tr = $(this).addClass('t2r-error');
 
                 // Prepare and display error message.
@@ -594,7 +591,7 @@ T2R.dateStringToObject = function (string) {
         );
     }
     catch (e) {
-        T2RConsole.log('Date not understood', string);
+        console.error('Date not understood', string);
         return false;
     }
 };
@@ -653,7 +650,7 @@ T2R.getTogglWorkspaces = function (callback) {
             callback(workspaces);
         },
         error: function (xhr, textStatus) {
-            T2RConsole.error('Could not load Toggl workspaces.');
+            console.error('Could not load Toggl workspaces.');
             T2R.flash(T2R.t('t2r.error.ajax_load'), 'error');
             callback([]);
         }
@@ -706,7 +703,7 @@ T2R._getRawTogglTimeEntries = function (opts, callback) {
             }
         });
     } catch(e) {
-        T2RConsole.error(e);
+        console.error(e);
         callback(false);
     }
 };
@@ -735,8 +732,8 @@ T2R.getTogglTimeEntries = function (opts, callback) {
 
         for (var key in entries) {
             var entry = entries[key];
-            T2RConsole.group(key, true);
-            T2RConsole.log('Toggl time entry: ', entry);
+            console.groupCollapsed('Received Toggl entry: ' + key);
+            console.debug('Toggl time entry: ', entry);
 
             // Prepare error messages for the record.
             entry.errors = entry.errors || [];
@@ -756,13 +753,13 @@ T2R.getTogglTimeEntries = function (opts, callback) {
             }
 
             if (entry.duration.getSeconds(false) !== entry.roundedDuration.getSeconds(false)) {
-                T2RConsole.log('Duration rounded.', {
+                console.debug('Duration rounded.', {
                     from: entry.duration.asHHMM(),
                     to: entry.roundedDuration.asHHMM()
                 });
             }
             else {
-                T2RConsole.log('Duration not rounded.', entry.duration.asHHMM());
+                console.debug('Duration not rounded.', entry.duration.asHHMM());
             }
 
             // If there is no issue ID associated to the entry.
@@ -777,7 +774,7 @@ T2R.getTogglTimeEntries = function (opts, callback) {
 
             // Include the entry in the output.
             output.push(entry);
-            T2RConsole.groupEnd();
+            console.groupEnd();
         }
 
         callback(output);
@@ -938,7 +935,7 @@ T2R.updateTogglTotals = function () {
             duration.setHHMM(hours);
             total.add(duration);
         } catch(e) {
-            T2RConsole.error(e);
+            console.error(e);
         }
     });
 
@@ -999,6 +996,8 @@ T2R.getRedmineTimeEntries = function (query, callback) {
 
         for (var i in entries) {
             var entry = entries[i];
+            console.groupCollapsed('Received Redmine entry: ' + entry.id);
+            console.debug('Redmine time entry: ', entry);
 
             // Ensure an issue object.
             entry.issue = entry.issue || { id: false };
@@ -1152,7 +1151,7 @@ T2R.getRedmineActivities = function (callback) {
             callback(activities);
         },
         error: function (xhr, textStatus) {
-            T2RConsole.error('Could not load Redmine activities.');
+            console.error('Could not load Redmine activities.');
             T2R.flash(T2R.t('t2r.error.ajax_load'), 'error');
             callback([]);
         }
@@ -1209,7 +1208,7 @@ T2R.getRedmineIssues = function (ids) {
             error: function (xhr, textStatus) {}
         });
     } catch(e) {
-        T2RConsole.error(e);
+        console.error(e);
     }
     return output;
 };
@@ -1347,11 +1346,11 @@ T2RAjaxQueue.processItem = function () {
         return;
     }
     T2RAjaxQueue.__requestInProgress = true;
-    T2RConsole.group('Processing AJAX queue. ' + T2RAjaxQueue.size() + ' remaining.', true);
+    console.groupCollapsed('Processing AJAX queue (' + T2RAjaxQueue.size() + ' remaining).');
 
     // Prepare current item.
     var opts = T2RAjaxQueue.__items.shift();
-    T2RConsole.log('Sending item: ', opts);
+    console.log('Sending item: ', opts);
     var callback = opts.complete || function () {};
     opts.complete = function (xhr, status) {
         // Call the original callback.
@@ -1365,7 +1364,7 @@ T2RAjaxQueue.processItem = function () {
 
     // Process current item.
     $.ajax(opts);
-    T2RConsole.groupEnd();
+    console.groupEnd();
 }
 
 /**
@@ -1952,127 +1951,6 @@ T2RWidget.initDurationRoundingDirection = function (el) {
     });
 
     $el.append($select.find('option'));
-};
-
-/**
- * Toggl 2 Redmine Logger.
- */
-var T2RConsole = {};
-
-/**
- * Enable or disable verbose mode.
- *
- * @type {boolean} status
- *   True to enable or false to disable.
- */
-T2RConsole.setVerboseMode = function (status) {
-    T2R.localStorage.set('t2r.debug', status == true);
-};
-
-/**
- * Enable or disable verbose mode.
- *
- * @return {boolean}
- *   True if enabled, false otherwise.
- */
-T2RConsole.getVerboseMode = function () {
-    return T2R.localStorage.get('t2r.debug', false);
-};
-
-/**
- * Initializes T2RConsole.
- */
-T2RConsole.initialize = function () {
-    if (T2RConsole.getVerboseMode()) {
-        console.log('Verbose logging is enabled for the Toggl 2 Redmine plugin.');
-    }
-    console.log('Use "T2RConsole.setVerboseMode()" to enable / disable verbose logging.');
-};
-
-/**
- * Equivalent to console.clear().
- */
-T2RConsole.clear = function () {
-    console.clear();
-}
-
-/**
- * Creates a separator between log messages.
- */
-T2RConsole.separator = function () {
-    this.log('------');
-}
-
-/**
- * Equivalent to console.group().
- */
-T2RConsole.group = function (label, collapsed) {
-    collapsed = collapsed || false;
-    if (T2RConsole.getVerboseMode()) {
-        collapsed ? console.groupCollapsed(label) : console.group(label);
-    }
-};
-
-/**
- * Equivalent to console.groupEnd().
- */
-T2RConsole.groupEnd = function () {
-    if (T2RConsole.getVerboseMode()) {
-        console.groupEnd();
-    }
-};
-
-/**
- * Equivalent to console.log().
- *
- * @param {string} message
- *   A message.
- * @param {*} args
- *   Data, if any.
- */
-T2RConsole.log = function (message, args) {
-    if (T2RConsole.getVerboseMode()) {
-        if ('undefined' === typeof args) {
-            console.log(message);
-        }
-        else {
-            console.log(message, args);
-        }
-    }
-};
-
-/**
- * Equivalent to console.error().
- *
- * @param {string} message
- *   A message.
- * @param {*} args
- *   Data, if any.
- */
-T2RConsole.error = function (message, args) {
-    if ('undefined' === typeof args) {
-        console.error(message);
-    }
-    else {
-        console.error(message, args);
-    }
-};
-
-/**
- * Equivalent to console.warn().
- *
- * @param {string} message
- *   A message.
- * @param {*} args
- *   Data, if any.
- */
-T2RConsole.warn = function (message, args) {
-    if ('undefined' === typeof args) {
-        console.warn(message);
-    }
-    else {
-        console.warn(message, args);
-    }
 };
 
 /**

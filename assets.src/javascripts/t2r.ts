@@ -8,15 +8,22 @@ declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
 // UI translations.
 declare const T2R_TRANSLATIONS: any
 
+import { LocalStorage as T2RLocalStorage } from "./t2r/storage/LocalStorage.js";
+import { TemporaryStorage as T2RTemporaryStorage } from "./t2r/storage/TemporaryStorage.js";
+
 /**
  * Toggl 2 Redmine Helper.
  */
 let T2R: any = {
     cacheData: {},
-    storageData: {},
+    appData: {},
     // If no Toggl workspace is selected, this one is used
     // TODO: This shouldn't look like a constant because it is mutated.
-    togglDefaultWorkspace: 0
+    togglDefaultWorkspace: 0,
+    // Browser storage.
+    localStorage: new T2RLocalStorage(),
+    // Temporary storage.
+    tempStorage: new T2RTemporaryStorage()
 };
 
 /**
@@ -29,63 +36,6 @@ T2R.initialize = function () {
     T2R.initFilterForm();
     T2R.updateLastImported();
     T2R.initPublishForm();
-};
-
-/**
- * Get or set objects from or to the local storage.
- *
- * @param {string} key
- *   Storage key.
- *
- * @param {*} value
- *   Storage value. Ignore this argument for "get" requests.
- *
- * @returns {*}
- *   Stored value if found.
- */
-T2R.storage = function (key, value) {
-    // Set data.
-    if (2 === arguments.length) {
-        value = (undefined === value) ? null : value;
-        T2R.storageData[key] = value;
-        return value;
-    }
-    // Get data.
-    else {
-        return ('undefined' !== typeof T2R.storageData[key])
-            ? T2R.storageData[key] : null;
-    }
-};
-
-/**
- * Get or set objects from or to the browser storage.
- *
- * @param {string} key
- *   Cache key.
- *
- * @param {*} value
- *   Cache value. Ignore this argument for "get" requests.
- *
- * @returns {*}
- *   Cached value if found.
- */
-T2R.browserStorage = function (key, value) {
-    if (2 === arguments.length) {
-        value = (undefined === value) ? null : value;
-        if (undefined !== window.localStorage) {
-            if (null === value) {
-                window.localStorage.removeItem(key)
-            }
-            else {
-                window.localStorage.setItem(key, value);
-            }
-        }
-        return value;
-    }
-    else {
-        return ('undefined' !== window.localStorage)
-            ? window.localStorage.getItem(key) : value;
-    }
 };
 
 /**
@@ -302,10 +252,10 @@ T2R.resetFilterForm = function (data) {
     // Default values.
     var defaults = {
         date: T2R.dateFormatYYYYMMDD().substr(0, 10),
-        'toggl-workspace': T2R.browserStorage('t2r.toggl-workspace'),
-        'default-activity': T2R.browserStorage('t2r.default-activity'),
-        'rounding-value': T2R.browserStorage('t2r.rounding-value'),
-        'rounding-direction': T2R.browserStorage('t2r.rounding-direction')
+        'toggl-workspace': T2R.localStorage.get('t2r.toggl-workspace'),
+        'default-activity': T2R.localStorage.get('t2r.default-activity'),
+        'rounding-value': T2R.localStorage.get('t2r.rounding-value'),
+        'rounding-direction': T2R.localStorage.get('t2r.rounding-direction')
     };
 
     // Merge with defaults.
@@ -352,7 +302,7 @@ T2R.handleFilterForm = function() {
     if (null === defaultActivity) {
         defaultActivity = $defaultActivity.data('selected');
     }
-    T2R.browserStorage('t2r.default-activity', defaultActivity);
+    T2R.localStorage.set('t2r.default-activity', defaultActivity);
 
     // Determine toggl workspace.
     var $togglWorkspace = $('select#toggl-workspace');
@@ -360,17 +310,17 @@ T2R.handleFilterForm = function() {
     if (null === togglWorkspace) {
         togglWorkspace = $togglWorkspace.data('selected');
     }
-    T2R.browserStorage('t2r.toggl-workspace', togglWorkspace);
+    T2R.localStorage.set('t2r.toggl-workspace', togglWorkspace);
 
     // Determine rounding value.
     var roundingValue = $('input#rounding-value').val() || 0;
     roundingValue = parseInt(roundingValue);
     roundingValue = isNaN(roundingValue) ? 0 : roundingValue;
-    T2R.browserStorage('t2r.rounding-value', roundingValue);
+    T2R.localStorage.set('t2r.rounding-value', roundingValue);
 
     // Determine rounding direction.
     var roundingDirection = $('select#rounding-direction').val();
-    T2R.browserStorage('t2r.rounding-direction', roundingDirection);
+    T2R.localStorage.set('t2r.rounding-direction', roundingDirection);
 
     // Determine date filter.
     var $date = $('#date');
@@ -386,8 +336,8 @@ T2R.handleFilterForm = function() {
     }
 
     // Store date and update URL hash.
-    T2R.storage('date', sDate);
-    window.location.hash = T2R.storage('date');
+    T2R.tempStorage.set('date', sDate);
+    window.location.hash = T2R.tempStorage.get('date');
 
     // Show date in the headings.
     $('h2 .date').html('(' + oDate.toLocaleDateString() + ')');
@@ -395,11 +345,11 @@ T2R.handleFilterForm = function() {
     // Log the event.
     T2RConsole.separator();
     T2RConsole.log('Filter form updated: ', {
-        'date': T2R.storage('date'),
-        'default-activity': T2R.browserStorage('t2r.default-activity'),
-        'toggl-workspace': T2R.browserStorage('t2r.toggl-workspace'),
-        'rounding-value': T2R.browserStorage('t2r.rounding-value'),
-        'rounding-direction': T2R.browserStorage('t2r.rounding-direction')
+        'date': T2R.tempStorage.get('date'),
+        'default-activity': T2R.localStorage.get('t2r.default-activity'),
+        'toggl-workspace': T2R.localStorage.get('t2r.toggl-workspace'),
+        'rounding-value': T2R.localStorage.get('t2r.rounding-value'),
+        'rounding-direction': T2R.localStorage.get('t2r.rounding-direction')
     });
 
     // Update both the Redmine and Toggl reports.
@@ -493,7 +443,7 @@ T2R.publishToRedmine = function () {
 
         // Prepare the data to be pushed to Redmine.
         var redmine_entry = {
-            spent_on: T2R.storage('date'),
+            spent_on: T2R.tempStorage.get('date'),
             issue_id: parseInt($tr.find('[data-property="issue_id"]').val()),
             comments: $tr.find('[data-property="comments"]').val(),
             activity_id: parseInt($tr.find('[data-property="activity_id"]').val()),
@@ -780,8 +730,8 @@ T2R.getTogglTimeEntries = function (opts, callback) {
         var output = [];
 
         // Prepare rounding rules.
-        var roundingValue = T2R.browserStorage('t2r.rounding-value');
-        var roundingDirection = T2R.browserStorage('t2r.rounding-direction');
+        var roundingValue = T2R.localStorage.get('t2r.rounding-value');
+        var roundingDirection = T2R.localStorage.get('t2r.rounding-direction');
 
         for (var key in entries) {
             var entry = entries[key];
@@ -843,11 +793,11 @@ T2R.updateTogglReport = function () {
     $table.find('tbody').html('');
 
     // Determine report date.
-    var date = T2R.storage('date');
+    var date = T2R.tempStorage.get('date');
     var opts = {
         from: date + ' 00:00:00',
         till: date + ' 23:59:59',
-        workspace: T2R.browserStorage('t2r.toggl-workspace') || false
+        workspace: T2R.localStorage.get('t2r.toggl-workspace', false)
     };
 
     // Update other elements.
@@ -1073,7 +1023,7 @@ T2R.updateRedmineReport = function () {
     $table.find('tbody').html('');
 
     // Determine Redmine API friendly date range.
-    var till = T2R.storage('date');
+    var till = T2R.tempStorage.get('date');
     till = T2R.dateStringToObject(till);
     var from = till;
 
@@ -1085,7 +1035,7 @@ T2R.updateRedmineReport = function () {
 
     // Update Redmine report link.
     T2R.updateRedmineReportLink({
-        date: T2R.storage('date')
+        date: T2R.tempStorage.get('date')
     });
 
     // Fetch time entries from Redmine.
@@ -2016,7 +1966,7 @@ var T2RConsole = {};
  *   True to enable or false to disable.
  */
 T2RConsole.setVerboseMode = function (status) {
-    T2R.browserStorage('t2r.debug', status == true);
+    T2R.localStorage.set('t2r.debug', status == true);
 };
 
 /**
@@ -2026,7 +1976,7 @@ T2RConsole.setVerboseMode = function (status) {
  *   True if enabled, false otherwise.
  */
 T2RConsole.getVerboseMode = function () {
-    return T2R.browserStorage('t2r.debug' || false);
+    return T2R.localStorage.get('t2r.debug', false);
 };
 
 /**
@@ -2205,7 +2155,7 @@ T2RRenderer.renderTogglRow = function (data) {
         + '</td>'
         + '<td class="comments"><input data-property="comments" type="text" value="' + T2R.htmlEntityEncode(data.comments) + '" maxlength="255" /></td>'
         + '<td class="activity">'
-        + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.browserStorage('t2r.default-activity') + '"></select>'
+        + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.localStorage.get('t2r.default-activity') + '"></select>'
         + '</td>'
         + '<td class="hours">'
         + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Value as on Toggl is ' + oDuration.asHHMM() + '." value="' + rDuration.asHHMM() + '" size="6" maxlength="5" />'

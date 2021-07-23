@@ -112,3 +112,8 @@ task :test do
 
   sh "docker compose exec -e RAILS_ENV=test redmine rake #{command}"
 end
+
+desc 'Run tsc in watch mode to compile TypeScript.'
+task :watch do
+  sh "docker compose exec -w /app/assets.src/javascripts node npx tsc -w"
+end

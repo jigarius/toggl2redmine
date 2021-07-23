@@ -159,14 +159,14 @@
 
 <% content_for :header_tags do %>
   <%= stylesheet_link_tag 't2r', :plugin => 'toggl2redmine' %>
-  <%= javascript_include_tag "t2r.js", :plugin => 'toggl2redmine' %>
   <script>
-    T2R.REDMINE_API_KEY = '<%= @user.api_key %>';
-    T2R.TOGGL_REPORT_URL_FORMAT = 'https://track.toggl.com/reports/summary/[@workspace]/from/[@date]/to/[@date]';
-    T2R.REDMINE_REPORT_URL_FORMAT = '<%= @redmine_url %>/time_entries?utf8=✓&set_filter=1&sort=spent_on:desc&f[]=spent_on&op[spent_on]=%3D&v[spent_on][]=[@date]&f[]=user_id&op[user_id]=%3D&v[user_id][]=me&c[]=project&c[]=spent_on&c[]=user&c[]=activity&c[]=issue&c[]=comments&c[]=hours&group_by=spent_on&t[]=hours&t[]=';
-    T2R.TRANSLATIONS = <%= @translations.to_json.html_safe %>;
-    T2R.BUTTON_ACTIONS = '<%= link_to_context_menu %>';
+    const T2R_REDMINE_API_KEY = '<%= @user.api_key %>';
+    const T2R_REDMINE_REPORT_URL_FORMAT = '<%= @redmine_url %>/time_entries?utf8=✓&set_filter=1&sort=spent_on:desc&f[]=spent_on&op[spent_on]=%3D&v[spent_on][]=[@date]&f[]=user_id&op[user_id]=%3D&v[user_id][]=me&c[]=project&c[]=spent_on&c[]=user&c[]=activity&c[]=issue&c[]=comments&c[]=hours&group_by=spent_on&t[]=hours&t[]=';
+    const T2R_TOGGL_REPORT_URL_FORMAT = 'https://track.toggl.com/reports/summary/[@workspace]/from/[@date]/to/[@date]';
+    const T2R_TRANSLATIONS = <%= @translations.to_json.html_safe %>;
+    const T2R_BUTTON_ACTIONS = '<%= link_to_context_menu %>';
   </script>
+  <%= javascript_include_tag "t2r.js", :plugin => 'toggl2redmine' %>
 <% end %>
 
 <% html_title "Toggl 2 Redmine" %>

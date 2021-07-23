@@ -11,10 +11,9 @@ class T2rTogglController < T2rBaseController
       end_date: params[:till],
       workspaces: params[:workspaces]
     )
-    time_entry_groups = TogglTimeEntryGroup.group(time_entries)
+    groups = TogglTimeEntryGroup.group(time_entries)
 
-    result = {}
-    time_entry_groups.each do |key, group|
+    result = groups.merge(groups) do |_, group|
       item = group.as_json
       item['issue'] = nil
       item['project'] = nil
@@ -35,7 +34,7 @@ class T2rTogglController < T2rBaseController
         item['project']['path'] = project_path(group.project)
       end
 
-      result[key] = item
+      item
     end
 
     render json: result

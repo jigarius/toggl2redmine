@@ -1,0 +1,19 @@
+{
+  "name": "toggl2redmine-js",
+  "version": "1.0.0",
+  "description": "JavaScript for the Toggl 2 Redmine plugin.",
+  "main": "t2r.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jigarius/toggl2redmine.git"
+  },
+  "author": "Jigar Mehta",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jigarius/toggl2redmine/issues"
+  },
+  "homepage": "https://github.com/jigarius/toggl2redmine#readme"
+}

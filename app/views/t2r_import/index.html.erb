@@ -166,7 +166,7 @@
     const T2R_TRANSLATIONS = <%= @translations.to_json.html_safe %>;
     const T2R_BUTTON_ACTIONS = '<%= link_to_context_menu %>';
   </script>
-  <%= javascript_include_tag "t2r.js", :plugin => 'toggl2redmine' %>
+  <%= javascript_include_tag "t2r.js", :type => "module", :plugin => 'toggl2redmine' %>
 <% end %>
 
 <% html_title "Toggl 2 Redmine" %>

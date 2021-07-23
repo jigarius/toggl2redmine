@@ -37,6 +37,12 @@ services:
       - '3306:3306'
     volumes:
       - ./.docker/mysql/init:/docker-entrypoint-initdb.d
+  node:
+    image: node:16-alpine
+    container_name: redmine-node
+    command: ['tail', '-f', '/dev/null']
+    volumes:
+      - .:/app
   mailhog:
     image: mailhog/mailhog:v1.0.0
     container_name: redmine-mailhog

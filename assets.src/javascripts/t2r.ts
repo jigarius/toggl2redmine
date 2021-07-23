@@ -2304,6 +2304,4 @@ T2RRenderer.render = function (template, data) {
 /**
  * Init script.
  */
-$(document).ready(function() {
-    T2R.initialize();
-});
+$(T2R.initialize);

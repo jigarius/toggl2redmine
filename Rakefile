@@ -115,5 +115,5 @@ end
 
 desc 'Run tsc in watch mode to compile TypeScript.'
 task :watch do
-  sh "docker compose exec -w /app/assets.src/javascripts node npx tsc -w"
+  sh 'docker compose exec -w /app/assets.src/javascripts node npx tsc -w'
 end

@@ -1,72 +1,23 @@
 // @ts-nocheck
 
+// Redmine base URL.
+const T2R_REDMINE_URL: string = window.location.origin;
+declare const T2R_REDMINE_API_KEY: string;
+declare const T2R_REDMINE_REPORT_URL_FORMAT : string;
+declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
+// UI translations.
+declare const T2R_TRANSLATIONS: any
+
 /**
  * Toggl 2 Redmine Helper.
  */
-var T2R = T2R || {};
-
-/**
- * Redmine Base URL.
- *
- * @type {string}
- */
-T2R.REDMINE_URL = T2R.REDMINE_URL || window.location.origin;
-
-/**
- * Redmine API Key.
- *
- * @type {string}
- */
-T2R.REDMINE_API_KEY = T2R.REDMINE_API_KEY || false;
-
-/**
- * Toggl API Key.
- *
- * @type {string}
- */
-T2R.TOGGL_API_KEY = T2R.TOGGL_API_KEY || false;
-
-/**
- * Redmine time report URL format.
- *
- * @type {string}
- */
-T2R.REDMINE_REPORT_URL_FORMAT = T2R.REDMINE_REPORT_URL_FORMAT || '';
-
-/**
- * Toggl time report URL format.
- *
- * @type {string}
- */
-T2R.TOGGL_REPORT_URL_FORMAT = T2R.TOGGL_REPORT_URL_FORMAT || '';
-
-/**
- * Translations for UI elements.
- *
- * @type {{}}
- */
-T2R.TRANSLATIONS = T2R.TRANSLATIONS || {};
-
-/**
- * If no workspace is selected, this one is used for certain purposes.
- *
- * @type {number}
- */
-T2R.TOGGL_DEFAULT_WORKSPACE = 0;
-
-/**
- * Cached data.
- *
- * @type {Object}
- */
-T2R.cacheData = {};
-
-/**
- * Local storage data.
- *
- * @type {Object}
- */
-T2R.storageData = {};
+let T2R: any = {
+    cacheData: {},
+    storageData: {},
+    // If no Toggl workspace is selected, this one is used
+    // TODO: This shouldn't look like a constant because it is mutated.
+    togglDefaultWorkspace: 0
+};
 
 /**
  * This is where it starts.
@@ -154,12 +105,12 @@ T2R.browserStorage = function (key, value) {
  *   Translated string if available.
  */
 T2R.t = function(key, vars = {}) {
-    if (T2R.TRANSLATIONS[key] === undefined) {
+    if (T2R_TRANSLATIONS[key] === undefined) {
         var lang = $('html').attr('lang') || '??';
         return 'translation missing: ' + lang + '.' + key;
     }
 
-    var result = T2R.TRANSLATIONS[key];
+    var result = T2R_TRANSLATIONS[key];
     for (var v in vars) {
         result = result.replace('@' + v, vars[v])
     }
@@ -746,7 +697,7 @@ T2R.getTogglWorkspaces = function (callback) {
 
             // Determine default Toggl workspace.
             if (workspaces.length > 0) {
-                T2R.TOGGL_DEFAULT_WORKSPACE = workspaces[0].id;
+                T2R.togglDefaultWorkspace = workspaces[0].id;
             }
 
             callback(workspaces);
@@ -1000,9 +951,9 @@ T2R.updateTogglReport = function () {
  *     - workspace: Workspace ID.
  */
 T2R.updateTogglReportLink = function (data) {
-    data.workspace = data.workspace || T2R.TOGGL_DEFAULT_WORKSPACE;
+    data.workspace = data.workspace || T2R.togglDefaultWorkspace;
 
-    var url = T2R.TOGGL_REPORT_URL_FORMAT
+    var url = T2R_TOGGL_REPORT_URL_FORMAT
         .replace(/\[@date\]/g, data.date)
         .replace('[@workspace]', data.workspace);
     $('#toggl-report-link').attr('href', url);
@@ -1172,7 +1123,7 @@ T2R.updateRedmineReport = function () {
  *     - date: Report date.
  */
 T2R.updateRedmineReportLink = function (data) {
-    var url = T2R.REDMINE_REPORT_URL_FORMAT
+    var url = T2R_REDMINE_REPORT_URL_FORMAT
         .replace('[@date]', data.date);
     $('#redmine-report-link').attr('href', url);
 };
@@ -1350,13 +1301,13 @@ T2R.redmineRequest = function (opts) {
 
     // Prepend Redmine URL for relative URLs.
     if (opts.url.match(/^\//)) {
-        opts.url = T2R.REDMINE_URL + opts.url;
+        opts.url = T2R_REDMINE_URL + opts.url;
     }
 
     // TODO: Use CSRF Token instead of API Key?
     // For some reason Redmine throws 401 Unauthroized despite a CSRF Token.
     opts.headers = opts.headers || {};
-    opts.headers['X-Redmine-API-Key'] = T2R.REDMINE_API_KEY;
+    opts.headers['X-Redmine-API-Key'] = T2R_REDMINE_API_KEY;
 
     // Queue the request.
     T2RAjaxQueue.addItem(opts);
@@ -1373,9 +1324,9 @@ T2R.redmineRequest = function (opts) {
  */
 T2R.redmineIssueURL = function (id) {
     id = parseInt(id);
-    var output = false;
+    var output = null;
     if (!isNaN(id) && id > 0) {
-        output = T2R.REDMINE_URL + '/issues/' + id;
+        output = T2R_REDMINE_URL + '/issues/' + id;
     }
     return output;
 };

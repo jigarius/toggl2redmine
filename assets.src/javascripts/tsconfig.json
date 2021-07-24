@@ -9,7 +9,10 @@
     "removeComments": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "es2015"
+    "target": "es2015",
+    "typeRoots": [
+      "node_modules/@types"
+    ]
   },
   "exclude": [
     "test/**/*.test.ts"

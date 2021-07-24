@@ -97,8 +97,14 @@ task :lint do
   sh 'docker compose exec redmine rubocop -c plugins/toggl2redmine/.rubocop.yml plugins/toggl2redmine'
 end
 
-desc 'Run all tests or a specific test.'
+desc 'Run tests for all code.'
 task :test do
+  Rake::Task['test_ruby'].execute
+  Rake::Task['test_javascript'].execute
+end
+
+desc 'Run tests for Ruby code.'
+task :test_ruby do
   file = ENV.fetch('TEST', nil)
   type = ENV.fetch('TYPE', nil)
   type = type ? ":#{type}" : nil
@@ -113,7 +119,12 @@ task :test do
   sh "docker compose exec -e RAILS_ENV=test redmine rake #{command}"
 end
 
-desc 'Run tsc in watch mode to compile TypeScript.'
-task :watch do
-  sh 'docker compose exec -w /app/assets.src/javascripts node npx tsc -w'
+desc 'Run tests for JavaScript code.'
+task :test_javascript do
+  sh 'docker compose exec -w /app/assets.src/javascripts node npx mocha'
+end
+
+desc 'Launch a terminal for running node commands on asset source files.'
+task :assets do
+  sh 'docker compose exec -w /app/assets.src node bash'
 end

@@ -16,10 +16,6 @@ import { TemporaryStorage as T2RTemporaryStorage } from "./t2r/storage/Temporary
  */
 let T2R: any = {
     cacheData: {},
-    appData: {},
-    // If no Toggl workspace is selected, this one is used
-    // TODO: This shouldn't look like a constant because it is mutated.
-    togglDefaultWorkspace: 0,
     // Browser storage.
     localStorage: new T2RLocalStorage(),
     // Temporary storage.
@@ -644,7 +640,7 @@ T2R.getTogglWorkspaces = function (callback) {
 
             // Determine default Toggl workspace.
             if (workspaces.length > 0) {
-                T2R.togglDefaultWorkspace = workspaces[0].id;
+                T2R.tempStorage.set('default_toggl_workspace', workspaces[0].id);
             }
 
             callback(workspaces);
@@ -898,7 +894,7 @@ T2R.updateTogglReport = function () {
  *     - workspace: Workspace ID.
  */
 T2R.updateTogglReportLink = function (data) {
-    data.workspace = data.workspace || T2R.togglDefaultWorkspace;
+    data.workspace = data.workspace || T2R.tempStorage.get('default_toggl_workspace', 0);
 
     var url = T2R_TOGGL_REPORT_URL_FORMAT
         .replace(/\[@date\]/g, data.date)
@@ -1909,7 +1905,6 @@ T2RWidget.initRedmineActivityDropdown = function (el) {
 T2RWidget.initTogglWorkspaceDropdown = function (el) {
     var $el = $(el);
     T2R.getTogglWorkspaces(function (workspaces) {
-        // Prepare placeholder.
         var placeholder = $el.attr('placeholder') || $el.data('placeholder');
 
         // Prepare options.

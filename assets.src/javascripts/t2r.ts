@@ -15,11 +15,12 @@ import { TemporaryStorage as T2RTemporaryStorage } from "./t2r/storage/Temporary
  * Toggl 2 Redmine Helper.
  */
 let T2R: any = {
-    cacheData: {},
     // Browser storage.
     localStorage: new T2RLocalStorage(),
     // Temporary storage.
-    tempStorage: new T2RTemporaryStorage()
+    tempStorage: new T2RTemporaryStorage(),
+    // Cache storage.
+    cacheStorage: new T2RTemporaryStorage()
 };
 
 /**
@@ -71,29 +72,6 @@ T2R.t = function(key, vars = {}) {
  */
 T2R.FAKE_CALLBACK = function (data) {
     console.warn('No callback was provided to handle this data: ', data);
-};
-
-/**
- * Get or set objects from or to the cache.
- *
- * @param {string} key
- *   Cache key.
- *
- * @param {*} value
- *   Cache value. Ignore this argument for "get" requests.
- *
- * @returns {*}
- *   Cached value if found.
- */
-T2R.cache = function (key, value = null) {
-    if (2 === arguments.length) {
-        T2R.cacheData[key] = value;
-        return value;
-    }
-    else {
-        return ('undefined' === typeof T2R.cacheData[key])
-            ? null : T2R.cacheData[key];
-    }
 };
 
 /**
@@ -625,7 +603,7 @@ T2R.getTogglWorkspaces = function (callback) {
     callback = callback || T2R.FAKE_CALLBACK;
 
     // Use cached data, if available.
-    var workspaces = T2R.cache(key);
+    var workspaces = T2R.cacheStorage.get(key);
     if (workspaces) {
         callback(workspaces);
         return;
@@ -636,7 +614,7 @@ T2R.getTogglWorkspaces = function (callback) {
         url: '/toggl2redmine/toggl/workspaces',
         success: function(data, status, xhr) {
             workspaces = data;
-            T2R.cache(key, workspaces);
+            T2R.cacheStorage.set(key, workspaces);
 
             // Determine default Toggl workspace.
             if (workspaces.length > 0) {
@@ -1132,7 +1110,7 @@ T2R.getRedmineActivities = function (callback) {
     callback = callback || T2R.FAKE_CALLBACK;
 
     // Use cached data, if available.
-    var activities = T2R.cache(key);
+    var activities = T2R.cacheStorage.get(key);
     if (activities) {
         callback(activities);
         return;
@@ -1143,7 +1121,7 @@ T2R.getRedmineActivities = function (callback) {
         url: '/enumerations/time_entry_activities.json',
         success: function (data, status, xhr) {
             var activities = data.time_entry_activities;
-            T2R.cache(key, activities);
+            T2R.cacheStorage.set(key, activities);
             callback(activities);
         },
         error: function (xhr, textStatus) {
@@ -1217,7 +1195,7 @@ T2R.getRedmineIssues = function (ids) {
  */
 T2R.getRedmineCsrfToken = function () {
     var key = 'redmine.token';
-    var output = T2R.cache(key);
+    var output = T2R.cacheStorage.get(key);
     if (!output) {
         // Redmine issues CSRF tokens as META elements on the page.
         var $param = $('meta[name="csrf-param"]');
@@ -1227,7 +1205,7 @@ T2R.getRedmineCsrfToken = function () {
                 param: $param.attr('content'),
                 token: $token.attr('content')
             };
-            T2R.cache(key, output);
+            T2R.cacheStorage.set(key, output);
         }
     }
     return output;

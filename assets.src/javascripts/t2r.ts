@@ -8,20 +8,19 @@ declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
 // UI translations.
 declare const T2R_TRANSLATIONS: any
 
-import { LocalStorage as T2RLocalStorage } from "./t2r/storage/LocalStorage.js";
-import { TemporaryStorage as T2RTemporaryStorage } from "./t2r/storage/TemporaryStorage.js";
-import { Duration } from "./t2r/Duration.js";
+import { LocalStorage, TemporaryStorage } from "./t2r/storage.js";
+import * as duration from "./t2r/duration.js";
 
 /**
  * Toggl 2 Redmine Helper.
  */
 let T2R: any = {
     // Browser storage.
-    localStorage: new T2RLocalStorage(),
+    localStorage: new LocalStorage(),
     // Temporary storage.
-    tempStorage: new T2RTemporaryStorage(),
+    tempStorage: new TemporaryStorage(),
     // Cache storage.
-    cacheStorage: new T2RTemporaryStorage()
+    cacheStorage: new TemporaryStorage()
 };
 
 /**
@@ -423,17 +422,17 @@ T2R.publishToRedmine = function () {
 
         // Convert time to Redmine-friendly format, i.e. hh:mm.
         var durationInput = $tr.find('[data-property="hours"]').val();
-        var duration = new Duration();
+        var dur = new duration.Duration();
         try {
-            duration.setHHMM(durationInput);
-            redmine_entry.hours = duration.asDecimal(true);
+            dur.setHHMM(durationInput);
+            redmine_entry.hours = dur.asDecimal(true);
         } catch (e) {
             console.warn('Invalid duration. Ignoring entry.', redmine_entry);
             return;
         }
 
         // Ignore entries with 0 duration.
-        if (duration.getSeconds() < 30) {
+        if (dur.getSeconds() < 30) {
             console.warn('Entry ignored: Duration is less than 30 seconds.', redmine_entry);
         }
 
@@ -714,17 +713,17 @@ T2R.getTogglTimeEntries = function (opts, callback) {
             entry.errors = entry.errors || [];
 
             // Prepare "duration" object.
-            entry.duration = new Duration(Math.max(0, entry.duration));
+            entry.duration = new duration.Duration(Math.max(0, entry.duration));
 
             // Ignore second-level precision for rounded duration.
-            entry.roundedDuration = new Duration(entry.duration.getSeconds());
+            entry.roundedDuration = new duration.Duration(entry.duration.getSeconds());
 
             // Prepare rounded duration as per rounding rules.
             if (roundingDirection !== '' && roundingValue > 0) {
                 entry.roundedDuration.roundTo(roundingValue, roundingDirection);
             }
             else {
-                entry.roundedDuration.roundTo(1, Duration.ROUND_REGULAR);
+                entry.roundedDuration.roundTo(1, duration.ROUND_REGULAR);
             }
 
             if (entry.duration.getSeconds() !== entry.roundedDuration.getSeconds()) {
@@ -886,7 +885,7 @@ T2R.updateTogglReportLink = function (data) {
  */
 T2R.updateTogglTotals = function () {
     var $table = T2R.getTogglTable();
-    var total = new Duration();
+    var total = new duration.Duration();
 
     // Iterate over all rows and add the hours.
     $table.find('tbody tr').each(function (i) {
@@ -905,10 +904,10 @@ T2R.updateTogglTotals = function () {
         // Parse the input as time and add it to the total.
         var hours = $tr.find('[data-property="hours"]').val();
         try {
-            var duration = new Duration();
+            let dur = new duration.Duration();
             // Assume time to be hours and minutes.
-            duration.setHHMM(hours);
-            total.add(duration);
+            dur.setHHMM(hours);
+            total.add(dur);
         } catch(e) {
             console.error(e);
         }
@@ -1057,7 +1056,7 @@ T2R.updateRedmineReportLink = function (data) {
  */
 T2R.updateRedmineTotals = function () {
     var $table = T2R.getRedmineTable();
-    var total = new Duration();
+    var total = new duration.Duration();
 
     // Iterate over all rows and add the hours.
     $table.find('tbody tr .hours').each(function (i) {
@@ -1468,7 +1467,7 @@ T2RWidget.initDurationInput = function (el) {
             var val = $el.val();
             try {
                 // If a duration object could be created, then the the time is valid.
-                new Duration(val);
+                new duration.Duration(val);
                 el.setCustomValidity('');
             } catch (e) {
                 el.setCustomValidity(e);
@@ -1481,8 +1480,8 @@ T2RWidget.initDurationInput = function (el) {
 
             // Detect current duration.
             try {
-                var duration = new Duration();
-                duration.setHHMM($input.val());
+                let dur = new duration.Duration();
+                dur.setHHMM($input.val());
             } catch(e) {
                 return;
             }
@@ -1514,9 +1513,9 @@ T2RWidget.initDurationInput = function (el) {
             var value = '';
             // Determine the visible value.
             try {
-                var duration = new Duration();
-                duration.setHHMM($input.val());
-                value = duration.asHHMM();
+                let dur = new duration.Duration();
+                dur.setHHMM($input.val());
+                value = dur.asHHMM();
             } catch(e) {}
             // Update the visible value and the totals.
             $input.val(value);
@@ -1586,9 +1585,9 @@ T2RWidget.initDurationRoundingDirection = function (el) {
 
     // Prepare rounding options.
     var options = {};
-    options[Duration.ROUND_REGULAR] = 'Round off';
-    options[Duration.ROUND_UP] = 'Round up';
-    options[Duration.ROUND_DOWN] = 'Round down';
+    options[duration.ROUND_REGULAR] = 'Round off';
+    options[duration.ROUND_UP] = 'Round up';
+    options[duration.ROUND_DOWN] = 'Round down';
 
     // Generate a SELECT element and use it's options.
     var $select = T2RRenderer.render('Dropdown', {

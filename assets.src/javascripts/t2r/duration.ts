@@ -1,4 +1,26 @@
 /**
+ * Round up.
+ *
+ * Example: 25 seconds and 35 seconds both become 1 minute.
+ */
+export const ROUND_UP = 'U'
+
+/**
+ * Round down.
+ *
+ * Example: 25 seconds and 35 seconds both become 0 minute.
+ */
+export const ROUND_DOWN = 'D'
+
+/**
+ * Round regular.
+ *
+ * Example: 25 seconds becomes 0 minute.
+ * Example: 35 seconds becomes 1 minute.
+ */
+export const ROUND_REGULAR = 'R'
+
+/**
  * Toggl to Redmine time duration.
  *
  * @param {string}
@@ -245,12 +267,7 @@ export class Duration {
    * @param {string} direction
    *   One of T2R.ROUND_* constants.
    */
-  roundTo(minutes, direction) {
-    // Determine the rounding value.
-    minutes = 'undefined' === typeof minutes ? 0 : minutes;
-    minutes = parseInt(minutes);
-    minutes = isNaN(minutes) ? 0 : minutes;
-
+  roundTo(minutes: number, direction: string) {
     // Do nothing if rounding value is zero.
     if (0 === minutes) {
       return;
@@ -269,46 +286,25 @@ export class Duration {
 
     // Round according to rounding direction.
     switch (direction) {
-      case Duration.ROUND_REGULAR:
+      case ROUND_REGULAR:
         if (correction >= seconds / 2) {
-          this.roundTo(minutes, Duration.ROUND_UP);
+          this.roundTo(minutes, ROUND_UP);
         }
         else {
-          this.roundTo(minutes, Duration.ROUND_DOWN);
+          this.roundTo(minutes, ROUND_DOWN);
         }
         break;
 
-      case Duration.ROUND_UP:
+      case ROUND_UP:
         this.add(seconds - correction);
         break;
 
-      case Duration.ROUND_DOWN:
+      case ROUND_DOWN:
         this.sub(correction);
         break;
 
       default:
-        throw 'Invalid rounding direction. Please use one of Duration.ROUND_*.';
+        throw 'Invalid rounding direction. Please use one of ROUND_*.';
     }
   };
 };
-
-/**
- * Round up.
- *
- * @type {string}
- */
-Duration.ROUND_UP = 'U';
-
-/**
- * Round down.
- *
- * @type {string}
- */
-Duration.ROUND_DOWN = 'D';
-
-/**
- * Round regular.
- *
- * @type {string}
- */
-Duration.ROUND_REGULAR = 'R';

@@ -794,7 +794,7 @@ T2R.updateTogglReport = function () {
     var opts = {
         from: date + ' 00:00:00',
         till: date + ' 23:59:59',
-        workspace: T2R.localStorage.get('t2r.toggl-workspace', false)
+        workspace: T2R.localStorage.get('t2r.toggl-workspace')
     };
 
     // Update other elements.

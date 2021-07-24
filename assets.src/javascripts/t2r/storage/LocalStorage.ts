@@ -18,7 +18,17 @@ export class LocalStorage {
   }
 
   set(key: string, value: any) {
+    if (value === null) {
+      return this.delete(key)
+    }
+
     window.localStorage.setItem(key, value)
     return value;
+  }
+
+  delete(key: string) {
+    let value = this.get(key)
+    window.localStorage.removeItem(key)
+    return value
   }
 }

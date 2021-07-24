@@ -225,10 +225,10 @@ export class Duration {
    *   Time in hours (decimal). Ex: 1.5 for 1 hr 30 min.
    */
   asDecimal(ignoreSeconds) {
-    var output = this.getSeconds(ignoreSeconds) / 3600;
+    let seconds = this.getSeconds(ignoreSeconds) / 3600;
     // Convert to hours. Ex: 0h 25m becomes 0.416.
     // Since toFixed rounds off the last digit, we ignore it.
-    output = output.toFixed(3);
+    let output: string = seconds.toFixed(3);
     output = output.substr(0, output.length - 1);
     return output;
   };

@@ -528,15 +528,9 @@ T2R.getTogglTimeEntries = function (opts, callback) {
         for (var key in entries) {
             var entry = entries[key];
             console.groupCollapsed('Received Toggl entry: ' + key);
-            console.debug('Toggl time entry: ', entry);
+            console.log('Toggl time entry: ', entry);
 
-            // Prepare error messages for the record.
-            entry.errors = entry.errors || [];
-
-            // Prepare "duration" object.
             entry.duration = new duration.Duration(Math.max(0, entry.duration));
-
-            // Ignore second-level precision for rounded duration.
             entry.roundedDuration = new duration.Duration(entry.duration.seconds);
 
             // Prepare rounded duration as per rounding rules.
@@ -558,11 +552,13 @@ T2R.getTogglTimeEntries = function (opts, callback) {
             }
 
             // If there is no issue ID associated to the entry.
+            // TODO: Do this server-side.
             if (!entry.issue_id) {
                 entry.errors.push('Could not determine issue ID. Please mention the Redmine issue ID in your Toggl task description. Example: "#1919 Feed the bunny wabbit"');
             }
 
             // If an issue ID exists, but no issue could be found.
+            // TODO: Do this server-side.
             if (entry.issue_id && !entry.issue) {
                 entry.errors.push('This issue was either not found on Redmine or you don\'t have access to it. Make sure you\'re using a correct issue ID and that you\'re a member of the project.');
             }

@@ -8,7 +8,8 @@ declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
 declare const T2R_BUTTON_ACTIONS: string;
 declare const contextMenuRightClick: any;
 
-import { LocalStorage, TemporaryStorage } from "./t2r/storage.js";
+import {RequestQueue} from "./t2r/request.js"
+import {LocalStorage, TemporaryStorage} from "./t2r/storage.js";
 import {translate as t} from "./t2r/i18n.js";
 import * as duration from "./t2r/duration.js";
 import * as utils from "./t2r/utils.js"
@@ -23,7 +24,9 @@ let T2R: any = {
     // Temporary storage.
     tempStorage: new TemporaryStorage(),
     // Cache storage.
-    cacheStorage: new TemporaryStorage()
+    cacheStorage: new TemporaryStorage(),
+    // AJAX request queue.
+    requestQueue: new RequestQueue()
 };
 
 /**
@@ -383,7 +386,7 @@ T2R.publishToRedmine = function () {
 
     // Refresh the Redmine report when all items are processed.
     T2R.__publishWatcher = setInterval(function () {
-        if (T2RAjaxQueue.isEmpty()) {
+        if (T2R.requestQueue.length === 0) {
             clearInterval(T2R.__publishWatcher);
             T2R.unlockPublishForm();
             T2R.updateRedmineReport();
@@ -1024,8 +1027,7 @@ T2R.redmineRequest = function (opts) {
     opts.headers = opts.headers || {};
     opts.headers['X-Redmine-API-Key'] = T2R_REDMINE_API_KEY;
 
-    // Queue the request.
-    T2RAjaxQueue.addItem(opts);
+    T2R.requestQueue.addItem(opts);
 };
 
 /**
@@ -1045,93 +1047,6 @@ T2R.redmineIssueURL = function (id) {
     }
     return output;
 };
-
-/**
- * Toggl 2 Redmine AJAX Request Queue.
- *
- * @type {Object}
- */
-var T2RAjaxQueue = T2RAjaxQueue || {};
-
-/**
- * Queue of requests to be processed.
- *
- * @type {Object}
- * @private
- */
-T2RAjaxQueue.__items = [];
-
-/**
- * Whether a request is in progress.
- *
- * @type {Boolean}
- * @private
- */
-T2RAjaxQueue.__requestInProgress = false;
-
-/**
- * Number or requests currently in the queue.
- *
- * @returns {Number}
- */
-T2RAjaxQueue.size = function () {
-    return T2RAjaxQueue.__items.length;
-}
-
-/**
- * Whether there are no requests in the queue.
- *
- * @returns {Boolean}
- */
-T2RAjaxQueue.isEmpty = function () {
-    return T2RAjaxQueue.__items.length === 0;
-}
-
-/**
- * Adds an AJAX request to the execution queue.
- *
- * Requests be executed one after the other until all items in the queue have
- * been processed.
- */
-T2RAjaxQueue.addItem = function (opts) {
-    T2RAjaxQueue.__items.push(opts);
-    T2RAjaxQueue.processItem();
-};
-
-/**
- * Processes an AJAX request present in the queue.
- */
-T2RAjaxQueue.processItem = function () {
-    // If queue is empty, do nothing.
-    if (0 === T2RAjaxQueue.__items.length) {
-        return;
-    }
-
-    // If a request is in progress, do nothing.
-    if (T2RAjaxQueue.__requestInProgress) {
-        return;
-    }
-    T2RAjaxQueue.__requestInProgress = true;
-    console.groupCollapsed('Processing AJAX queue (' + T2RAjaxQueue.size() + ' remaining).');
-
-    // Prepare current item.
-    var opts = T2RAjaxQueue.__items.shift();
-    console.log('Sending item: ', opts);
-    var callback = opts.complete || function () {};
-    opts.complete = function (xhr, status) {
-        // Call the original callback.
-        var context = this;
-        callback.call(context, xhr, status);
-
-        // Process the next item in the queue, if any.
-        T2RAjaxQueue.__requestInProgress = false;
-        T2RAjaxQueue.processItem();
-    };
-
-    // Process current item.
-    $.ajax(opts);
-    console.groupEnd();
-}
 
 /**
  * Toggl 2 Redmine widget manager.

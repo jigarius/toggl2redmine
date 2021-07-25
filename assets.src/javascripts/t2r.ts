@@ -6,6 +6,7 @@ declare const T2R_REDMINE_API_KEY: string;
 declare const T2R_REDMINE_REPORT_URL_FORMAT : string;
 declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
 declare const T2R_BUTTON_ACTIONS: string;
+declare const contextMenuRightClick: any;
 
 import { LocalStorage, TemporaryStorage } from "./t2r/storage.js";
 import {translate as t} from "./t2r/i18n.js";
@@ -23,16 +24,6 @@ let T2R: any = {
     tempStorage: new TemporaryStorage(),
     // Cache storage.
     cacheStorage: new TemporaryStorage()
-};
-
-/**
- * A callback which simply logs all arguments to the console.
- *
- * @param {*} data
- *   Arguments.
- */
-T2R.FAKE_CALLBACK = function (data) {
-    console.warn('No callback was provided to handle this data: ', data);
 };
 
 /**
@@ -449,7 +440,7 @@ T2R.dateFormatYYYYMMDD = function (date) {
  */
 T2R.getTogglWorkspaces = function (callback) {
     var key = 'toggl.workspaces';
-    callback = callback || T2R.FAKE_CALLBACK;
+    callback = callback || utils.noopCallback;
 
     // Use cached data, if available.
     var workspaces = T2R.cacheStorage.get(key);
@@ -544,7 +535,7 @@ T2R._getRawTogglTimeEntries = function (opts, callback) {
  */
 T2R.getTogglTimeEntries = function (opts, callback) {
     opts = opts || {};
-    callback = callback || T2R.FAKE_CALLBACK;
+    callback = callback || utils.noopCallback;
 
     T2R._getRawTogglTimeEntries(opts, function (entries) {
         var output = [];
@@ -812,7 +803,7 @@ T2R._getRawRedmineTimeEntries = function (query, callback) {
  */
 T2R.getRedmineTimeEntries = function (query, callback) {
     query = query || {};
-    callback = callback || T2R.FAKE_CALLBACK;
+    callback = callback || utils.noopCallback;
 
     T2R._getRawRedmineTimeEntries(query, function (entries) {
         var output = [];
@@ -956,7 +947,7 @@ T2R.updateLastImported = function () {
  */
 T2R.getRedmineActivities = function (callback) {
     var key = 'redmine.activities';
-    callback = callback || T2R.FAKE_CALLBACK;
+    callback = callback || utils.noopCallback;
 
     // Use cached data, if available.
     var activities = T2R.cacheStorage.get(key);
@@ -1200,8 +1191,7 @@ let T2RWidget: any = {};
  *
  * @param {Object} el
  */
-T2RWidget.initialize = function (el) {
-    el = ('undefined' === typeof el) ? document.body : el;
+T2RWidget.initialize = function (el = document.body) {
     $(el).find('[data-t2r-widget]').each(function() {
         var el = this, $el = $(this);
         var widgets = $el.attr('data-t2r-widget').split(' ');
@@ -1432,14 +1422,14 @@ T2RWidget.initTogglWorkspaceDropdown = function (el) {
     });
 };
 
-T2RWidget.initDurationRoundingDirection = function (el) {
-    var $el = $(el);
+T2RWidget.initDurationRoundingDirection = function (el: any) {
+    let $el = $(el);
 
     // Prepare rounding options.
-    var options = {};
-    options[duration.Rounding.Regular] = 'Round off';
-    options[duration.Rounding.Up] = 'Round up';
-    options[duration.Rounding.Down] = 'Round down';
+    let options = {}
+    options[duration.Rounding.Regular] = 'Round off'
+    options[duration.Rounding.Up] = 'Round up'
+    options[duration.Rounding.Down] = 'Round down'
 
     // Generate a SELECT element and use it's options.
     var $select = T2RRenderer.render('Dropdown', {
@@ -1455,7 +1445,7 @@ T2RWidget.initDurationRoundingDirection = function (el) {
  */
 let T2RRenderer: any = {};
 
-T2RRenderer.renderDropdown = function (data) {
+T2RRenderer.renderDropdown = function (data: any) {
     var $el = $('<select />');
     if ('undefined' !== typeof data.placeholder) {
         $el.append('<option value="">' + data.placeholder + '</option>');
@@ -1470,7 +1460,7 @@ T2RRenderer.renderDropdown = function (data) {
     return $el;
 };
 
-T2RRenderer.renderDuration = function (data) {
+T2RRenderer.renderDuration = function (data: any) {
     data = Math.ceil(data / 60);
     var h = Math.floor(data / 60);
     var output = h;
@@ -1479,7 +1469,7 @@ T2RRenderer.renderDuration = function (data) {
     return output;
 };
 
-T2RRenderer.renderRedmineProjectLabel = function (project) {
+T2RRenderer.renderRedmineProjectLabel = function (project: any) {
     project ||= { name: 'Unknown', path: 'javascript:void(0)', status: 1 };
     project.classes = ['project'];
     if (project.status != 1) {
@@ -1491,7 +1481,7 @@ T2RRenderer.renderRedmineProjectLabel = function (project) {
         + '</strong></a>';
 }
 
-T2RRenderer.renderRedmineIssueLabel = function (data) {
+T2RRenderer.renderRedmineIssueLabel = function (data: any) {
     // If the issue is invalid, do nothing.
     var issue = data;
     if (!issue || !issue.id) {
@@ -1507,7 +1497,7 @@ T2RRenderer.renderRedmineIssueLabel = function (data) {
     return markup;
 };
 
-T2RRenderer.renderTogglRow = function (data) {
+T2RRenderer.renderTogglRow = function (data: any) {
     var issue = data.issue || null;
     var project = data.project || null;
     var oDuration = data.duration;
@@ -1592,7 +1582,7 @@ T2RRenderer.renderTogglRow = function (data) {
     return $tr;
 };
 
-T2RRenderer.renderRedmineRow = function (data) {
+T2RRenderer.renderRedmineRow = function (data: any) {
     var issue = data.issue.id ? data.issue : null;
     var project = data.project ? data.project : null;
 
@@ -1638,7 +1628,7 @@ T2RRenderer.renderRedmineRow = function (data) {
  *   - description: A status message. Example: Time entry is not valid.
  *   - icon: The icon to display. Example: check, error, warning.
  */
-T2RRenderer.renderStatusLabel = function (data) {
+T2RRenderer.renderStatusLabel = function (data: any) {
     // Fallback to defaults.
     data = jQuery.extend({
         label: 'Unknown',
@@ -1665,21 +1655,16 @@ T2RRenderer.renderStatusLabel = function (data) {
  * @param {*} data
  *   The data to render.
  *
- * @returns {Object}
+ * @returns {*}
  *   Rendered output.
  */
-T2RRenderer.render = function (template, data) {
-    var method = 'render' + template;
-    if ('undefined' == typeof T2RRenderer) {
-        throw 'Error: To render "' + template + '" please define "T2RRenderer.' + method;
+T2RRenderer.render = function (template: string, data: any): any {
+    const method = 'render' + template;
+    if (typeof T2RRenderer[method] === 'undefined') {
+        throw `To render "${template}", define T2RRenderer.${method}`
     }
     return T2RRenderer[method](data);
 };
-
-/**
- * Init script.
- */
-
 
 /**
  * This is where it starts.

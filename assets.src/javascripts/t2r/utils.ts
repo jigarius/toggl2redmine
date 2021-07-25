@@ -1,4 +1,11 @@
 /**
+ * A no-op callback which simply logs all arguments.
+ */
+export function noopCallback(data: any) {
+  console.warn('No callback was provided to handle this data ', data);
+}
+
+/**
  * Replaces certain characters with HTML entities.
  */
 export function htmlEntityEncode(str: string): string {

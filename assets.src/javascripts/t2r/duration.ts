@@ -1,24 +1,8 @@
-/**
- * Round up.
- *
- * Example: 25 seconds and 35 seconds both become 1 minute.
- */
-export const ROUND_UP = 'U'
-
-/**
- * Round down.
- *
- * Example: 25 seconds and 35 seconds both become 0 minute.
- */
-export const ROUND_DOWN = 'D'
-
-/**
- * Round regular.
- *
- * Example: 25 seconds becomes 0 minute.
- * Example: 35 seconds becomes 1 minute.
- */
-export const ROUND_REGULAR = 'R'
+export enum Rounding {
+  Up = 'U',
+  Down = 'D',
+  Regular = 'R'
+}
 
 /**
  * Toggl to Redmine time duration.
@@ -182,10 +166,10 @@ export class Duration {
    *
    * @param {*} minutes
    *   Number of minutes to round to. Ex: 5, 10 or 15.
-   * @param {string} direction
-   *   One of T2R.ROUND_* constants.
+   * @param {Rounding} method
+   *   Rounding logic.
    */
-  roundTo(minutes: number, direction: string) {
+  roundTo(minutes: number, method: Rounding) {
     if (0 === minutes) {
       return;
     }
@@ -197,27 +181,27 @@ export class Duration {
       return;
     }
 
-    // Round according to rounding direction.
-    switch (direction) {
-      case ROUND_REGULAR:
+    // Round according to rounding method.
+    switch (method) {
+      case Rounding.Regular:
         if (correction >= seconds / 2) {
-          this.roundTo(minutes, ROUND_UP);
+          this.roundTo(minutes, Rounding.Up);
         }
         else {
-          this.roundTo(minutes, ROUND_DOWN);
+          this.roundTo(minutes, Rounding.Down);
         }
         break;
 
-      case ROUND_UP:
+      case Rounding.Up:
         this.add(new Duration(seconds - correction));
         break;
 
-      case ROUND_DOWN:
+      case Rounding.Down:
         this.sub(new Duration(correction));
         break;
 
       default:
-        throw 'Invalid rounding direction. Please use one of ROUND_*.';
+        throw 'Invalid rounding method.';
     }
   };
 }

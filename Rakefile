@@ -92,18 +92,29 @@ task :info do
   INFO
 end
 
-desc 'Lint with Rubocop.'
+desc 'Lint all code.'
 task :lint do
+  Rake::Task['lint_ruby'].execute
+  Rake::Task['lint_javascript'].execute
+end
+
+desc 'Lint Ruby code.'
+task :lint_ruby do
   sh 'docker compose exec redmine rubocop -c plugins/toggl2redmine/.rubocop.yml plugins/toggl2redmine'
 end
 
-desc 'Run tests for all code.'
+desc 'Lint JavaScript code.'
+task :lint_javascript do
+  sh 'docker compose exec -w /app/assets.src/javascripts node npm run lint'
+end
+
+desc 'Test all code.'
 task :test do
   Rake::Task['test_ruby'].execute
   Rake::Task['test_javascript'].execute
 end
 
-desc 'Run tests for Ruby code.'
+desc 'Test Ruby code.'
 task :test_ruby do
   file = ENV.fetch('TEST', nil)
   type = ENV.fetch('TYPE', nil)
@@ -119,9 +130,9 @@ task :test_ruby do
   sh "docker compose exec -e RAILS_ENV=test redmine rake #{command}"
 end
 
-desc 'Run tests for JavaScript code.'
+desc 'Test JavaScript code.'
 task :test_javascript do
-  sh 'docker compose exec -w /app/assets.src/javascripts node npx mocha'
+  sh 'docker compose exec -w /app/assets.src/javascripts node npm run test'
 end
 
 desc 'Launch a terminal for running node commands on asset source files.'

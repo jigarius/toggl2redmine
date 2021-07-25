@@ -425,14 +425,14 @@ T2R.publishToRedmine = function () {
         var dur = new duration.Duration();
         try {
             dur.setHHMM(durationInput);
-            redmine_entry.hours = dur.asDecimal(true);
+            redmine_entry.hours = dur.asDecimal();
         } catch (e) {
             console.warn('Invalid duration. Ignoring entry.', redmine_entry);
             return;
         }
 
         // Ignore entries with 0 duration.
-        if (dur.getSeconds() < 30) {
+        if (dur.seconds < 30) {
             console.warn('Entry ignored: Duration is less than 30 seconds.', redmine_entry);
         }
 
@@ -716,7 +716,7 @@ T2R.getTogglTimeEntries = function (opts, callback) {
             entry.duration = new duration.Duration(Math.max(0, entry.duration));
 
             // Ignore second-level precision for rounded duration.
-            entry.roundedDuration = new duration.Duration(entry.duration.getSeconds());
+            entry.roundedDuration = new duration.Duration(entry.duration.seconds);
 
             // Prepare rounded duration as per rounding rules.
             if (roundingDirection !== '' && roundingValue > 0) {
@@ -726,7 +726,7 @@ T2R.getTogglTimeEntries = function (opts, callback) {
                 entry.roundedDuration.roundTo(1, duration.ROUND_REGULAR);
             }
 
-            if (entry.duration.getSeconds() !== entry.roundedDuration.getSeconds()) {
+            if (entry.duration.seconds !== entry.roundedDuration.seconds) {
                 console.debug('Duration rounded.', {
                     from: entry.duration.asHHMM(),
                     to: entry.roundedDuration.asHHMM()
@@ -902,7 +902,7 @@ T2R.updateTogglTotals = function () {
         }
 
         // Parse the input as time and add it to the total.
-        var hours = $tr.find('[data-property="hours"]').val();
+        let hours = $tr.find('[data-property="hours"]').val() as string;
         try {
             let dur = new duration.Duration();
             // Assume time to be hours and minutes.
@@ -1060,9 +1060,9 @@ T2R.updateRedmineTotals = function () {
 
     // Iterate over all rows and add the hours.
     $table.find('tbody tr .hours').each(function (i) {
-        var hours = $(this).text().trim();
+        let hours = $(this).text().trim();
         if (hours.length > 0) {
-            total.add(hours);
+            total.add(new duration.Duration(hours));
         }
     });
 
@@ -1476,29 +1476,30 @@ T2RWidget.initDurationInput = function (el) {
         // Update totals as the user updates hours.
         .bind('input', T2R.updateTogglTotals)
         .bind('keyup', function (e) {
-            var $input = $(this);
+            let $input = $(this);
+            let dur = new duration.Duration();
 
             // Detect current duration.
             try {
-                let dur = new duration.Duration();
-                dur.setHHMM($input.val());
+                dur.setHHMM(($input.val() as string));
             } catch(e) {
                 return;
             }
 
             // Round to the nearest 5 minutes or 15 minutes.
-            var minutes = duration.getMinutes();
+            var minutes = dur.minutes % 60;
             var step = e.shiftKey ? 15 : 5;
+            let delta: number = 0
 
             // On "Up" press.
             if (e.key === 'ArrowUp') {
-                var delta = step - (minutes % step);
-                duration.add(delta * 60);
+                delta = step - (minutes % step);
+                dur.add(new duration.Duration(delta * 60));
             }
             // On "Down" press.
             else if (e.key === 'ArrowDown') {
-                var delta = (minutes % step) || step;
-                duration.sub(delta * 60);
+                delta = (minutes % step) || step;
+                dur.sub(new duration.Duration(delta * 60));
             }
             // Do nothing.
             else {
@@ -1506,17 +1507,19 @@ T2RWidget.initDurationInput = function (el) {
             }
 
             // Update value in the input field.
-            $(this).val(duration.asHHMM()).trigger('input').select();
+            $(this).val(dur.asHHMM()).trigger('input').select();
         })
         .bind('change', function () {
-            var $input = $(this);
-            var value = '';
+            let $input = $(this);
+            let value = '';
+
             // Determine the visible value.
             try {
                 let dur = new duration.Duration();
-                dur.setHHMM($input.val());
+                dur.setHHMM(($input.val() as string));
                 value = dur.asHHMM();
             } catch(e) {}
+
             // Update the visible value and the totals.
             $input.val(value);
             T2R.updateTogglTotals();

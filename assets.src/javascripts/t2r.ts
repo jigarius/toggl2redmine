@@ -204,8 +204,8 @@ T2R.handleFilterForm = function() {
     T2R.localStorage.set('t2r.rounding-value', roundingValue);
 
     // Determine rounding direction.
-    var roundingDirection = $('select#rounding-direction').val();
-    T2R.localStorage.set('t2r.rounding-direction', roundingDirection);
+    let roundingMethod = $('select#rounding-direction').val();
+    T2R.localStorage.set('t2r.rounding-direction', roundingMethod);
 
     // Determine date filter.
     var $date = $('#date');
@@ -549,8 +549,8 @@ T2R.getTogglTimeEntries = function (opts, callback) {
         var output = [];
 
         // Prepare rounding rules.
-        var roundingValue = T2R.localStorage.get('t2r.rounding-value');
-        var roundingDirection = T2R.localStorage.get('t2r.rounding-direction');
+        let roundingValue = T2R.localStorage.get('t2r.rounding-value');
+        let roundingMethod = T2R.localStorage.get('t2r.rounding-direction');
 
         for (var key in entries) {
             var entry = entries[key];
@@ -567,11 +567,11 @@ T2R.getTogglTimeEntries = function (opts, callback) {
             entry.roundedDuration = new duration.Duration(entry.duration.seconds);
 
             // Prepare rounded duration as per rounding rules.
-            if (roundingDirection !== '' && roundingValue > 0) {
-                entry.roundedDuration.roundTo(roundingValue, roundingDirection);
+            if (roundingMethod !== '' && roundingValue > 0) {
+                entry.roundedDuration.roundTo(roundingValue, roundingMethod);
             }
             else {
-                entry.roundedDuration.roundTo(1, duration.ROUND_REGULAR);
+                entry.roundedDuration.roundTo(1, duration.Rounding.Regular);
             }
 
             if (entry.duration.seconds !== entry.roundedDuration.seconds) {
@@ -1436,9 +1436,9 @@ T2RWidget.initDurationRoundingDirection = function (el) {
 
     // Prepare rounding options.
     var options = {};
-    options[duration.ROUND_REGULAR] = 'Round off';
-    options[duration.ROUND_UP] = 'Round up';
-    options[duration.ROUND_DOWN] = 'Round down';
+    options[duration.Rounding.Regular] = 'Round off';
+    options[duration.Rounding.Up] = 'Round up';
+    options[duration.Rounding.Down] = 'Round down';
 
     // Generate a SELECT element and use it's options.
     var $select = T2RRenderer.render('Dropdown', {

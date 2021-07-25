@@ -128,7 +128,7 @@ T2R.resetFilterForm = function (data) {
 
     // Default values.
     var defaults = {
-        date: T2R.dateFormatYYYYMMDD().substr(0, 10),
+        date: utils.dateFormatYYYYMMDD(new Date()),
         'toggl-workspace': T2R.localStorage.get('t2r.toggl-workspace'),
         'default-activity': T2R.localStorage.get('t2r.default-activity'),
         'rounding-value': T2R.localStorage.get('t2r.rounding-value'),
@@ -408,28 +408,6 @@ T2R.getBasicAuthHeader = function (username, password) {
     return {
         Authorization: 'Basic ' + btoa(userpass)
     };
-};
-
-/**
- * Formats date as YYYY-MM-DD.
- *
- * @param {Date} date
- *   The date object. Defaults to current date.
- *
- * @returns {String}
- *   The date in YYYY-MM-DD format.
- */
-T2R.dateFormatYYYYMMDD = function (date) {
-    date = date || new Date();
-
-    // Prepare date parts.
-    var yyyy = date.getFullYear();
-    var m = date.getMonth() + 1;
-    var mm = ('00' + m).substr(-2);
-    var d = date.getDate();
-    var dd = ('00' + d).substr(-2);
-
-    return yyyy + '-' + mm + '-' + dd;
 };
 
 /**
@@ -914,7 +892,7 @@ T2R.updateRedmineTotals = function () {
  * Updates the date of the latest time entry on Redmine.
  */
 T2R.updateLastImported = function () {
-    var now = T2R.dateFormatYYYYMMDD(new Date());
+    var now = utils.dateFormatYYYYMMDD(new Date());
     T2R.redmineRequest({
         url: '/time_entries.json',
         data: {

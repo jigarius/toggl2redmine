@@ -78,3 +78,20 @@ export function getDateFromLocationHash(): string | undefined {
   console.debug('Got date from URL fragment', match);
   return match;
 }
+
+/**
+ * Format a date as YYYY-MM-DD.
+ *
+ * @param {Date} date
+ *   A date.
+ *
+ * @returns {String}
+ *   Formatted date, e.g. 2021-02-28.
+ */
+export function dateFormatYYYYMMDD(date: Date): string {
+  const yyyy = date.getFullYear();
+  const mm = (date.getMonth() + 1).toString().padStart(2, '0')
+  const dd = date.getDate().toString().padStart(2, '0')
+
+  return `${yyyy}-${mm}-${dd}`;
+}

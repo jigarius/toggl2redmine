@@ -5,11 +5,11 @@ const T2R_REDMINE_URL: string = window.location.origin;
 declare const T2R_REDMINE_API_KEY: string;
 declare const T2R_REDMINE_REPORT_URL_FORMAT : string;
 declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
-// UI translations.
-declare const T2R_TRANSLATIONS: any
 
 import { LocalStorage, TemporaryStorage } from "./t2r/storage.js";
+import {translate as t} from "./t2r/i18n.js";
 import * as duration from "./t2r/duration.js";
+import * as utils from "./t2r/utils.js"
 
 /**
  * Toggl 2 Redmine Helper.
@@ -22,47 +22,6 @@ let T2R: any = {
     // Cache storage.
     cacheStorage: new TemporaryStorage()
 };
-
-/**
- * This is where it starts.
- */
-T2R.initialize = function () {
-    T2RWidget.initialize();
-    T2R.initTogglReport();
-    T2R.initFilterForm();
-    T2R.updateLastImported();
-    T2R.initPublishForm();
-};
-
-/**
- * Equivalent of I18n.t().
- *
- * @param {string} key
- *   String ID.
- * @param {{}} vars
- *   Key-value pair of variables to replace.
- *
- * @example
- *   T2R.t('hello', { name: 'Junior' });
- *
- *   This replaces '@name' with 'Junior'.
- *
- * @returns {string}
- *   Translated string if available.
- */
-T2R.t = function(key, vars = {}) {
-    if (T2R_TRANSLATIONS[key] === undefined) {
-        var lang = $('html').attr('lang') || '??';
-        return 'translation missing: ' + lang + '.' + key;
-    }
-
-    var result = T2R_TRANSLATIONS[key];
-    for (var v in vars) {
-        result = result.replace('@' + v, vars[v])
-    }
-
-    return result;
-}
 
 /**
  * A callback which simply logs all arguments to the console.
@@ -104,22 +63,6 @@ T2R.flash = function (message, type = 'notice', timeout = false) {
  */
 T2R.clearFlashMessages = function () {
     $('.t2r.flash').remove();
-};
-
-/**
- * Returns a string after encoding HTML entities.
- *
- * @param String string
- */
-T2R.htmlEntityEncode = function (string) {
-    var output = $('<div />')
-        .text(string)
-        .text()
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&apos;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-    return output;
 };
 
 /**
@@ -208,7 +151,7 @@ T2R.initFilterForm = function () {
 
     // Reset the form to set default values.
     var data = {
-        date: T2R.getDateFromLocationHash()
+        date: utils.getDateFromLocationHash()
     };
     T2R.resetFilterForm(data);
 };
@@ -286,8 +229,8 @@ T2R.handleFilterForm = function() {
     T2R.localStorage.set('t2r.toggl-workspace', togglWorkspace);
 
     // Determine rounding value.
-    var roundingValue = $('input#rounding-value').val() || 0;
-    roundingValue = parseInt(roundingValue);
+    let roundingValue = $('input#rounding-value').val();
+    roundingValue = roundingValue ? parseInt(roundingValue as string) : 0;
     roundingValue = isNaN(roundingValue) ? 0 : roundingValue;
     T2R.localStorage.set('t2r.rounding-value', roundingValue);
 
@@ -302,7 +245,7 @@ T2R.handleFilterForm = function() {
         if (!sDate) {
             throw 'Invalid date.';
         }
-        var oDate = T2R.dateStringToObject(sDate + ' 00:00:00');
+        var oDate = utils.dateStringToObject(sDate + ' 00:00:00');
     } catch (e) {
         $date.focus();
         return false;
@@ -368,20 +311,6 @@ T2R.handlePublishForm = function() {
     }
     return false;
 };
-
-/**
- * Gets date from window.location.hash.
- */
-T2R.getDateFromLocationHash = function () {
-    var output = window.location.hash.match(/^#?([\d]{4}-[\d]{2}-[\d]{2})$/);
-    // Must be a valid date.
-    output = output ? output.pop() : false;
-    if (output && !T2R.dateStringToObject(output)) {
-        output = false;
-    }
-    console.debug('Got date from URL fragment', output);
-    return output;
-}
 
 /**
  * Publishes selected Toggl data to Redmine.
@@ -523,54 +452,6 @@ T2R.getBasicAuthHeader = function (username, password) {
 };
 
 /**
- * Converts a date string into a Date object.
- *
- * @param {string} string
- *   The string to parse as a date.
- *
- * @returns {Date}
- *   The date as an object.
- */
-T2R.dateStringToObject = function (string) {
-    try {
-        // Split the date into parts.
-        // Don't use Date.parse() as it works differently depending on the browser.
-        var dateParts = string.split(/[^\d]/);
-
-        // Must have at least the "date" part.
-        if (dateParts.length < 3) {
-            throw ('Date must contain at least YYYY-MM-DD');
-        }
-
-        // Assume time parts to be 00 if not defined.
-        for (var i = 3; i <= 6; i++) {
-            if (typeof dateParts[i] === 'undefined') {
-                dateParts[i] = 0;
-            }
-        }
-
-        // Adjust month count to begin with 0.
-        dateParts[1] = parseInt(dateParts[1]);
-        dateParts[1] -= 1;
-
-        // Create date with yyyy-mm-dd hh:mm:ss ms.
-        return new Date(
-            dateParts[0],
-            dateParts[1],
-            dateParts[2],
-            dateParts[3],
-            dateParts[4],
-            dateParts[5],
-            dateParts[6]
-        );
-    }
-    catch (e) {
-        console.error('Date not understood', string);
-        return false;
-    }
-};
-
-/**
  * Formats date as YYYY-MM-DD.
  *
  * @param {Date} date
@@ -625,7 +506,7 @@ T2R.getTogglWorkspaces = function (callback) {
         },
         error: function (xhr, textStatus) {
             console.error('Could not load Toggl workspaces.');
-            T2R.flash(T2R.t('t2r.error.ajax_load'), 'error');
+            T2R.flash(t('t2r.error.ajax_load'), 'error');
             callback([]);
         }
     });
@@ -644,10 +525,10 @@ T2R.getTogglWorkspaces = function (callback) {
  */
 T2R._getRawTogglTimeEntries = function (opts, callback) {
     opts = opts || {};
-    var data = {};
+    var data: any = {};
 
     // Determine start date.
-    opts.from = T2R.dateStringToObject(opts.from);
+    opts.from = utils.dateStringToObject(opts.from);
     if (!opts.from) {
         alert('Error: Invalid start date!');
         return false;
@@ -655,7 +536,7 @@ T2R._getRawTogglTimeEntries = function (opts, callback) {
     data.from = opts.from.toISOString();
 
     // Determine end date.
-    opts.till = T2R.dateStringToObject(opts.till);
+    opts.till = utils.dateStringToObject(opts.till);
     if (!opts.till) {
         alert('Error: Invalid end date!');
         return false;
@@ -832,7 +713,7 @@ T2R.updateTogglReport = function () {
         // Display empty table message, if required.
         if (0 === entries.length) {
             var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
-                + T2R.t('t2r.error.list_empty')
+                + t('t2r.error.list_empty')
                 + '</td></tr>';
             $table.find('tbody').append(markup);
         }
@@ -997,7 +878,7 @@ T2R.updateRedmineReport = function () {
 
     // Determine Redmine API friendly date range.
     var till = T2R.tempStorage.get('date');
-    till = T2R.dateStringToObject(till);
+    till = utils.dateStringToObject(till);
     var from = till;
 
     // Fetch time entries from Redmine.
@@ -1025,7 +906,7 @@ T2R.updateRedmineReport = function () {
         // Display empty table message, if required.
         if (0 === entries.length) {
             var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
-                + T2R.t('t2r.error.list_empty')
+                + t('t2r.error.list_empty')
                 + '</td></tr>';
             $table.find('tbody').html(markup);
         }
@@ -1091,7 +972,7 @@ T2R.updateLastImported = function () {
             var sDate = 'Unknown';
             try {
                 var lastImported = xhr.responseJSON.time_entries.pop().spent_on;
-                lastImported = T2R.dateStringToObject(lastImported + ' 00:00:00');
+                lastImported = utils.dateStringToObject(lastImported + ' 00:00:00');
                 sDate = lastImported.toLocaleDateString();
             } catch (e) {}
             $(this).text(sDate).removeClass('t2r-loading');
@@ -1126,7 +1007,7 @@ T2R.getRedmineActivities = function (callback) {
         },
         error: function (xhr, textStatus) {
             console.error('Could not load Redmine activities.');
-            T2R.flash(T2R.t('t2r.error.ajax_load'), 'error');
+            T2R.flash(t('t2r.error.ajax_load'), 'error');
             callback([]);
         }
     });
@@ -1344,7 +1225,7 @@ T2RAjaxQueue.processItem = function () {
 /**
  * Toggl 2 Redmine widget manager.
  */
-var T2RWidget = {};
+let T2RWidget: any = {};
 
 /**
  * Initializes all widgets in the given element.
@@ -1604,7 +1485,7 @@ T2RWidget.initDurationRoundingDirection = function (el) {
 /**
  * Toggl 2 Redmine Renderer.
  */
-var T2RRenderer = {};
+let T2RRenderer: any = {};
 
 T2RRenderer.renderDropdown = function (data) {
     var $el = $('<select />');
@@ -1638,7 +1519,7 @@ T2RRenderer.renderRedmineProjectLabel = function (project) {
     }
 
     return '<a href="' + project.path + '" class="' + project.classes.join(' ') + '"><strong>'
-        + T2R.htmlEntityEncode(project.name)
+        + utils.htmlEntityEncode(project.name)
         + '</strong></a>';
 }
 
@@ -1651,9 +1532,9 @@ T2RRenderer.renderRedmineIssueLabel = function (data) {
 
     // Render a clickable issue label.
     var markup = '<a href="' + T2R.redmineIssueURL(issue.id) + '" target="_blank">'
-        + T2R.htmlEntityEncode(issue ? issue.tracker.name : '-')
-        + T2R.htmlEntityEncode(issue ? ' #' + issue.id : '')
-        + T2R.htmlEntityEncode(issue.subject ? ': ' + issue.subject : '')
+        + utils.htmlEntityEncode(issue ? issue.tracker.name : '-')
+        + utils.htmlEntityEncode(issue ? ' #' + issue.id : '')
+        + utils.htmlEntityEncode(issue.subject ? ': ' + issue.subject : '')
         + '</a>';
     return markup;
 };
@@ -1674,12 +1555,12 @@ T2RRenderer.renderTogglRow = function (data) {
         + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" title="Check this box if you want to import this entry." /></td>'
         + '<td class="status"></td>'
         + '<td class="issue">'
-        + '<input data-property="issue_id" type="hidden" data-value="' + T2R.htmlEntityEncode(issue ? issue.id : '') + '" value="' + (issue ? issue.id : '') + '" />'
+        + '<input data-property="issue_id" type="hidden" data-value="' + utils.htmlEntityEncode(issue ? issue.id : '') + '" value="' + (issue ? issue.id : '') + '" />'
         + T2RRenderer.render('RedmineProjectLabel', project)
         + '<br />'
         + issueLabel
         + '</td>'
-        + '<td class="comments"><input data-property="comments" type="text" value="' + T2R.htmlEntityEncode(data.comments) + '" maxlength="255" /></td>'
+        + '<td class="comments"><input data-property="comments" type="text" value="' + utils.htmlEntityEncode(data.comments) + '" maxlength="255" /></td>'
         + '<td class="activity">'
         + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.localStorage.get('t2r.default-activity') + '"></select>'
         + '</td>'
@@ -1757,8 +1638,8 @@ T2RRenderer.renderRedmineRow = function (data) {
         + issueLabel
         + '<input type="checkbox" name="ids[]" value="' + data.id + '" hidden />'
         + '</td>'
-        + '<td class="comments">' + T2R.htmlEntityEncode(data.comments) + '</td>'
-        + '<td class="activity">' + T2R.htmlEntityEncode(data.activity.name) + '</td>'
+        + '<td class="comments">' + utils.htmlEntityEncode(data.comments) + '</td>'
+        + '<td class="activity">' + utils.htmlEntityEncode(data.activity.name) + '</td>'
         + '<td class="hours">' + T2RRenderer.render('Duration', data.duration) + '</td>'
         + '<td class="buttons">' + T2R.BUTTON_ACTIONS + '</td>'
         + '</tr>';
@@ -1830,4 +1711,15 @@ T2RRenderer.render = function (template, data) {
 /**
  * Init script.
  */
-$(T2R.initialize);
+
+
+/**
+ * This is where it starts.
+ */
+$(() => {
+    T2RWidget.initialize();
+    T2R.initTogglReport();
+    T2R.initFilterForm();
+    T2R.updateLastImported();
+    T2R.initPublishForm();
+});

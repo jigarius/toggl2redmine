@@ -8,8 +8,8 @@ export class LocalStorage {
     }
   }
 
-  get(key: string, fallback: any = null) {
-    let value = window.localStorage.getItem(key)
+  get(key: string, fallback: any = null): any {
+    const value = window.localStorage.getItem(key)
     if (value !== null) {
       return value
     }
@@ -17,7 +17,7 @@ export class LocalStorage {
     return fallback
   }
 
-  set(key: string, value: any) {
+  set(key: string, value: any): any {
     if (value === null) {
       return this.delete(key)
     }
@@ -26,8 +26,8 @@ export class LocalStorage {
     return value;
   }
 
-  delete(key: string) {
-    let value = this.get(key)
+  delete(key: string): any {
+    const value = this.get(key)
     window.localStorage.removeItem(key)
     return value
   }

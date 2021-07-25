@@ -1,4 +1,4 @@
-const expect = require('chai').expect
+import {expect} from 'chai'
 import * as duration from '../../t2r/duration'
 
 describe('class t2r.Duration', () => {
@@ -19,34 +19,38 @@ describe('class t2r.Duration', () => {
   })
 
   it('.hours getter', () => {
-    let dur1 = new duration.Duration(3600)
-    expect(dur1.hours).to.equal(1)
+    let dur: duration.Duration
 
-    let dur2 = new duration.Duration(5400)
-    expect(dur2.hours).to.equal(1)
+    dur = new duration.Duration(3600)
+    expect(dur.hours).to.equal(1)
+
+    dur = new duration.Duration(5400)
+    expect(dur.hours).to.equal(1)
   })
 
   it('.minutes getter', () => {
-    let dur1 = new duration.Duration(300)
-    expect(dur1.minutes).to.equal(5)
+    let dur: duration.Duration
 
-    let dur2 = new duration.Duration(90)
-    expect(dur2.minutes).to.equal(1)
+    dur = new duration.Duration(300)
+    expect(dur.minutes).to.equal(5)
+
+    dur = new duration.Duration(90)
+    expect(dur.minutes).to.equal(1)
   })
 
   it('.seconds getter', () => {
-    let dur = new duration.Duration(15)
+    const dur = new duration.Duration(15)
     expect(dur.seconds).to.equal(15)
   })
 
   it('.seconds setter', () => {
-    let dur = new duration.Duration(0)
+    const dur = new duration.Duration(0)
     dur.seconds = 15
     expect(dur.seconds).to.equal(15)
   })
 
   it('.setHHMM() works with hh:mm', () => {
-    let dur: duration.Duration = new duration.Duration()
+    const dur: duration.Duration = new duration.Duration()
 
     dur.setHHMM('00:05')
     expect(dur.asHHMM()).to.equal('00:05')
@@ -56,13 +60,13 @@ describe('class t2r.Duration', () => {
   })
 
   it('.setHHMM() works with hh', () => {
-    let dur: duration.Duration = new duration.Duration()
+    const dur: duration.Duration = new duration.Duration()
     dur.setHHMM('2')
     expect(dur.asHHMM()).to.equal('02:00')
   })
 
   it('.setHHMM() works with :mm', () => {
-    let dur: duration.Duration = new duration.Duration()
+    const dur: duration.Duration = new duration.Duration()
 
     dur.setHHMM(':5')
     expect(dur.asHHMM()).to.equal('00:05')
@@ -72,7 +76,7 @@ describe('class t2r.Duration', () => {
   })
 
   it('.setHHMM() works with hh.mm', () => {
-    let dur: duration.Duration = new duration.Duration()
+    const dur: duration.Duration = new duration.Duration()
 
     dur.setHHMM('.5')
     expect(dur.asHHMM()).to.equal('00:30')
@@ -82,14 +86,16 @@ describe('class t2r.Duration', () => {
   })
 
   it('.asHHMM()', () => {
-    let dur1 = new duration.Duration(0)
-    expect(dur1.asHHMM()).to.equal('00:00')
+    let dur: duration.Duration
 
-    let dur2 = new duration.Duration(300)
-    expect(dur2.asHHMM()).to.equal('00:05')
+    dur = new duration.Duration(0)
+    expect(dur.asHHMM()).to.equal('00:00')
 
-    let dur3 = new duration.Duration(5400)
-    expect(dur3.asHHMM()).to.equal('01:30')
+    dur = new duration.Duration(300)
+    expect(dur.asHHMM()).to.equal('00:05')
+
+    dur = new duration.Duration(5400)
+    expect(dur.asHHMM()).to.equal('01:30')
   })
 
   it('.asDecimal()', () => {
@@ -115,19 +121,19 @@ describe('class t2r.Duration', () => {
   })
 
   it('.add()', () => {
-    let dur = new duration.Duration(300)
+    const dur = new duration.Duration(300)
     dur.add(new duration.Duration(150))
     expect(dur.seconds).to.equal(450)
   })
 
   it('.sub()', () => {
-    let dur = new duration.Duration(300)
+    const dur = new duration.Duration(300)
     dur.sub(new duration.Duration(150))
     expect(dur.seconds).to.equal(150)
   })
 
   it('.sub() does not allow negative durations', () => {
-    let dur = new duration.Duration(300)
+    const dur = new duration.Duration(300)
     dur.sub(new duration.Duration(450))
     expect(dur.seconds).to.equal(0)
   })

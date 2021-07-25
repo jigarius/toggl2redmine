@@ -24,8 +24,8 @@ export function translate(key: string, vars: any = {}): string {
   }
 
   let result: string = T2R_TRANSLATIONS[key];
-  for (let v in vars) {
-    result = result.replace('@' + v, vars[v])
+  for (const name in vars) {
+    result = result.replace('@' + name, vars[name])
   }
 
   return result;

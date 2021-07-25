@@ -83,7 +83,7 @@ export class Duration {
     let pattern: RegExp
     let hh: number | null
     let mm: number | null
-    let error = `Invalid hh:mm format: ${hhmm}`
+    const error = `Invalid hh:mm format: ${hhmm}`
 
     // Parse hh only. Ex: 2 = 2h 00m.
     pattern = /^(\d{0,2})$/;
@@ -122,7 +122,7 @@ export class Duration {
 
     // No pattern matched? Throw error.
     throw error
-  };
+  }
 
   /**
    * Gets the duration as hours and minutes.
@@ -131,11 +131,11 @@ export class Duration {
    *   Time in hh:mm format.
    */
   asHHMM() {
-    let hh: string = this.hours.toString().padStart(2, '0')
-    let mm: string = (this.minutes % 60).toString().padStart(2, '0')
+    const hh: string = this.hours.toString().padStart(2, '0')
+    const mm: string = (this.minutes % 60).toString().padStart(2, '0')
 
     return `${hh}:${mm}`
-  };
+  }
 
   /**
    * Gets the duration as hours in decimals.
@@ -145,21 +145,21 @@ export class Duration {
    */
   asDecimal(): string {
     // Only consider full minutes.
-    let hours: number = this.minutes / 60
+    const hours: number = this.minutes / 60
     // Convert to hours. Ex: 0h 25m becomes 0.416.
-    let output: string = hours.toFixed(3)
+    const output: string = hours.toFixed(3)
     // Since toFixed rounds off the last digit, we ignore it.
     return output.substr(0, output.length - 1);
-  };
+  }
 
   add(other: Duration) {
     this.seconds = this.seconds + other.seconds
-  };
+  }
 
   sub(other: Duration) {
     // Duration cannot be negative.
     this.seconds = Math.max(this.seconds - other.seconds, 0)
-  };
+  }
 
   /**
    * Rounds to the nearest minutes.
@@ -170,16 +170,12 @@ export class Duration {
    *   Rounding logic.
    */
   roundTo(minutes: number, method: Rounding) {
-    if (0 === minutes) {
-      return;
-    }
-    let seconds: number = minutes * 60;
+    if (0 === minutes) return
+    const seconds: number = minutes * 60;
 
     // Do nothing if no correction / rounding is required.
-    let correction: number = this.seconds % seconds;
-    if (correction === 0) {
-      return;
-    }
+    const correction: number = this.seconds % seconds;
+    if (correction === 0) return
 
     // Round according to rounding method.
     switch (method) {
@@ -203,5 +199,5 @@ export class Duration {
       default:
         throw 'Invalid rounding method.';
     }
-  };
+  }
 }

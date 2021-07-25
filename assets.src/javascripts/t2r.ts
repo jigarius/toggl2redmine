@@ -5,7 +5,7 @@ const T2R_REDMINE_URL: string = window.location.origin;
 declare const T2R_REDMINE_API_KEY: string;
 declare const T2R_REDMINE_REPORT_URL_FORMAT : string;
 declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
-declare const BUTTON_ACTIONS: string;
+declare const T2R_BUTTON_ACTIONS: string;
 
 import { LocalStorage, TemporaryStorage } from "./t2r/storage.js";
 import {translate as t} from "./t2r/i18n.js";
@@ -1609,7 +1609,7 @@ T2RRenderer.renderRedmineRow = function (data) {
         + '<td class="comments">' + utils.htmlEntityEncode(data.comments) + '</td>'
         + '<td class="activity">' + utils.htmlEntityEncode(data.activity.name) + '</td>'
         + '<td class="hours">' + T2RRenderer.render('Duration', data.duration) + '</td>'
-        + '<td class="buttons">' + T2R.BUTTON_ACTIONS + '</td>'
+        + '<td class="buttons">' + T2R_BUTTON_ACTIONS + '</td>'
         + '</tr>';
     var $tr = $(markup);
 

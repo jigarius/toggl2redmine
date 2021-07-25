@@ -10,6 +10,7 @@ import { LocalStorage, TemporaryStorage } from "./t2r/storage.js";
 import {translate as t} from "./t2r/i18n.js";
 import * as duration from "./t2r/duration.js";
 import * as utils from "./t2r/utils.js"
+import * as flash from "./t2r/flash.js"
 
 /**
  * Toggl 2 Redmine Helper.
@@ -31,38 +32,6 @@ let T2R: any = {
  */
 T2R.FAKE_CALLBACK = function (data) {
     console.warn('No callback was provided to handle this data: ', data);
-};
-
-/**
- * Displays a rails-style flash message.
- *
- * @todo Use rails' way of doing flash messages on the client-side.
- *
- * @param {String} message
- *   The message.
- * @param {String} type
- *   [optional] One of "notice", "error", "warning". Defaults to "notice".
- * @param {Number} timeout
- *   [optional] Timeout in seconds.
- */
-T2R.flash = function (message, type = 'notice', timeout = false) {
-    type = type || 'notice';
-    timeout = ('number' === typeof timeout) ? timeout : false;
-    var $message = $('<div class="flash t2r ' + type + '">' + message.trim() + '</div>');
-    $('#content').prepend($message);
-    // Remove the message after timeout.
-    if (timeout) {
-        setTimeout(function() {
-            $message.remove();
-        }, timeout * 1000);
-    }
-};
-
-/**
- * Removes all flash messages previously set.
- */
-T2R.clearFlashMessages = function () {
-    $('.t2r.flash').remove();
 };
 
 /**
@@ -317,14 +286,12 @@ T2R.handlePublishForm = function() {
  */
 T2R.publishToRedmine = function () {
     T2R.lockPublishForm();
-
-    // Clear flash messages.
-    T2R.clearFlashMessages();
+    flash.clear();
 
     // Check for eligible entries.
     var $checkboxes = $('#toggl-report tbody tr input.cb-import');
     if ($checkboxes.filter(':checked').length <= 0) {
-        T2R.flash('Please select the entries which you want to import to Redmine.', 'error');
+        flash.error('Please select the entries which you want to import to Redmine.');
         T2R.unlockPublishForm();
         return;
     }
@@ -506,7 +473,7 @@ T2R.getTogglWorkspaces = function (callback) {
         },
         error: function (xhr, textStatus) {
             console.error('Could not load Toggl workspaces.');
-            T2R.flash(t('t2r.error.ajax_load'), 'error');
+            flash.error(t('t2r.error.ajax_load'));
             callback([]);
         }
     });
@@ -1007,7 +974,7 @@ T2R.getRedmineActivities = function (callback) {
         },
         error: function (xhr, textStatus) {
             console.error('Could not load Redmine activities.');
-            T2R.flash(t('t2r.error.ajax_load'), 'error');
+            flash.error(t('t2r.error.ajax_load'));
             callback([]);
         }
     });
@@ -1301,7 +1268,7 @@ T2RWidget.initAjaxDeleteLink = function(el) {
                     }
                 }
                 else {
-                    T2R.flash('Deletion failed.', 'error');
+                    flash.error('Deletion failed.');
                 }
             },
         });

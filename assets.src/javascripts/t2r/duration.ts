@@ -28,27 +28,29 @@ export const ROUND_REGULAR = 'R'
  */
 export class Duration {
 
-  // Number of hours in the duration.
-  private _hours: number;
-
-  // Number of minutes in the duration.
-  private _minutes: number;
-
   // Number of seconds in the duration.
   private _seconds: number;
 
-  constructor(duration: null | number | string = null) {
+  /**
+   * Creates a Duration object.
+   *
+   * @param duration [Optional] A duration.
+   *
+   * @example d = Duration(90)
+   * @example d = Duration('90')
+   * @example d = Duration('1:30')
+   */
+  constructor(duration: number | string = 0) {
+    this._seconds = 0
     duration = duration || 0;
 
-    // Seconds as an integer.
     if ('number' === typeof duration) {
-      this.setSeconds(duration);
+      this.seconds = duration;
       return
     }
 
-    // Seconds as a string.
-    if ('string' === typeof duration && duration.match(/^\d+$/)) {
-      this.setSeconds(duration);
+    if (duration.match(/^\d+$/)) {
+      this.seconds = parseInt(duration)
       return
     }
 
@@ -59,50 +61,25 @@ export class Duration {
     }
   }
 
-  /**
-   * Sets duration from seconds.
-   *
-   * @param {integer} seconds
-   */
-  setSeconds(seconds) {
-    // Set duration form seconds.
-    seconds += '';
-    if (!seconds.match(/^\d+$/)) {
-      throw 'Error: ' + seconds + ' is not a valid number.';
+  get hours(): number {
+    return Math.floor(this._seconds / 3600)
+  }
+
+  get minutes(): number {
+    return Math.floor(this._seconds / 60)
+  }
+
+  get seconds(): number {
+    return this._seconds
+  }
+
+  set seconds(value: number) {
+    if (value < 0) {
+      throw `Value cannot be negative: ${value}`
     }
 
-    // Set seconds.
-    this._seconds = parseInt(seconds);
-
-    // Ignore second-level precision for hour and minutes computation.
-    this._minutes = Math.floor(this._seconds / 60);
-    this._hours = Math.floor(this._minutes / 60);
-    this._minutes = this._minutes % 60;
-  };
-
-  /**
-   * Gets duration as seconds.
-   *
-   * @param {boolean} imprecise
-   *   Whether to remove second-level precision.
-   *
-   *   Defaults to false. When true, a duration of 95 seconds is treated as
-   *   60 seconds, i.e. rounded down to the nearest full minute.
-   *
-   * @return {integer}
-   *   Duration in seconds.
-   */
-  getSeconds(imprecise: boolean = false) {
-    imprecise = imprecise === true;
-    var output = this._seconds;
-
-    // For imprecise output, round-down to the nearest full minute.
-    if (imprecise) {
-      output = output - output % 60;
-    }
-
-    return output;
-  };
+    this._seconds = value
+  }
 
   /**
    * Sets duration from hours and minutes.
@@ -117,90 +94,50 @@ export class Duration {
    *
    * @param {string} hhmm
    */
-  setHHMM(hhmm) {
-    var parts = null;
+  setHHMM(hhmm: string) {
+    let parts: any[] | null
+    let pattern: RegExp
+    let hh: number | null
+    let mm: number | null
+    let error = `Invalid hh:mm format: ${hhmm}`
 
     // Parse hh only. Ex: 2 = 2h 00m.
-    var pattern = /^(\d{0,2})$/;
+    pattern = /^(\d{0,2})$/;
     if (hhmm.match(pattern)) {
-      var parts = hhmm.match(pattern).slice(-1);
-      parts.push('00');
+      hh = parseInt(hhmm.match(pattern)!.pop()!)
+      this.seconds = hh * 60 * 60
+      return
     }
 
     // Parse hh:mm duration. Ex: 2:30 = 2h 30m.
-    var pattern = /^(\d{0,2}):(\d{0,2})$/;
+    pattern = /^(\d{0,2}):(\d{0,2})$/;
     if (hhmm.match(pattern)) {
-      parts = hhmm.match(pattern).slice(-2);
-      // Minutes must have 2 digits.
-      if (parts[1].length < 2) {
-        parts = null;
+      parts = hhmm.match(pattern)!.slice(-2);
+      mm = parseInt(parts.pop() || '0')
+      hh = parseInt(parts.pop() || '0')
+
+      if (mm > 59) {
+        throw error
       }
-      // Minutes cannot exceed 59 in this format.
-      else if (parts[1] > 59) {
-        parts = null;
-      }
+
+      this.seconds = hh * 60 * 60 + mm * 60
+      return
     }
 
     // Parse hh.mm as decimal. Ex: 2.5 = 2h 30m.
-    var pattern = /^(\d{0,2})\.(\d{0,2})$/;
-    if (!parts && hhmm.match(pattern)) {
-      parts = hhmm.match(pattern).slice(-2);
-      // Compute minutes.
-      parts[1] = (60 * parts[1]) / Math.pow(10, parts[1].length);
-      parts[1] = Math.round(parts[1]);
+    pattern = /^(\d{0,2})\.(\d{0,2})$/;
+    if (hhmm.match(pattern)) {
+      parts = hhmm.match(pattern)!.slice(-2);
+
+      mm = (60 * parts[1]) / Math.pow(10, parts[1].length);
+      hh = Math.round(parts[0]);
+
+      this.seconds = hh * 60 * 60 + mm * 60
+      return
     }
 
     // No pattern matched? Throw error.
-    if (!parts || parts.length !== 2) {
-      throw 'Error: ' + hhmm + ' is not in hh:mm format.';
-    }
-
-    // Validate hours and minutes.
-    parts[0] = (parts[0].length == 0) ? 0 : parseInt(parts[0]);
-    parts[1] = (parts[1].length == 0) ? 0 : parseInt(parts[1]);
-    if (isNaN(parts[0]) || isNaN(parts[1])) {
-      throw 'Error: ' + hhmm + ' is not in hh:mm format.';
-    }
-
-    // Convert time to seconds and set the number of seconds.
-    var secs = parts[0] * 60 * 60 + parts[1] * 60;
-    this.setSeconds(secs);
-  };
-
-  /**
-   * Gets the "hours" part of the duration.
-   *
-   * @param {boolean} force2
-   *   Whether to force 2 digits.
-   *
-   * @return {integer|string}
-   *   Hours in the duration.
-   */
-  getHours(force2) {
-    force2 = force2 || false;
-    var output = this._hours;
-    if (force2) {
-      output = ('00' + output).substr(-2);
-    }
-    return output;
-  };
-
-  /**
-   * Gets the "minutes" part of the duration.
-   *
-   * @param {boolean} force2
-   *   Whether to force 2 digits.
-   *
-   * @return {integer|string}
-   *   Minutes in the duration.
-   */
-  getMinutes(force2) {
-    force2 = force2 || false;
-    var output = this._minutes;
-    if (force2) {
-      output = ('00' + output).substr(-2);
-    }
-    return output;
+    throw error
   };
 
   /**
@@ -210,53 +147,34 @@ export class Duration {
    *   Time in hh:mm format.
    */
   asHHMM() {
-    return this.getHours(true) + ':' + this.getMinutes(true);
+    let hh: string = this.hours.toString().padStart(2, '0')
+    let mm: string = (this.minutes % 60).toString().padStart(2, '0')
+
+    return `${hh}:${mm}`
   };
 
   /**
    * Gets the duration as hours in decimals.
    *
-   * @param {boolean} ignoreSeconds
-   *   Round down to the nearest full-minute.
-   *
-   *   Ex: 90 seconds is treated 60 seconds.
-   *
    * @return string
    *   Time in hours (decimal). Ex: 1.5 for 1 hr 30 min.
    */
-  asDecimal(ignoreSeconds) {
-    let seconds = this.getSeconds(ignoreSeconds) / 3600;
+  asDecimal(): string {
+    // Only consider full minutes.
+    let hours: number = this.minutes / 60
     // Convert to hours. Ex: 0h 25m becomes 0.416.
+    let output: string = hours.toFixed(3)
     // Since toFixed rounds off the last digit, we ignore it.
-    let output: string = seconds.toFixed(3);
-    output = output.substr(0, output.length - 1);
-    return output;
+    return output.substr(0, output.length - 1);
   };
 
-  /**
-   * Add a duration.
-   *
-   * @param {*} duration
-   */
-  add(duration) {
-    var oDuration = ('object' === typeof duration)
-      ? duration : new Duration(duration);
-    var seconds = this.getSeconds() + oDuration.getSeconds();
-    this.setSeconds(seconds);
+  add(other: Duration) {
+    this.seconds = this.seconds + other.seconds
   };
 
-  /**
-   * Subtract a duration.
-   *
-   * @param {*} duration
-   */
-  sub(duration) {
-    var oDuration = ('object' === typeof duration)
-      ? duration : new Duration(duration);
-    var seconds = this.getSeconds() - oDuration.getSeconds();
+  sub(other: Duration) {
     // Duration cannot be negative.
-    seconds = (seconds >= 0) ? seconds : 0;
-    this.setSeconds(seconds);
+    this.seconds = Math.max(this.seconds - other.seconds, 0)
   };
 
   /**
@@ -268,18 +186,13 @@ export class Duration {
    *   One of T2R.ROUND_* constants.
    */
   roundTo(minutes: number, direction: string) {
-    // Do nothing if rounding value is zero.
     if (0 === minutes) {
       return;
     }
-
-    // Compute the rounding value as seconds.
-    var seconds = minutes * 60;
-
-    // Determine the amount of correction required.
-    var correction = this.getSeconds() % seconds;
+    let seconds: number = minutes * 60;
 
     // Do nothing if no correction / rounding is required.
+    let correction: number = this.seconds % seconds;
     if (correction === 0) {
       return;
     }
@@ -296,15 +209,15 @@ export class Duration {
         break;
 
       case ROUND_UP:
-        this.add(seconds - correction);
+        this.add(new Duration(seconds - correction));
         break;
 
       case ROUND_DOWN:
-        this.sub(correction);
+        this.sub(new Duration(correction));
         break;
 
       default:
         throw 'Invalid rounding direction. Please use one of ROUND_*.';
     }
   };
-};
+}

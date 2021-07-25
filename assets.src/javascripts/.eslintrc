@@ -8,5 +8,13 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended"
-  ]
+  ],
+  "rules": {
+    "@typescript-eslint/no-this-alias": [
+      "error",
+      {
+        "allowedNames": ["that"]
+      }
+    ]
+  }
 }

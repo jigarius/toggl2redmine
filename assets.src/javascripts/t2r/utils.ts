@@ -20,7 +20,7 @@ export function htmlEntityEncode(str: string): string {
  * @returns {Date}
  *   The date as an object.
  */
-export function dateStringToObject(date: string): Date | null {
+export function dateStringToObject(date: string): Date | undefined {
   // Split the date into parts.
   // Don't use Date.parse() as it works differently depending on the browser.
   let dateParts: any[] = date.split(/[^\d]/);
@@ -61,7 +61,7 @@ export function dateStringToObject(date: string): Date | null {
 /**
  * Gets date from window.location.hash.
  */
-export function getDateFromLocationHash(): string | null {
+export function getDateFromLocationHash(): string | undefined {
   let matches = window.location.hash.match(/^#?([\d]{4}-[\d]{2}-[\d]{2})$/);
   if (!matches) return
 

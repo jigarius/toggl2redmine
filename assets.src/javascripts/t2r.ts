@@ -5,6 +5,7 @@ const T2R_REDMINE_URL: string = window.location.origin;
 declare const T2R_REDMINE_API_KEY: string;
 declare const T2R_REDMINE_REPORT_URL_FORMAT : string;
 declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
+declare const BUTTON_ACTIONS: string;
 
 import { LocalStorage, TemporaryStorage } from "./t2r/storage.js";
 import {translate as t} from "./t2r/i18n.js";

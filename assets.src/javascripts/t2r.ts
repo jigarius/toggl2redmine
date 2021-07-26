@@ -402,87 +402,29 @@ T2R.publishToRedmine = function () {
  *   A callback. Receives workspaces as an argument.
  */
 T2R.getTogglWorkspaces = function (callback) {
-    var key = 'toggl.workspaces';
-    callback = callback || utils.noopCallback;
-
     // Use cached data, if available.
-    var workspaces = T2R.cacheStorage.get(key);
+    let workspaces = T2R.cacheStorage.get('toggl.workspaces')
     if (workspaces) {
-        callback(workspaces);
-        return;
+        callback(workspaces)
+        return
     }
 
     // Fetch data from Toggl.
-    T2R.redmineService.request({
-        url: '/toggl2redmine/toggl/workspaces',
-        success: function(data, status, xhr) {
-            workspaces = data;
-            T2R.cacheStorage.set(key, workspaces);
-
-            // Determine default Toggl workspace.
-            if (workspaces.length > 0) {
-                T2R.tempStorage.set('default_toggl_workspace', workspaces[0].id);
-            }
-
-            callback(workspaces);
-        },
-        error: function (xhr, textStatus) {
-            console.error('Could not load Toggl workspaces.');
+    T2R.redmineService.getTogglWorkspaces((workspaces: any[] | null) => {
+        if (workspaces === null) {
             flash.error(t('t2r.error.ajax_load'));
-            callback([]);
+            callback([])
+            return
         }
-    });
-};
 
-/**
- * Retrieves raw time entry data from Toggl.
- *
- * @param {Object} opts
- *   Applied filters.
- * @param {function} callback
- *   A callback. Receives entries as an argument.
- *
- * @returns {Object|boolean}
- *   Data on success or false otherwise.
- */
-T2R._getRawTogglTimeEntries = function (opts, callback) {
-    opts = opts || {};
-    var data: any = {};
+        // Determine the default Toggl workspace.
+        if (workspaces.length > 0) {
+          T2R.tempStorage.set('default_toggl_workspace', workspaces[0].id)
+        }
 
-    // Determine start date.
-    opts.from = utils.dateStringToObject(opts.from);
-    if (!opts.from) {
-        alert('Error: Invalid start date!');
-        return false;
-    }
-    data.from = opts.from.toISOString();
-
-    // Determine end date.
-    opts.till = utils.dateStringToObject(opts.till);
-    if (!opts.till) {
-        alert('Error: Invalid end date!');
-        return false;
-    }
-    data.till = opts.till.toISOString();
-
-    // Determine workspaces.
-    if (opts.workspace) {
-        data.workspaces = opts.workspace;
-    }
-
-    try {
-        T2R.redmineService.request({
-            url: '/toggl2redmine/toggl/time_entries',
-            data: data,
-            success: function(data, status, xhr) {
-                data = ('undefined' === typeof data) ? {} : data;
-                callback(data);
-            }
-        });
-    } catch(e) {
-        console.error(e);
-        callback(false);
-    }
+        T2R.cacheStorage.set('toggl.workspaces', workspaces)
+        callback(workspaces)
+    })
 };
 
 /**
@@ -500,7 +442,7 @@ T2R.getTogglTimeEntries = function (opts, callback) {
     opts = opts || {};
     callback = callback || utils.noopCallback;
 
-    T2R._getRawTogglTimeEntries(opts, function (entries) {
+    T2R.redmineService.getTogglTimeEntries(opts, function (entries) {
         var output = [];
 
         // Prepare rounding rules.
@@ -705,39 +647,6 @@ T2R.updateTogglTotals = function () {
 };
 
 /**
- * Retrieves raw time entry data from Redmine.
- *
- * @param {Object} query
- *   Applied filters.
- * @param {Function} callback
- *   A callback. Receives entries as an argument.
- *
- * @returns {Object|boolean}
- *   Data on success or false otherwise.
- */
-T2R._getRawRedmineTimeEntries = function (query, callback) {
-    query = query || {};
-    try {
-        T2R.redmineService.request({
-            async: true,
-            method: 'get',
-            url: '/toggl2redmine/redmine/time_entries',
-            data: {
-                from: query.from,
-                till: query.till
-            },
-            success: function (data, status, xhr) {
-                var output = ('undefined' !== typeof data.time_entries)
-                    ? data.time_entries : [];
-                callback(output);
-            }
-        });
-    } catch (e) {
-        callback(false);
-    }
-};
-
-/**
  * Retrieves normalized time entry data from Redmine.
  *
  * @param query
@@ -752,7 +661,7 @@ T2R.getRedmineTimeEntries = function (query, callback) {
     query = query || {};
     callback = callback || utils.noopCallback;
 
-    T2R._getRawRedmineTimeEntries(query, function (entries) {
+    T2R.redmineService.getRedmineTimeEntries(query, function (entries) {
         var output = [];
 
         for (var i in entries) {
@@ -861,30 +770,17 @@ T2R.updateRedmineTotals = function () {
 /**
  * Updates the date of the latest time entry on Redmine.
  */
-T2R.updateLastImported = function () {
-    var now = utils.dateFormatYYYYMMDD(new Date());
-    T2R.redmineService.request({
-        url: '/time_entries.json',
-        data: {
-            user_id: 'me',
-            limit: 1,
-            // Ignore entries made in the future.
-            to: now
-        },
+T2R.updateLastImportDate = function () {
+    const $context = $('#last-imported')
+    T2R.redmineService.getLastImportDate((lastImportDate) => {
+        const sDate = lastImportDate ? lastImportDate.toLocaleDateString() : 'Unknown';
+        console.debug(`Last import date: ${sDate}`)
+        $context.text(sDate).removeClass('t2r-loading');
+    },{
         beforeSend: function () {
-            $(this).html('&nbsp;').addClass('t2r-loading');
+            $context.html('&nbsp;').addClass('t2r-loading');
         },
-        context: $('#last-imported'),
-        complete: function (xhr, status) {
-            var sDate = 'Unknown';
-            try {
-                var lastImported = xhr.responseJSON.time_entries.pop().spent_on;
-                lastImported = utils.dateStringToObject(lastImported + ' 00:00:00');
-                sDate = lastImported.toLocaleDateString();
-            } catch (e) {}
-            $(this).text(sDate).removeClass('t2r-loading');
-        }
-    });
+    })
 };
 
 /**
@@ -893,31 +789,27 @@ T2R.updateLastImported = function () {
  * @param {function} callback
  *   A callback. Receives activities as an argument.
  */
-T2R.getRedmineActivities = function (callback) {
+T2R.getTimeEntryActivities = function (callback) {
     var key = 'redmine.activities';
     callback = callback || utils.noopCallback;
 
     // Use cached data, if available.
-    var activities = T2R.cacheStorage.get(key);
+    let activities = T2R.cacheStorage.get(key);
     if (activities) {
-        callback(activities);
-        return;
+        callback(activities)
+        return
     }
 
     // Fetch data from Redmine.
-    T2R.redmineService.request({
-        url: '/enumerations/time_entry_activities.json',
-        success: function (data, status, xhr) {
-            var activities = data.time_entry_activities;
-            T2R.cacheStorage.set(key, activities);
-            callback(activities);
-        },
-        error: function (xhr, textStatus) {
-            console.error('Could not load Redmine activities.');
-            flash.error(t('t2r.error.ajax_load'));
-            callback([]);
+    T2R.redmineService.getTimeEntryActivities((activities: any[] | null) => {
+        if (activities === null) {
+            flash.error(t('t2r.error.ajax_load'))
+            return
         }
-    });
+
+        T2R.cacheStorage.set(key, activities)
+        callback(activities)
+    })
 };
 
 /**
@@ -1004,6 +896,7 @@ T2RWidget.initAjaxDeleteLink = function(el) {
         }
 
         // Prepare AJAX request.
+        // TODO: Move to RedmineService.deleteRedmineTimeEntry()
         T2R.redmineService.request({
             url: url + '.json',
             async: true,
@@ -1124,7 +1017,7 @@ T2RWidget.initDurationInput = function (el) {
 
 T2RWidget.initRedmineActivityDropdown = function (el) {
     var $el = $(el);
-    T2R.getRedmineActivities(function (activities) {
+    T2R.getTimeEntryActivities(function (activities) {
         // Prepare placeholder.
         var placeholder = $el.attr('placeholder') || $el.data('placeholder');
 
@@ -1153,7 +1046,7 @@ T2RWidget.initRedmineActivityDropdown = function (el) {
 
 T2RWidget.initTogglWorkspaceDropdown = function (el) {
     var $el = $(el);
-    T2R.getTogglWorkspaces(function (workspaces) {
+    T2R.getTogglWorkspaces((workspaces) => {
         var placeholder = $el.attr('placeholder') || $el.data('placeholder');
 
         // Prepare options.
@@ -1430,6 +1323,6 @@ $(() => {
     T2RWidget.initialize();
     T2R.initTogglReport();
     T2R.initFilterForm();
-    T2R.updateLastImported();
+    T2R.updateLastImportDate();
     T2R.initPublishForm();
 });

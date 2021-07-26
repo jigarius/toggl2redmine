@@ -921,61 +921,6 @@ T2R.getRedmineActivities = function (callback) {
 };
 
 /**
- * Fetches data about a given Redmine issue.
- *
- * @param id
- *   Redmine issue ID.
- *
- * @returns {Object|boolean}
- *   Redmine issue data on success or false otherwise.
- */
-T2R.getRedmineIssue = function (id) {
-    var output = T2R.getRedmineIssues([id]);
-    return ('undefined' == typeof output[id]) ? false : output[id];
-};
-
-/**
- * Fetches data about multiple Redmine issues.
- *
- * @param {Array} id
- *   Redmine issue IDs.
- *
- * @returns {Object|boolean}
- *   Redmine issues indexed by ID or false otherwise.
- */
-T2R.getRedmineIssues = function (ids) {
-    var output = {};
-    // Do nothing if no IDs are sent.
-    if (0 === ids.length) {
-        return output;
-    }
-    // Fetch issue info and key them by issue ID.
-    try {
-        T2R.redmineService.request({
-            async: false,
-            cache: true,
-            timeout: 1000,
-            url: '/issues.json',
-            data: {
-                issue_id: ids.join(','),
-                status_id: '*'
-            },
-            success: function (data, status, xhr) {
-                var issues = ('undefined' === data.issues) ? [] : data.issues;
-                for (var i in issues) {
-                    var issue = issues[i];
-                    output[issue.id] = issue;
-                }
-            },
-            error: function (xhr, textStatus) {}
-        });
-    } catch(e) {
-        console.error(e);
-    }
-    return output;
-};
-
-/**
  * Returns the URL to a Redmine issue.
  *
  * @param {string} id

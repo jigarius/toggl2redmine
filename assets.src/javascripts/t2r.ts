@@ -8,9 +8,9 @@ declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
 declare const T2R_BUTTON_ACTIONS: string;
 declare const contextMenuRightClick: any;
 
-import {RequestQueue} from "./t2r/request.js"
 import {LocalStorage, TemporaryStorage} from "./t2r/storage.js";
 import {translate as t} from "./t2r/i18n.js";
+import {RedmineService} from "./t2r/services.js";
 import * as duration from "./t2r/duration.js";
 import * as utils from "./t2r/utils.js"
 import * as flash from "./t2r/flash.js"
@@ -25,8 +25,8 @@ let T2R: any = {
     tempStorage: new TemporaryStorage(),
     // Cache storage.
     cacheStorage: new TemporaryStorage(),
-    // AJAX request queue.
-    requestQueue: new RequestQueue()
+    // Redmine service.
+    redmineService: new RedmineService(T2R_REDMINE_API_KEY)
 };
 
 /**
@@ -334,7 +334,7 @@ T2R.publishToRedmine = function () {
         };
 
         // Push the data to Redmine.
-        T2R.redmineRequest({
+        T2R.redmineService.request({
             async: true,
             url: '/toggl2redmine/import',
             method: 'post',
@@ -386,31 +386,13 @@ T2R.publishToRedmine = function () {
 
     // Refresh the Redmine report when all items are processed.
     T2R.__publishWatcher = setInterval(function () {
-        if (T2R.requestQueue.length === 0) {
+        if (T2R.redmineService.requestQueue.length === 0) {
             clearInterval(T2R.__publishWatcher);
             T2R.unlockPublishForm();
             T2R.updateRedmineReport();
             T2R.updateLastImported();
         }
     }, 250);
-};
-
-/**
- * Returns basic auth headers for the username:password combination.
- *
- * @param {string} username
- *   The username.
- * @param {string} password
- *   The password.
- *
- * @returns object
- *   Basic auth headers.
- */
-T2R.getBasicAuthHeader = function (username, password) {
-    var userpass = username + ':' + password;
-    return {
-        Authorization: 'Basic ' + btoa(userpass)
-    };
 };
 
 /**
@@ -431,7 +413,7 @@ T2R.getTogglWorkspaces = function (callback) {
     }
 
     // Fetch data from Toggl.
-    T2R.redmineRequest({
+    T2R.redmineService.request({
         url: '/toggl2redmine/toggl/workspaces',
         success: function(data, status, xhr) {
             workspaces = data;
@@ -489,7 +471,7 @@ T2R._getRawTogglTimeEntries = function (opts, callback) {
     }
 
     try {
-        T2R.redmineRequest({
+        T2R.redmineService.request({
             url: '/toggl2redmine/toggl/time_entries',
             data: data,
             success: function(data, status, xhr) {
@@ -748,7 +730,7 @@ T2R.updateTogglTotals = function () {
 T2R._getRawRedmineTimeEntries = function (query, callback) {
     query = query || {};
     try {
-        T2R.redmineRequest({
+        T2R.redmineService.request({
             async: true,
             method: 'get',
             url: '/toggl2redmine/redmine/time_entries',
@@ -787,8 +769,9 @@ T2R.getRedmineTimeEntries = function (query, callback) {
 
         for (var i in entries) {
             var entry = entries[i];
-            console.groupCollapsed('Received Redmine entry: ' + entry.id);
-            console.debug('Redmine time entry: ', entry);
+            console.groupCollapsed('Received Redmine entry: ' + entry.id)
+            console.log('Redmine time entry: ', entry)
+            console.groupEnd()
 
             // Ensure an issue object.
             entry.issue = entry.issue || { id: false };
@@ -892,7 +875,7 @@ T2R.updateRedmineTotals = function () {
  */
 T2R.updateLastImported = function () {
     var now = utils.dateFormatYYYYMMDD(new Date());
-    T2R.redmineRequest({
+    T2R.redmineService.request({
         url: '/time_entries.json',
         data: {
             user_id: 'me',
@@ -934,7 +917,7 @@ T2R.getRedmineActivities = function (callback) {
     }
 
     // Fetch data from Redmine.
-    T2R.redmineRequest({
+    T2R.redmineService.request({
         url: '/enumerations/time_entry_activities.json',
         success: function (data, status, xhr) {
             var activities = data.time_entry_activities;
@@ -980,7 +963,7 @@ T2R.getRedmineIssues = function (ids) {
     }
     // Fetch issue info and key them by issue ID.
     try {
-        T2R.redmineRequest({
+        T2R.redmineService.request({
             async: false,
             cache: true,
             timeout: 1000,
@@ -1002,28 +985,6 @@ T2R.getRedmineIssues = function (ids) {
         console.error(e);
     }
     return output;
-};
-
-/**
- * Sends an AJAX request to Redmine with the given options.
- *
- * Automatically injects auth headers.
- *
- * @param opts
- *   Request options.
- */
-T2R.redmineRequest = function (opts) {
-    opts.timeout = opts.timeout || 3000;
-
-    // Prepend Redmine URL for relative URLs.
-    if (opts.url.match(/^\//)) {
-        opts.url = T2R_REDMINE_URL + opts.url;
-    }
-
-    opts.headers = opts.headers || {};
-    opts.headers['X-Redmine-API-Key'] = T2R_REDMINE_API_KEY;
-
-    T2R.requestQueue.addItem(opts);
 };
 
 /**
@@ -1110,7 +1071,7 @@ T2RWidget.initAjaxDeleteLink = function(el) {
         }
 
         // Prepare AJAX request.
-        T2R.redmineRequest({
+        T2R.redmineService.request({
             url: url + '.json',
             async: true,
             data: '{}',

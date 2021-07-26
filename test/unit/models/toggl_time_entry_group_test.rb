@@ -92,7 +92,23 @@ class TogglTimeEntryGroupTest < T2r::TestCase
     record = build_time_entry_record(description: "##{issue.id} Lorem ipsum")
     subject << record
 
-    assert_equal(['The project is closed.'], subject.errors)
+    assert_equal([I18n.t('t2r.error.project_closed')], subject.errors)
+  end
+
+  test '.errors contains a message for missing issue id' do
+    subject = TogglTimeEntryGroup.new
+    record = build_time_entry_record(description: "Lorem ipsum")
+    subject << record
+
+    assert_equal([I18n.t('t2r.error.issue_id_missing')], subject.errors)
+  end
+
+  test '.errors contains a message if issue id doesnt match an issue' do
+    subject = TogglTimeEntryGroup.new
+    record = build_time_entry_record(description: "#56 Lorem ipsum")
+    subject << record
+
+    assert_equal([I18n.t('t2r.error.issue_not_found')], subject.errors)
   end
 
   test '.imported?' do
@@ -188,12 +204,13 @@ class TogglTimeEntryGroupTest < T2r::TestCase
   end
 
   test '.as_json serializes a group with entries' do
+    issue = issues(:alpha_001)
     subject = TogglTimeEntryGroup.new
 
-    r1 = build_time_entry_record(id: 20, duration: 30, description: '#151 Hello world')
+    r1 = build_time_entry_record(id: 20, duration: 30, description: "##{issue.id} Hello world")
     subject << r1
 
-    r2 = build_time_entry_record(id: 30, duration: 20, description: '#151 Hello world')
+    r2 = build_time_entry_record(id: 30, duration: 20, description: "##{issue.id} Hello world")
     subject << r2
 
     expected = {

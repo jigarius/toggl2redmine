@@ -34,3 +34,5 @@ en:
       ajax_load: 'Could not retrieve data from server. Please refresh the page to try again.'
       list_empty: 'There are no items to display here.'
       project_closed: 'The project is closed.'
+      issue_id_missing: 'Please mention the Redmine issue ID in your Toggl task description. Example: #1919 Feed the bunny wabbit.'
+      issue_not_found: "This issue was either not found on Redmine or you don't have access to it. Make sure you're using a correct issue ID and that you're a member of the project."

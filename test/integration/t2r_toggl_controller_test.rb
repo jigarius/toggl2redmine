@@ -20,27 +20,29 @@ class T2rTogglControllerTest < T2r::IntegrationTest
   end
 
   test '.read_time_entries returns time entries as JSON' do
+    issue = issues(:alpha_001)
+
     time_entries = [
       TogglTimeEntry.new(
         id: 154,
         wid: 2,
         duration: 300,
         at: '2021-01-17T21:21:34+00:00',
-        description: '#19 Prepare food'
+        description: "##{issue.id} Prepare food"
       ),
       TogglTimeEntry.new(
         id: 155,
         wid: 2,
         duration: 150,
         at: '2021-01-17T21:22:34+00:00',
-        description: '#19 Prepare food'
+        description: "##{issue.id} Prepare food"
       ),
       TogglTimeEntry.new(
         id: 246,
         wid: 2,
         duration: -1,
         at: '2021-01-17T21:51:34+00:00',
-        description: '#19 Feed bunny'
+        description: "##{issue.id} Feed bunny"
       )
     ]
 
@@ -65,37 +67,55 @@ class T2rTogglControllerTest < T2r::IntegrationTest
     assert_response :success
 
     expectation = {
-      '19:prepare food:pending' => {
-        'key' => '19:prepare food:pending',
+      "#{issue.id}:prepare food:pending" => {
+        'key' => "#{issue.id}:prepare food:pending",
         'ids' => [154, 155],
-        'issue_id' => 19,
+        'issue_id' => issue.id,
         'comments' => 'Prepare food',
         'duration' => 450,
         'status' => 'pending',
         'errors' => [],
-        'issue' => nil,
-        'project' => nil
+        'issue' => {
+          "id" => issue.id,
+          "subject" => "Abstract apples",
+          "tracker" => {
+            "id" => issue.tracker.id,
+            "name" => "Task"
+          }
+        },
+        'project' => {
+          "id" => issue.project.id,
+          "name" => "Project alpha",
+          "status" => 1,
+          "path" => "/projects/alpha"
+        }
       },
-      '19:feed bunny:running' => {
-        'key' => '19:feed bunny:running',
+      "#{issue.id}:feed bunny:running" => {
+        'key' => "#{issue.id}:feed bunny:running",
         'ids' => [246],
-        'issue_id' => 19,
+        'issue_id' => issue.id,
         'comments' => 'Feed bunny',
         'duration' => -1,
         'status' => 'running',
         'errors' => [],
-        'issue' => nil,
-        'project' => nil
+        'issue' => {
+          "id" => issue.id,
+          "subject" => "Abstract apples",
+          "tracker" => {
+            "id" => issue.tracker.id,
+            "name" => "Task"
+          }
+        },
+        'project' => {
+          "id" => issue.project.id,
+          "name" => "Project alpha",
+          "status" => 1,
+          "path" => "/projects/alpha"
+        }
       }
     }
 
-    expectation.each do |key, expected_entry|
-      assert_equal(
-        expected_entry,
-        @response.parsed_body[key],
-        "Item with key #{key} is not as expected"
-      )
-    end
+    assert_equal(expectation, @response.parsed_body)
   end
 
   test ".read_time_entries fails if param 'from' is missing" do
@@ -221,7 +241,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
         'comments' => 'Feed bunny',
         'duration' => 300,
         'status' => 'pending',
-        'errors' => [],
+        'errors' => [I18n.t('t2r.error.issue_not_found')],
         'issue' => nil,
         'project' => nil
       }

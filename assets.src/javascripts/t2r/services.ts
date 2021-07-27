@@ -59,6 +59,7 @@ export class RedmineService {
    * @todo Perform query validation.
    */
   getRedmineTimeEntries(query: any, callback: any) {
+    var that = this
     this.request({
       async: true,
       method: 'get',
@@ -69,24 +70,22 @@ export class RedmineService {
       },
       success: function (data: any) {
         if (typeof data.time_entries === 'undefined') {
-          console.error('Fetch failed: redmine time entries.')
+          that.handleRequestError('Redmine time entries')
           callback(null)
           return
         }
 
-        let time_entries: any[] = ('undefined' !== typeof data.time_entries)
-          ? data.time_entries : [];
+        that.handleRequestSuccess('Redmine time entries', data)
 
-        time_entries = time_entries.map((entry) => {
+        let time_entries: any[] = data.time_entries.map((entry: any) => {
           entry.duration = Math.floor(parseFloat(entry.hours) * 3600)
-
           return entry
         })
 
-        console.debug('Fetched Redmine time entries', time_entries)
         callback(time_entries);
       },
       error: () => {
+        that.handleRequestError('Redmine time entries')
         callback(null)
       }
     });
@@ -101,12 +100,15 @@ export class RedmineService {
    *   If the request fails, the callback will receive a null.
    */
   getTimeEntryActivities(callback: any) {
+    var that = this
     this.request({
       url: '/enumerations/time_entry_activities.json',
       success: (data: any) => {
+        that.handleRequestSuccess('Time entry activities', data)
         callback(data.time_entry_activities)
       },
       error: () => {
+        that.handleRequestError('Time entry activities')
         callback(null)
       }
     });
@@ -150,11 +152,11 @@ export class RedmineService {
       url: '/toggl2redmine/toggl/time_entries',
       data: data,
       success: (time_entries: any) => {
-        console.debug('Fetched Toggl time entries', time_entries)
+        this.handleRequestSuccess('Toggl time entries', time_entries)
         callback(time_entries)
       },
       error: () => {
-        console.error('Fetch failed: toggl time entries')
+        this.handleRequestError('Toggl time entries')
         callback(null)
       }
     })
@@ -207,7 +209,9 @@ export class RedmineService {
       to: utils.dateFormatYYYYMMDD(new Date())
     }
 
+    var that = this
     opts.success = (data: any) => {
+      this.handleRequestSuccess('Last import date', data)
       if (data.time_entries.length === 0) {
         callback(null)
         return
@@ -218,7 +222,7 @@ export class RedmineService {
       callback(lastImportDate)
     }
     opts.error = () => {
-      console.error('Fetch failed: last import date')
+      that.handleRequestError('Last import date')
       callback(null)
     }
 

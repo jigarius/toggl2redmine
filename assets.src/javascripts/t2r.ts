@@ -406,30 +406,29 @@ T2R.updateTogglReport = function () {
     $table.find('tbody').html('');
 
     // Determine report date.
-    var date = T2R.tempStorage.get('date');
-    // TODO: Rename this to query.
-    var opts = {
+    const date = T2R.tempStorage.get('date');
+    const query = {
         from: date + ' 00:00:00',
         till: date + ' 23:59:59',
         workspace: T2R.localStorage.get('t2r.toggl-workspace')
-    };
+    }
 
     // Update other elements.
     T2R.updateTogglReportLink({
         date: date,
-        workspace: opts.workspace
+        workspace: query.workspace
     });
 
     // Lock the publish form.
     T2R.lockPublishForm();
 
     // Uncheck the "check all" checkbox.
-    var $checkAll = $table.find('.check-all')
+    const $checkAll = $table.find('.check-all')
         .prop('checked', false)
         .attr('disabled', 'disabled');
 
     // Fetch time entries from Toggl.
-    T2R.redmineService.getTogglTimeEntries(opts, function (entries) {
+    T2R.redmineService.getTogglTimeEntries(query, function (entries) {
         var $table = T2R.getTogglTable();
         var pendingEntriesExist = false;
 
@@ -595,8 +594,7 @@ T2R.updateRedmineReport = function () {
     var from = till;
 
     // Fetch time entries from Redmine.
-    // TODO: Rename this to query.
-    var opts = {
+    const query = {
         from: from.toISOString().split('T')[0] + 'T00:00:00Z',
         till: till.toISOString().split('T')[0] + 'T00:00:00Z'
     };
@@ -607,7 +605,7 @@ T2R.updateRedmineReport = function () {
     });
 
     // Fetch time entries from Redmine.
-    T2R.redmineService.getTimeEntries(opts, (entries: any[] | null) => {
+    T2R.redmineService.getTimeEntries(query, (entries: any[] | null) => {
         if (entries === null) {
             flash.error('An error has occurred. Please try again after some time.')
             entries = []

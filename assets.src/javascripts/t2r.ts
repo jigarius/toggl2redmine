@@ -428,50 +428,6 @@ T2R.getTogglWorkspaces = function (callback) {
 };
 
 /**
- * Retrieves normalized time entry data from Toggl.
- *
- * @param {Object} opts
- *   Applied filters.
- * @param {function} callback
- *   A callback. Receives entries as an argument.
- *
- * @returns {Object|boolean}
- *   Data on success or false otherwise.
- */
-T2R.getTogglTimeEntries = function (opts, callback) {
-    opts = opts || {};
-    callback = callback || utils.noopCallback;
-
-    T2R.redmineService.getTogglTimeEntries(opts, function (entries) {
-        var output = [];
-
-        // Prepare rounding rules.
-        let roundingValue = T2R.localStorage.get('t2r.rounding-value');
-        let roundingMethod = T2R.localStorage.get('t2r.rounding-direction');
-
-        for (var key in entries) {
-            var entry = entries[key];
-
-            entry.duration = new duration.Duration(Math.max(0, entry.duration));
-            entry.roundedDuration = new duration.Duration(entry.duration.seconds);
-
-            // Prepare rounded duration as per rounding rules.
-            if (roundingMethod !== '' && roundingValue > 0) {
-                entry.roundedDuration.roundTo(roundingValue, roundingMethod);
-            }
-            else {
-                entry.roundedDuration.roundTo(1, duration.Rounding.Regular);
-            }
-
-            // Include the entry in the output.
-            output.push(entry);
-        }
-
-        callback(output);
-    });
-};
-
-/**
  * Refresh the Toggl report table.
  */
 T2R.updateTogglReport = function () {
@@ -481,6 +437,7 @@ T2R.updateTogglReport = function () {
 
     // Determine report date.
     var date = T2R.tempStorage.get('date');
+    // TODO: Rename this to query.
     var opts = {
         from: date + ' 00:00:00',
         till: date + ' 23:59:59',
@@ -502,52 +459,73 @@ T2R.updateTogglReport = function () {
         .attr('disabled', 'disabled');
 
     // Fetch time entries from Toggl.
-    T2R.getTogglTimeEntries(opts, function (entries) {
+    T2R.redmineService.getTogglTimeEntries(opts, function (entries) {
         var $table = T2R.getTogglTable();
         var pendingEntriesExist = false;
 
-        // Display currently running entries.
-        for (var key in entries) {
-            var entry = entries[key];
+        // Prepare rounding rules.
+        let roundingValue = T2R.localStorage.get('t2r.rounding-value')
+        let roundingMethod = T2R.localStorage.get('t2r.rounding-direction')
+
+        for (const key in entries) {
+            const entry = entries[key]
+
+            entry.duration = new duration.Duration(Math.max(0, entry.duration))
+            entry.roundedDuration = new duration.Duration(entry.duration.seconds)
+
+            // Prepare rounded duration as per rounding rules.
+            if (roundingMethod !== '' && roundingValue > 0) {
+                entry.roundedDuration.roundTo(roundingValue, roundingMethod)
+            }
+            else {
+                entry.roundedDuration.roundTo(1, duration.Rounding.Regular)
+            }
+
+            // Include the entry in the output.
+            entries[key] = entry
+        }
+
+        // Display entries that are running at the moment.
+        for (const key in entries) {
+            const entry = entries[key];
             if (entry.status === 'running') {
-                var $tr = T2RRenderer.render('TogglRow', entry);
-                var entry = $tr.data('t2r.entry');
+                const $tr = T2RRenderer.render('TogglRow', entry);
                 $table.find('tbody').append($tr);
                 delete entries[key];
             }
         }
 
-        // Display entries eligible for export.
-        for (var key in entries) {
-            var entry = entries[key];
+        // Display entries eligible for import.
+        for (const key in entries) {
+            const entry = entries[key];
             if (entry.status === 'pending' && entry.errors.length === 0) {
-                var $tr = T2RRenderer.render('TogglRow', entry);
+                const $tr = T2RRenderer.render('TogglRow', entry);
                 $table.find('tbody').append($tr);
                 pendingEntriesExist = true;
             }
         }
 
-        // Display entries not eligible for export.
-        for (var key in entries) {
-            var entry = entries[key];
+        // Display entries not eligible for import.
+        for (const key in entries) {
+            const entry = entries[key];
             if (entry.status === 'pending' && entry.errors.length > 0) {
-                var $tr = T2RRenderer.render('TogglRow', entry);
+                const $tr = T2RRenderer.render('TogglRow', entry);
                 $table.find('tbody').append($tr);
             }
         }
 
-        // Display entries which are already imported.
-        for (var key in entries) {
-            var entry = entries[key];
+        // Display entries which are already import.
+        for (const key in entries) {
+            const entry = entries[key];
             if (entry.status === 'imported') {
-                var $tr = T2RRenderer.render('TogglRow', entry);
+                const $tr = T2RRenderer.render('TogglRow', entry);
                 $table.find('tbody').append($tr);
             }
         }
 
         // Display empty table message, if required.
         if (0 === entries.length) {
-            var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
+            const markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
                 + t('t2r.error.list_empty')
                 + '</td></tr>';
             $table.find('tbody').append(markup);
@@ -647,6 +625,7 @@ T2R.updateRedmineReport = function () {
     var from = till;
 
     // Fetch time entries from Redmine.
+    // TODO: Rename this to query.
     var opts = {
         from: from.toISOString().split('T')[0] + 'T00:00:00Z',
         till: till.toISOString().split('T')[0] + 'T00:00:00Z'

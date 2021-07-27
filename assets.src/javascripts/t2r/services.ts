@@ -1,7 +1,6 @@
-import {RequestQueue} from "./request.js";
-import * as utils from "./utils.js";
-import * as flash from "./flash.js";
-import {translate as t} from "./i18n.js";
+import * as utils from "./utils.js"
+import {RequestQueue} from "./request.js"
+import {TemporaryStorage} from "./storage.js"
 
 /**
  * Sends requests to Redmine API endpoints.
@@ -9,11 +8,13 @@ import {translate as t} from "./i18n.js";
 export class RedmineService {
   readonly _apiKey: string
   readonly _baseUrl: string
+  readonly _cache: TemporaryStorage
   public requestQueue: RequestQueue
 
   constructor(apiKey: string) {
     this._baseUrl = window.location.origin
     this._apiKey = apiKey
+    this._cache = new TemporaryStorage()
     this.requestQueue = new RequestQueue()
   }
 
@@ -37,6 +38,14 @@ export class RedmineService {
     opts.headers['X-Redmine-API-Key'] = this._apiKey
 
     this.requestQueue.addItem(opts)
+  }
+
+  handleRequestSuccess(type: string, data: any) {
+    console.debug(`Fetched: ${type}`, data)
+  }
+
+  handleRequestError(type: string) {
+    console.error(`Fetch failed: ${type}`)
   }
 
   /**
@@ -158,17 +167,24 @@ export class RedmineService {
    *   Receives workspaces or null.
    */
   getTogglWorkspaces(callback: any) {
-    let opts: any = {}
-    opts.url = '/toggl2redmine/toggl/workspaces'
-    opts.success = (data: any[]) => {
-      callback(data)
-    }
-    opts.error = () => {
-      console.error('Fetch failed: toggl workspaces')
-      callback(null)
+    let workspaces = this._cache.get('toggl.workspaces')
+    if (workspaces) {
+      callback(workspaces)
+      return
     }
 
-    this.request(opts)
+    var that = this
+    this.request({
+      url: '/toggl2redmine/toggl/workspaces',
+      success: (workspaces: any[]) => {
+        that.handleRequestSuccess('Toggl workspaces', workspaces)
+        that._cache.set('toggl.workspaces', workspaces)
+        callback(workspaces)
+      },
+      error: () => {
+        that.handleRequestError('Toggl workspaces')
+      }
+    })
   }
 
   /**

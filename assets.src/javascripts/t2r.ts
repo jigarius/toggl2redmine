@@ -23,8 +23,6 @@ let T2R: any = {
     localStorage: new LocalStorage(),
     // Temporary storage.
     tempStorage: new TemporaryStorage(),
-    // Cache storage.
-    cacheStorage: new TemporaryStorage(),
     // Redmine service.
     redmineService: new RedmineService(T2R_REDMINE_API_KEY)
 }

@@ -396,38 +396,6 @@ T2R.publishToRedmine = function () {
 };
 
 /**
- * Gets all workspaces from Toggl.
- *
- * @param {function} callback
- *   A callback. Receives workspaces as an argument.
- */
-T2R.getTogglWorkspaces = function (callback) {
-    // Use cached data, if available.
-    let workspaces = T2R.cacheStorage.get('toggl.workspaces')
-    if (workspaces) {
-        callback(workspaces)
-        return
-    }
-
-    // Fetch data from Toggl.
-    T2R.redmineService.getTogglWorkspaces((workspaces: any[] | null) => {
-        if (workspaces === null) {
-            flash.error(t('t2r.error.ajax_load'));
-            callback([])
-            return
-        }
-
-        // Determine the default Toggl workspace.
-        if (workspaces.length > 0) {
-          T2R.tempStorage.set('default_toggl_workspace', workspaces[0].id)
-        }
-
-        T2R.cacheStorage.set('toggl.workspaces', workspaces)
-        callback(workspaces)
-    })
-};
-
-/**
  * Refresh the Toggl report table.
  */
 T2R.updateTogglReport = function () {
@@ -978,29 +946,33 @@ T2RWidget.initRedmineActivityDropdown = function (el) {
 };
 
 T2RWidget.initTogglWorkspaceDropdown = function (el) {
-    var $el = $(el);
-    T2R.getTogglWorkspaces((workspaces) => {
-        var placeholder = $el.attr('placeholder') || $el.data('placeholder');
+    const $el = $(el);
+    T2R.redmineService.getTogglWorkspaces((workspaces) => {
+        // Determine the default Toggl workspace.
+        if (workspaces.length > 0) {
+            T2R.tempStorage.set('default_toggl_workspace', workspaces[0].id)
+        }
+
+        const placeholder = $el.attr('placeholder') || $el.data('placeholder')
 
         // Prepare options.
-        var options = {};
-        for (var i in workspaces) {
-            var workspace = workspaces[i];
-            options[workspace.id] = workspace.name;
+        const options = {}
+        for (const workspace of workspaces) {
+            options[workspace.id] = workspace.name
         }
 
         // Generate a SELECT element and use it's options.
-        var $select = T2RRenderer.render('Dropdown', {
+        const $select = T2RRenderer.render('Dropdown', {
             placeholder: placeholder,
             options: options
-        });
+        })
 
-        $el.append($select.find('option'));
+        $el.append($select.find('option'))
 
         // Mark selection.
-        var value = $el.data('selected');
+        const value = $el.data('selected')
         if ('undefined' !== typeof value) {
-            $el.val(value).data('selected', null);
+            $el.val(value).data('selected', null)
         }
     });
 };

@@ -744,56 +744,6 @@ T2RWidget.initTooltip = function(el) {
     $(el).tooltip();
 }
 
-T2RWidget.initAjaxDeleteLink = function(el) {
-    $(el).click(function (e) {
-        var $link = $(this);
-        e.preventDefault();
-
-        // Confirm action.
-        var message = 'Are you sure?';
-        if (!confirm(message)) {
-            return false;
-        }
-
-        // Determine parameters.
-        var context = $link.attr('data-t2r-delete-link-context');
-        var $context = $link.closest(context);
-        var url = $link.attr('href');
-        var callback = $link.attr('data-t2r-delete-link-callback');
-
-        // URL must be defined.
-        if (!url) {
-            throw 'T2RDeleteLink: URL must be defined in "href" attribute.';
-        }
-
-        // Context must be defined.
-        if (typeof context === 'undefined') {
-            throw 'T2RDeleteLink: Context must be defined in "data-t2r-delete-link-context" attribute.';
-        }
-
-        // Prepare AJAX request.
-        // TODO: Move to RedmineService.deleteRedmineTimeEntry()
-        T2R.redmineService.request({
-            url: url + '.json',
-            async: true,
-            data: '{}',
-            method: 'DELETE',
-            complete: function(xhr, textStatus) {
-                if (xhr.status === 200) {
-                    if (callback) {
-                        eval(callback);
-                    }
-                }
-                else {
-                    flash.error('Deletion failed.');
-                }
-            },
-        });
-
-        return false;
-    });
-}
-
 T2RWidget.initTogglRow = function(el) {
     var $el = $(el);
 

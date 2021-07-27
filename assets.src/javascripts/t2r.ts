@@ -634,37 +634,6 @@ T2R.updateTogglTotals = function () {
 };
 
 /**
- * Retrieves normalized time entry data from Redmine.
- *
- * @param query
- *   Query parameters.
- * @param {Function} callback
- *   A callback. Receives entries as an argument.
- *
- * @returns {Object|boolean}
- *   Data on success or false otherwise.
- */
-T2R.getRedmineTimeEntries = function (query, callback) {
-    query = query || {};
-    callback = callback || utils.noopCallback;
-
-    T2R.redmineService.getRedmineTimeEntries(query, function (entries) {
-        var output = [];
-
-        for (var i in entries) {
-            var entry = entries[i]
-            entry.issue = entry.issue || { id: false }
-            // Convert duration in seconds.
-            entry.duration = Math.floor(parseFloat(entry.hours) * 3600)
-
-            output.push(entry);
-        }
-
-        callback(entries);
-    });
-}
-
-/**
  * Updates the Redmine time entry report.
  */
 T2R.updateRedmineReport = function () {
@@ -689,19 +658,24 @@ T2R.updateRedmineReport = function () {
     });
 
     // Fetch time entries from Redmine.
-    T2R.getRedmineTimeEntries(opts, function (entries) {
-        var $table = T2R.getRedmineTable().addClass('t2r-loading');
+    T2R.redmineService.getRedmineTimeEntries(opts, (entries: any[] | null) => {
+        if (entries === null) {
+            flash.error('An error has occurred. Please try again after some time.')
+            entries = []
+        }
+
+        const $table = T2R.getRedmineTable().addClass('t2r-loading');
 
         // Display entries from Redmine.
-        for (var key in entries) {
-            var entry = entries[key];
-            var markup = T2RRenderer.render('RedmineRow', entry);
+        for (const key in entries) {
+            const entry = entries[key];
+            const markup = T2RRenderer.render('RedmineRow', entry);
             $table.find('tbody').append(markup);
         }
 
         // Display empty table message, if required.
         if (0 === entries.length) {
-            var markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
+            const markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
                 + t('t2r.error.list_empty')
                 + '</td></tr>';
             $table.find('tbody').html(markup);
@@ -1213,8 +1187,8 @@ T2RRenderer.renderTogglRow = function (data: any) {
 };
 
 T2RRenderer.renderRedmineRow = function (data: any) {
-    var issue = data.issue.id ? data.issue : null;
-    var project = data.project ? data.project : null;
+    const issue = data.issue
+    const project = data.project
 
     // Build a label for the issue.
     var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : '-';

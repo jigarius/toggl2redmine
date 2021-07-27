@@ -52,24 +52,37 @@ export class RedmineService {
    */
   getRedmineTimeEntries(query: any, callback: any) {
     query = query || {};
-    try {
-      this.request({
-        async: true,
-        method: 'get',
-        url: '/toggl2redmine/redmine/time_entries',
-        data: {
-          from: query.from,
-          till: query.till
-        },
-        success: function (data: any) {
-          var output = ('undefined' !== typeof data.time_entries)
-            ? data.time_entries : [];
-          callback(output);
+    this.request({
+      async: true,
+      method: 'get',
+      url: '/toggl2redmine/redmine/time_entries',
+      data: {
+        from: query.from,
+        till: query.till
+      },
+      success: function (data: any) {
+        if (typeof data.time_entries === 'undefined') {
+          console.error('Fetch failed: redmine time entries.')
+          callback(null)
+          return
         }
-      });
-    } catch (e) {
-      callback(false);
-    }
+
+        let time_entries: any[] = ('undefined' !== typeof data.time_entries)
+          ? data.time_entries : [];
+
+        time_entries = time_entries.map((entry) => {
+          entry.duration = Math.floor(parseFloat(entry.hours) * 3600)
+
+          return entry
+        })
+
+        console.debug('Fetched Redmine time entries', time_entries)
+        callback(time_entries);
+      },
+      error: () => {
+        callback(null)
+      }
+    });
   }
 
   /**

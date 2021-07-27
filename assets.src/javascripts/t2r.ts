@@ -27,7 +27,7 @@ let T2R: any = {
     cacheStorage: new TemporaryStorage(),
     // Redmine service.
     redmineService: new RedmineService(T2R_REDMINE_API_KEY)
-};
+}
 
 /**
  * Returns the form containing filters.
@@ -37,7 +37,7 @@ let T2R: any = {
  */
 T2R.getFilterForm = function () {
     return $('#filter-form');
-};
+}
 
 /**
  * Returns the form to publish data to Redmine.
@@ -47,7 +47,7 @@ T2R.getFilterForm = function () {
  */
 T2R.getPublishForm = function () {
     return $('#publish-form');
-};
+}
 
 /**
  * Returns the Toggl report table.
@@ -57,7 +57,7 @@ T2R.getPublishForm = function () {
  */
 T2R.getTogglTable = function () {
     return $('#toggl-report');
-};
+}
 
 /**
  * Returns the Redmine report table.
@@ -67,7 +67,7 @@ T2R.getTogglTable = function () {
  */
 T2R.getRedmineTable = function () {
     return $('#redmine-report');
-};
+}
 
 /**
  * Initializes the Toggl report.
@@ -84,7 +84,7 @@ T2R.initTogglReport = function () {
                 .prop('checked', checked)
                 .trigger('change');
         });
-};
+}
 
 /**
  * Filter form initializer.
@@ -118,7 +118,7 @@ T2R.initFilterForm = function () {
         date: utils.getDateFromLocationHash()
     };
     T2R.resetFilterForm(data);
-};
+}
 
 /**
  * Filter form resetter.
@@ -170,7 +170,7 @@ T2R.resetFilterForm = function (data) {
 
     // Submit the filter form to update the reports.
     T2R.handleFilterForm();
-};
+}
 
 /**
  * Filter form submission handler.
@@ -203,24 +203,26 @@ T2R.handleFilterForm = function() {
     T2R.localStorage.set('t2r.rounding-direction', roundingMethod);
 
     // Determine date filter.
-    var $date = $('#date');
-    var sDate = $date.val();
+    const $date = $('#date')
+    const sDate = $date.val()
+    if (!sDate) {
+        $date.focus()
+        return false
+    }
+
+    let oDate: Date
     try {
-        if (!sDate) {
-            throw 'Invalid date.';
-        }
-        var oDate = utils.dateStringToObject(sDate + ' 00:00:00');
+        oDate = utils.dateStringToObject(sDate + ' 00:00:00')!
+        // Show date in the headings.
+        $('h2 .date').html('(' + oDate!.toLocaleDateString() + ')')
     } catch (e) {
-        $date.focus();
-        return false;
+        $date.focus()
+        return false
     }
 
     // Store date and update URL hash.
-    T2R.tempStorage.set('date', sDate);
-    window.location.hash = T2R.tempStorage.get('date');
-
-    // Show date in the headings.
-    $('h2 .date').html('(' + oDate.toLocaleDateString() + ')');
+    T2R.tempStorage.set('date', sDate)
+    window.location.hash = T2R.tempStorage.get('date')
 
     // Log the event.
     console.info('Filter form updated: ', {
@@ -239,14 +241,14 @@ T2R.handleFilterForm = function() {
 
     // Unlock the publish form if it was previously locked.
     T2R.unlockPublishForm();
-};
+}
 
 /**
  * Publish form initializer.
  */
 T2R.initPublishForm = function () {
     T2R.getPublishForm().submit(T2R.handlePublishForm);
-};
+}
 
 /**
  * Locks the publish form.
@@ -255,7 +257,7 @@ T2R.initPublishForm = function () {
  */
 T2R.lockPublishForm = function () {
     T2R.getPublishForm().find('#btn-publish').attr('disabled', 'disabled');
-};
+}
 
 /**
  * Unlocks the publish form.
@@ -264,7 +266,7 @@ T2R.lockPublishForm = function () {
  */
 T2R.unlockPublishForm = function () {
     T2R.getPublishForm().find('#btn-publish').removeAttr('disabled');
-};
+}
 
 /**
  * Publish form submission handler.
@@ -274,7 +276,7 @@ T2R.handlePublishForm = function() {
         setTimeout(T2R.publishToRedmine);
     }
     return false;
-};
+}
 
 /**
  * Publishes selected Toggl data to Redmine.
@@ -393,7 +395,7 @@ T2R.publishToRedmine = function () {
             T2R.updateLastImported();
         }
     }, 250);
-};
+}
 
 /**
  * Refresh the Toggl report table.
@@ -523,7 +525,7 @@ T2R.updateTogglReport = function () {
             T2R.unlockPublishForm();
         }
     });
-};
+}
 
 /**
  * Updates the Toggl report URL.
@@ -540,7 +542,7 @@ T2R.updateTogglReportLink = function (data) {
         .replace(/\[@date\]/g, data.date)
         .replace('[@workspace]', data.workspace);
     $('#toggl-report-link').attr('href', url);
-};
+}
 
 /**
  * Updates the total in the Redmine report footer.
@@ -550,7 +552,7 @@ T2R.updateTogglTotals = function () {
     var total = new duration.Duration();
 
     // Iterate over all rows and add the hours.
-    $table.find('tbody tr').each(function (i) {
+    $table.find('tbody tr').each(() => {
         var $tr = $(this);
 
         // Ignore erroneous rows.
@@ -577,7 +579,7 @@ T2R.updateTogglTotals = function () {
 
     // Show the total in the table footer.
     $table.find('[data-property="total-hours"]').html(total.asHHMM());
-};
+}
 
 /**
  * Updates the Redmine time entry report.
@@ -634,7 +636,7 @@ T2R.updateRedmineReport = function () {
         // Remove loader.
         $table.removeClass('t2r-loading');
     });
-};
+}
 
 /**
  * Updates the Redmine report URL.
@@ -647,7 +649,7 @@ T2R.updateRedmineReportLink = function (data) {
     var url = T2R_REDMINE_REPORT_URL_FORMAT
         .replace('[@date]', data.date);
     $('#redmine-report-link').attr('href', url);
-};
+}
 
 /**
  * Updates the total in the Redmine report footer.
@@ -666,7 +668,7 @@ T2R.updateRedmineTotals = function () {
 
     // Show the total in the table footer.
     $table.find('[data-property="total-hours"]').html(total.asHHMM());
-};
+}
 
 /**
  * Updates the date of the latest time entry on Redmine.
@@ -682,13 +684,15 @@ T2R.updateLastImportDate = function () {
             $context.html('&nbsp;').addClass('t2r-loading');
         },
     })
-};
+}
 
 /**
  * Gets a list of Redmine time entry activities.
  *
  * @param {function} callback
  *   A callback. Receives activities as an argument.
+ *
+ * @todo Move caching to redmineService
  */
 T2R.getTimeEntryActivities = function (callback) {
     var key = 'redmine.activities';
@@ -711,7 +715,7 @@ T2R.getTimeEntryActivities = function (callback) {
         T2R.cacheStorage.set(key, activities)
         callback(activities)
     })
-};
+}
 
 /**
  * Returns the URL to a Redmine issue.
@@ -721,6 +725,8 @@ T2R.getTimeEntryActivities = function (callback) {
  *
  * @return {string|boolean}
  *   Redmine issue URL if the issue ID is a valid number. False otherwise.
+ *
+ * @todo Use issue URL generated on server-side.
  */
 T2R.redmineIssueURL = function (id) {
     id = parseInt(id);

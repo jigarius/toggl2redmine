@@ -913,15 +913,6 @@ T2RRenderer.renderDropdown = function (data: any) {
     return $el;
 };
 
-T2RRenderer.renderDuration = function (data: any) {
-    data = Math.ceil(data / 60);
-    var h = Math.floor(data / 60);
-    var output = h;
-    var m = data % 60;
-    output += ':' + ('00' + m).substr(-2);
-    return output;
-};
-
 T2RRenderer.renderRedmineProjectLabel = function (project: any) {
     project ||= { name: 'Unknown', path: 'javascript:void(0)', status: 1 };
     project.classes = ['project'];
@@ -1031,6 +1022,8 @@ T2RRenderer.renderTogglRow = function (data: any) {
 T2RRenderer.renderRedmineRow = function (data: any) {
     const issue = data.issue
     const project = data.project
+    const dur = new duration.Duration(data.duration)
+    dur.roundTo(1, duration.Rounding.Up)
 
     // Build a label for the issue.
     const issueLabel = T2RRenderer.render('RedmineIssueLabel', issue)
@@ -1044,7 +1037,7 @@ T2RRenderer.renderRedmineRow = function (data: any) {
         + '</td>'
         + '<td class="comments">' + utils.htmlEntityEncode(data.comments) + '</td>'
         + '<td class="activity">' + utils.htmlEntityEncode(data.activity.name) + '</td>'
-        + '<td class="hours">' + T2RRenderer.render('Duration', data.duration) + '</td>'
+        + '<td class="hours">' + dur.asHHMM() + '</td>'
         + '<td class="buttons">' + T2R_BUTTON_ACTIONS + '</td>'
         + '</tr>';
     var $tr = $(markup);

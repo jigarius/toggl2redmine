@@ -451,8 +451,6 @@ T2R.getTogglTimeEntries = function (opts, callback) {
 
         for (var key in entries) {
             var entry = entries[key];
-            console.groupCollapsed('Received Toggl entry: ' + key);
-            console.log('Toggl time entry: ', entry);
 
             entry.duration = new duration.Duration(Math.max(0, entry.duration));
             entry.roundedDuration = new duration.Duration(entry.duration.seconds);
@@ -465,19 +463,8 @@ T2R.getTogglTimeEntries = function (opts, callback) {
                 entry.roundedDuration.roundTo(1, duration.Rounding.Regular);
             }
 
-            if (entry.duration.seconds !== entry.roundedDuration.seconds) {
-                console.debug('Duration rounded.', {
-                    from: entry.duration.asHHMM(),
-                    to: entry.roundedDuration.asHHMM()
-                });
-            }
-            else {
-                console.debug('Duration not rounded.', entry.duration.asHHMM());
-            }
-
             // Include the entry in the output.
             output.push(entry);
-            console.groupEnd();
         }
 
         callback(output);
@@ -665,18 +652,11 @@ T2R.getRedmineTimeEntries = function (query, callback) {
         var output = [];
 
         for (var i in entries) {
-            var entry = entries[i];
-            console.groupCollapsed('Received Redmine entry: ' + entry.id)
-            console.log('Redmine time entry: ', entry)
-            console.groupEnd()
+            var entry = entries[i]
+            entry.issue = entry.issue || { id: false }
+            // Convert duration in seconds.
+            entry.duration = Math.floor(parseFloat(entry.hours) * 3600)
 
-            // Ensure an issue object.
-            entry.issue = entry.issue || { id: false };
-
-            // Generate duration in seconds.
-            entry.duration = Math.floor(parseFloat(entry.hours) * 3600);
-
-            // Include the entry in the output.
             output.push(entry);
         }
 

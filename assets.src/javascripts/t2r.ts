@@ -683,26 +683,6 @@ T2R.updateLastImportDate = function () {
 }
 
 /**
- * Returns the URL to a Redmine issue.
- *
- * @param {string} id
- *   Redmine issue ID.
- *
- * @return {string|boolean}
- *   Redmine issue URL if the issue ID is a valid number. False otherwise.
- *
- * @todo Use issue URL generated on server-side.
- */
-T2R.redmineIssueURL = function (id) {
-    id = parseInt(id);
-    var output = null;
-    if (!isNaN(id) && id > 0) {
-        output = T2R_REDMINE_URL + '/issues/' + id;
-    }
-    return output;
-};
-
-/**
  * Toggl 2 Redmine widget manager.
  */
 let T2RWidget: any = {};
@@ -954,35 +934,28 @@ T2RRenderer.renderRedmineProjectLabel = function (project: any) {
         + '</strong></a>';
 }
 
-T2RRenderer.renderRedmineIssueLabel = function (data: any) {
-    // If the issue is invalid, do nothing.
-    var issue = data;
-    if (!issue || !issue.id) {
-        return false;
-    }
+T2RRenderer.renderRedmineIssueLabel = function (issue: any): string {
+    if (typeof issue['id'] == 'undefined' || !issue.id) return '-'
+    if (!issue.path) return issue.id.toString()
 
     // Render a clickable issue label.
-    var markup = '<a href="' + T2R.redmineIssueURL(issue.id) + '" target="_blank">'
+    return '<a href="' + issue.path + '" target="_blank">'
         + utils.htmlEntityEncode(issue ? issue.tracker.name : '-')
         + utils.htmlEntityEncode(issue ? ' #' + issue.id : '')
         + utils.htmlEntityEncode(issue.subject ? ': ' + issue.subject : '')
-        + '</a>';
-    return markup;
+        + '</a>'
 };
 
 T2RRenderer.renderTogglRow = function (data: any) {
-    var issue = data.issue || null;
-    var project = data.project || null;
-    var oDuration = data.duration;
-    var rDuration = data.roundedDuration;
+    const issue = data.issue || null
+    const project = data.project || null;
+    const oDuration = data.duration;
+    const rDuration = data.roundedDuration;
 
     // Build a label for the issue.
-    var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : false;
-    if (!issueLabel) {
-        issueLabel = data.issue_id || '-';
-    }
+    let issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : T2RRenderer.render('RedmineIssueLabel', { id: data.id })
 
-    var markup = '<tr data-t2r-widget="TogglRow">'
+    const markup = '<tr data-t2r-widget="TogglRow">'
         + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" title="Check this box if you want to import this entry." /></td>'
         + '<td class="status"></td>'
         + '<td class="issue">'
@@ -999,11 +972,11 @@ T2RRenderer.renderTogglRow = function (data: any) {
         + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Value as on Toggl is ' + oDuration.asHHMM() + '." value="' + rDuration.asHHMM() + '" size="6" maxlength="5" />'
         + '</td>'
         + '</tr>';
-    var $tr = $(markup);
-    var $checkbox = $tr.find('.cb-import');
 
+    const $tr = $(markup);
     // Attach the entry for reference.
     $tr.data('t2r.entry', data);
+    const $checkbox = $tr.find('.cb-import');
 
     // Status specific actions.
     switch (data.status) {
@@ -1060,7 +1033,7 @@ T2RRenderer.renderRedmineRow = function (data: any) {
     const project = data.project
 
     // Build a label for the issue.
-    var issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : '-';
+    const issueLabel = T2RRenderer.render('RedmineIssueLabel', issue)
 
     var markup = '<tr id="time-entry-' + data.id + '"  class="time-entry hascontextmenu">'
         + '<td class="subject">'

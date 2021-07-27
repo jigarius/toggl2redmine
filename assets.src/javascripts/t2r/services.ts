@@ -47,11 +47,9 @@ export class RedmineService {
    * @param {function} callback
    *   Receives time entries or null.
    *
-   * @todo
-   *   Change argument order.
+   * @todo Perform query validation.
    */
   getRedmineTimeEntries(query: any, callback: any) {
-    query = query || {};
     this.request({
       async: true,
       method: 'get',
@@ -108,51 +106,49 @@ export class RedmineService {
   /**
    * Retrieves raw time entry data from Toggl.
    *
-   * @param opts
-   *   Applied filters.
+   * @param query
+   *   Filters to be applied, e.g. from, till, workspace.
    * @param {function} callback
-   *   Receives Toggl time entry groups as an argument.
+   *   Receives Toggl time entry groups or null.
    *
-   * @todo Change argument order.
+   * @todo Improve query validation.
    */
-  getTogglTimeEntries(opts: any, callback: any) {
-    opts = opts || {};
-    var data: any = {};
+  getTogglTimeEntries(query: any, callback: any) {
+    let data: any = {}
 
     // Determine start date.
-    opts.from = utils.dateStringToObject(opts.from);
-    if (!opts.from) {
-      alert('Error: Invalid start date!');
-      return false;
+    try {
+      data.from = utils.dateStringToObject(query.from)!.toISOString()
+    } catch(e) {
+      console.error('Invalid start date', query.from)
+      alert('Error: Invalid start date!')
     }
-    data.from = opts.from.toISOString();
 
     // Determine end date.
-    opts.till = utils.dateStringToObject(opts.till);
-    if (!opts.till) {
-      alert('Error: Invalid end date!');
-      return false;
-    }
-    data.till = opts.till.toISOString();
-
-    // Determine workspaces.
-    if (opts.workspace) {
-      data.workspaces = opts.workspace;
-    }
-
     try {
-      this.request({
-        url: '/toggl2redmine/toggl/time_entries',
-        data: data,
-        success: function(data: any) {
-          data = ('undefined' === typeof data) ? {} : data;
-          callback(data);
-        }
-      });
+      data.till = utils.dateStringToObject(query.till)!.toISOString()
     } catch(e) {
-      console.error(e);
-      callback(false);
+      console.error('Invalid end date', query.till)
+      alert('Error: Invalid end date!');
     }
+
+    // Filter by workspace?
+    if (query.workspace) {
+      data.workspaces = query.workspace
+    }
+
+    this.request({
+      url: '/toggl2redmine/toggl/time_entries',
+      data: data,
+      success: (time_entries: any) => {
+        console.debug('Fetched Toggl time entries', time_entries)
+        callback(time_entries)
+      },
+      error: () => {
+        console.error('Fetch failed: toggl time entries')
+        callback(null)
+      }
+    })
   }
 
   /**

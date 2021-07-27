@@ -20,7 +20,7 @@ import * as flash from "./t2r/flash.js"
  */
 let T2R: any = {
     // Browser storage.
-    localStorage: new LocalStorage(),
+    localStorage: new LocalStorage('t2r.'),
     // Temporary storage.
     tempStorage: new TemporaryStorage(),
     // Redmine service.
@@ -130,10 +130,10 @@ T2R.resetFilterForm = function (data) {
     // Default values.
     var defaults = {
         date: utils.dateFormatYYYYMMDD(new Date()),
-        'toggl-workspace': T2R.localStorage.get('t2r.toggl-workspace'),
-        'default-activity': T2R.localStorage.get('t2r.default-activity'),
-        'rounding-value': T2R.localStorage.get('t2r.rounding-value'),
-        'rounding-direction': T2R.localStorage.get('t2r.rounding-direction')
+        'toggl-workspace': T2R.localStorage.get('toggl-workspace'),
+        'default-activity': T2R.localStorage.get('default-activity'),
+        'rounding-value': T2R.localStorage.get('rounding-value'),
+        'rounding-direction': T2R.localStorage.get('rounding-direction')
     };
 
     // Merge with defaults.
@@ -180,7 +180,7 @@ T2R.handleFilterForm = function() {
     if (null === defaultActivity) {
         defaultActivity = $defaultActivity.data('selected');
     }
-    T2R.localStorage.set('t2r.default-activity', defaultActivity);
+    T2R.localStorage.set('default-activity', defaultActivity);
 
     // Determine toggl workspace.
     var $togglWorkspace = $('select#toggl-workspace');
@@ -188,17 +188,17 @@ T2R.handleFilterForm = function() {
     if (null === togglWorkspace) {
         togglWorkspace = $togglWorkspace.data('selected');
     }
-    T2R.localStorage.set('t2r.toggl-workspace', togglWorkspace);
+    T2R.localStorage.set('toggl-workspace', togglWorkspace);
 
     // Determine rounding value.
     let roundingValue = $('input#rounding-value').val();
     roundingValue = roundingValue ? parseInt(roundingValue as string) : 0;
     roundingValue = isNaN(roundingValue) ? 0 : roundingValue;
-    T2R.localStorage.set('t2r.rounding-value', roundingValue);
+    T2R.localStorage.set('rounding-value', roundingValue);
 
     // Determine rounding direction.
     let roundingMethod = $('select#rounding-direction').val();
-    T2R.localStorage.set('t2r.rounding-direction', roundingMethod);
+    T2R.localStorage.set('rounding-direction', roundingMethod);
 
     // Determine date filter.
     const $date = $('#date')
@@ -225,10 +225,10 @@ T2R.handleFilterForm = function() {
     // Log the event.
     console.info('Filter form updated: ', {
         'date': T2R.tempStorage.get('date'),
-        'default-activity': T2R.localStorage.get('t2r.default-activity'),
-        'toggl-workspace': T2R.localStorage.get('t2r.toggl-workspace'),
-        'rounding-value': T2R.localStorage.get('t2r.rounding-value'),
-        'rounding-direction': T2R.localStorage.get('t2r.rounding-direction')
+        'default-activity': T2R.localStorage.get('default-activity'),
+        'toggl-workspace': T2R.localStorage.get('toggl-workspace'),
+        'rounding-value': T2R.localStorage.get('rounding-value'),
+        'rounding-direction': T2R.localStorage.get('rounding-direction')
     });
 
     // Update both the Redmine and Toggl reports.
@@ -408,7 +408,7 @@ T2R.updateTogglReport = function () {
     const query = {
         from: date + ' 00:00:00',
         till: date + ' 23:59:59',
-        workspace: T2R.localStorage.get('t2r.toggl-workspace')
+        workspace: T2R.localStorage.get('toggl-workspace')
     }
 
     // Update other elements.
@@ -431,8 +431,8 @@ T2R.updateTogglReport = function () {
         var pendingEntriesExist = false;
 
         // Prepare rounding rules.
-        let roundingValue = T2R.localStorage.get('t2r.rounding-value')
-        let roundingMethod = T2R.localStorage.get('t2r.rounding-direction')
+        let roundingValue = T2R.localStorage.get('rounding-value')
+        let roundingMethod = T2R.localStorage.get('rounding-direction')
 
         for (const key in entries) {
             const entry = entries[key]
@@ -957,7 +957,7 @@ T2RRenderer.renderTogglRow = function (data: any) {
         + '</td>'
         + '<td class="comments"><input data-property="comments" type="text" value="' + utils.htmlEntityEncode(data.comments) + '" maxlength="255" /></td>'
         + '<td class="activity">'
-        + '<select data-property="activity_id" required="required" data-placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.localStorage.get('t2r.default-activity') + '"></select>'
+        + '<select data-property="activity_id" required="required" data-placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.localStorage.get('default-activity') + '"></select>'
         + '</td>'
         + '<td class="hours">'
         + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Value as on Toggl is ' + oDuration.asHHMM() + '." value="' + rDuration.asHHMM() + '" size="6" maxlength="5" />'

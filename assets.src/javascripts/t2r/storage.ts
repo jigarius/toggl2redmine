@@ -2,14 +2,22 @@
  * Wrapper around the browser's local storage.
  */
 export class LocalStorage {
-  constructor() {
+  private _prefix: string
+
+  constructor(prefix: string) {
+    this._prefix = prefix
+
     if (typeof window['localStorage'] === 'undefined') {
       throw new Error("Missing browser feature: localStorage");
     }
   }
 
+  get prefix(): string {
+    return this._prefix
+  }
+
   get(key: string, fallback: any = null): any {
-    const value = window.localStorage.getItem(key)
+    const value = window.localStorage.getItem(this.prefix + key)
     if (value !== null) {
       return value
     }
@@ -19,16 +27,16 @@ export class LocalStorage {
 
   set(key: string, value: any): any {
     if (value === null) {
-      return this.delete(key)
+      return this.delete(this.prefix + key)
     }
 
-    window.localStorage.setItem(key, value)
+    window.localStorage.setItem(this.prefix + key, value)
     return value;
   }
 
   delete(key: string): any {
-    const value = this.get(key)
-    window.localStorage.removeItem(key)
+    const value = this.get(this.prefix + key)
+    window.localStorage.removeItem(this.prefix + key)
     return value
   }
 }

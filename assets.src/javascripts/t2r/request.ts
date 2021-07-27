@@ -45,14 +45,11 @@ export class RequestQueue {
    */
   processItem() {
     if (this._items.length === 0 || this._requestInProgress) return
-
     this._requestInProgress = true;
-    console.groupCollapsed('Processing AJAX queue (' + this.length + ' remaining).');
 
     const that = this
-
     const opts = this._items.shift()
-    console.log('Sending request: ', opts)
+    console.debug('Processing AJAX queue (' + this.length + ' remaining).', opts);
 
     const originalCallback = opts.complete
     opts.complete = function (xhr: any, status: string) {
@@ -68,7 +65,6 @@ export class RequestQueue {
 
     // Process current item.
     $.ajax(opts);
-    console.groupEnd();
   }
 
 }

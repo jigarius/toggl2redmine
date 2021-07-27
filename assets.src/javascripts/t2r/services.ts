@@ -155,6 +155,7 @@ export class RedmineService {
       callback(data)
     }
     opts.error = () => {
+      console.error('Fetch failed: toggl workspaces')
       callback(null)
     }
 
@@ -192,6 +193,7 @@ export class RedmineService {
       callback(lastImportDate)
     }
     opts.error = () => {
+      console.error('Fetch failed: last import date')
       callback(null)
     }
 

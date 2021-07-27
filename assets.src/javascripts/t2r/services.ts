@@ -49,7 +49,7 @@ export class RedmineService {
   }
 
   /**
-   * Retrieves raw time entry data from Redmine.
+   * Fetches Redmine time entries.
    *
    * @param {Object} query
    *   Applied filters.
@@ -92,19 +92,24 @@ export class RedmineService {
   }
 
   /**
-   * Requests time entry activities.
+   * Fetches and caches time entry activities.
    *
    * @param callback
-   *   Will receive a list of time entry activities.
-   *
-   *   If the request fails, the callback will receive a null.
+   *   function (activities, null) {}
    */
   getTimeEntryActivities(callback: any) {
+    const activities: any[] = this._cache.get('redmine.activities')
+    if (activities) {
+      callback(activities)
+      return
+    }
+
     var that = this
     this.request({
       url: '/enumerations/time_entry_activities.json',
       success: (data: any) => {
         that.handleRequestSuccess('Time entry activities', data)
+        that._cache.set('redmine.activities', data.time_entry_activities)
         callback(data.time_entry_activities)
       },
       error: () => {
@@ -115,7 +120,7 @@ export class RedmineService {
   }
 
   /**
-   * Retrieves raw time entry data from Toggl.
+   * Fetches Toggl time entries.
    *
    * @param query
    *   Filters to be applied, e.g. from, till, workspace.
@@ -163,7 +168,7 @@ export class RedmineService {
   }
 
   /**
-   * Fetches all Toggl workspaces.
+   * Fetches and caches Toggl workspaces.
    *
    * @param {function} callback
    *   Receives workspaces or null.

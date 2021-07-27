@@ -58,7 +58,7 @@ export class RedmineService {
    *
    * @todo Perform query validation.
    */
-  getRedmineTimeEntries(query: any, callback: any) {
+  getTimeEntries(query: any, callback: any) {
     var that = this
     this.request({
       async: true,
@@ -117,6 +117,46 @@ export class RedmineService {
         callback(null)
       }
     });
+  }
+
+  /**
+   * Fetches the last date on which time entries were found for the current user.
+   *
+   * Time entries for future dates are ignored.
+   *
+   * @param {function} callback
+   *   Receives a Date object or null.
+   * @param opts
+   *   Options to be passed to jQuery.ajax().
+   */
+  getLastImportDate(callback: any, opts: any = null) {
+    opts = opts || {}
+    opts.url = '/time_entries.json'
+    opts.data = {
+      user_id: 'me',
+      limit: 1,
+      // Ignore entries made in the future.
+      to: utils.dateFormatYYYYMMDD(new Date())
+    }
+
+    var that = this
+    opts.success = (data: any) => {
+      this.handleRequestSuccess('Last import date', data)
+      if (data.time_entries.length === 0) {
+        callback(null)
+        return
+      }
+
+      const lastTimeEntry = data.time_entries.pop()
+      const lastImportDate: Date = utils.dateStringToObject(`${lastTimeEntry.spent_on} 00:00:00`)!
+      callback(lastImportDate)
+    }
+    opts.error = () => {
+      that.handleRequestError('Last import date')
+      callback(null)
+    }
+
+    this.request(opts)
   }
 
   /**
@@ -192,46 +232,6 @@ export class RedmineService {
         that.handleRequestError('Toggl workspaces')
       }
     })
-  }
-
-  /**
-   * Fetches the last date on which time entries were found for the current user.
-   *
-   * Time entries for future dates are ignored.
-   *
-   * @param {function} callback
-   *   Receives a Date object or null.
-   * @param opts
-   *   Options to be passed to jQuery.ajax().
-   */
-  getLastImportDate(callback: any, opts: any = null) {
-    opts = opts || {}
-    opts.url = '/time_entries.json'
-    opts.data = {
-      user_id: 'me',
-      limit: 1,
-      // Ignore entries made in the future.
-      to: utils.dateFormatYYYYMMDD(new Date())
-    }
-
-    var that = this
-    opts.success = (data: any) => {
-      this.handleRequestSuccess('Last import date', data)
-      if (data.time_entries.length === 0) {
-        callback(null)
-        return
-      }
-
-      const lastTimeEntry = data.time_entries.pop()
-      const lastImportDate: Date = utils.dateStringToObject(`${lastTimeEntry.spent_on} 00:00:00`)!
-      callback(lastImportDate)
-    }
-    opts.error = () => {
-      that.handleRequestError('Last import date')
-      callback(null)
-    }
-
-    this.request(opts)
   }
 
 }

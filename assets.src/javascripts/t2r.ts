@@ -607,7 +607,7 @@ T2R.updateRedmineReport = function () {
     });
 
     // Fetch time entries from Redmine.
-    T2R.redmineService.getRedmineTimeEntries(opts, (entries: any[] | null) => {
+    T2R.redmineService.getTimeEntries(opts, (entries: any[] | null) => {
         if (entries === null) {
             flash.error('An error has occurred. Please try again after some time.')
             entries = []

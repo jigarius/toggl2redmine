@@ -892,9 +892,9 @@ T2RWidget.initDurationInput = function (el) {
 };
 
 T2RWidget.initRedmineActivityDropdown = function (el) {
-    var $el = $(el);
-    T2R.redmineService.getTimeEntryActivities(function (activities: any[] | null) {
-        const placeholder = $el.attr('placeholder') || $el.data('placeholder')
+    var $el = $(el)
+    T2R.redmineService.getTimeEntryActivities((activities: any[] | null) => {
+        const placeholder = $el.data('placeholder')
         const options = {}
 
         for (const activity of activities) {
@@ -1047,7 +1047,7 @@ T2RRenderer.renderTogglRow = function (data: any) {
         + '</td>'
         + '<td class="comments"><input data-property="comments" type="text" value="' + utils.htmlEntityEncode(data.comments) + '" maxlength="255" /></td>'
         + '<td class="activity">'
-        + '<select data-property="activity_id" required="required" placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.localStorage.get('t2r.default-activity') + '"></select>'
+        + '<select data-property="activity_id" required="required" data-placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.localStorage.get('t2r.default-activity') + '"></select>'
         + '</td>'
         + '<td class="hours">'
         + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Value as on Toggl is ' + oDuration.asHHMM() + '." value="' + rDuration.asHHMM() + '" size="6" maxlength="5" />'

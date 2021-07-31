@@ -5,7 +5,8 @@
   "main": "t2r.js",
   "scripts": {
     "lint": "eslint . --ext .ts",
-    "test": "mocha"
+    "test": "mocha",
+    "watch": "tsc -w"
   },
   "repository": {
     "type": "git",

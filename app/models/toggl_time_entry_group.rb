@@ -71,8 +71,8 @@ class TogglTimeEntryGroup
   def errors
     result = []
     result << I18n.t('t2r.error.project_closed') if issue&.project&.closed?
-    result << I18n.t('t2r.error.issue_id_missing') if entries.length.positive? and not issue_id
-    result << I18n.t('t2r.error.issue_not_found') if issue_id and not issue
+    result << I18n.t('t2r.error.issue_id_missing') if entries.length.positive? && !issue_id
+    result << I18n.t('t2r.error.issue_not_found') if issue_id && !issue
     result
   end
 

@@ -97,7 +97,7 @@ class TogglTimeEntryGroupTest < T2r::TestCase
 
   test '.errors contains a message for missing issue id' do
     subject = TogglTimeEntryGroup.new
-    record = build_time_entry_record(description: "Lorem ipsum")
+    record = build_time_entry_record(description: 'Lorem ipsum')
     subject << record
 
     assert_equal([I18n.t('t2r.error.issue_id_missing')], subject.errors)
@@ -105,7 +105,7 @@ class TogglTimeEntryGroupTest < T2r::TestCase
 
   test '.errors contains a message if issue id doesnt match an issue' do
     subject = TogglTimeEntryGroup.new
-    record = build_time_entry_record(description: "#56 Lorem ipsum")
+    record = build_time_entry_record(description: '#56 Lorem ipsum')
     subject << record
 
     assert_equal([I18n.t('t2r.error.issue_not_found')], subject.errors)

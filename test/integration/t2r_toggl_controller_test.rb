@@ -76,18 +76,18 @@ class T2rTogglControllerTest < T2r::IntegrationTest
         'status' => 'pending',
         'errors' => [],
         'issue' => {
-          "id" => issue.id,
-          "subject" => "Abstract apples",
-          "tracker" => {
-            "id" => issue.tracker.id,
-            "name" => "Task"
+          'id' => issue.id,
+          'subject' => 'Abstract apples',
+          'tracker' => {
+            'id' => issue.tracker.id,
+            'name' => 'Task'
           }
         },
         'project' => {
-          "id" => issue.project.id,
-          "name" => "Project alpha",
-          "status" => 1,
-          "path" => "/projects/alpha"
+          'id' => issue.project.id,
+          'name' => 'Project alpha',
+          'status' => 1,
+          'path' => '/projects/alpha'
         }
       },
       "#{issue.id}:feed bunny:running" => {
@@ -99,18 +99,18 @@ class T2rTogglControllerTest < T2r::IntegrationTest
         'status' => 'running',
         'errors' => [],
         'issue' => {
-          "id" => issue.id,
-          "subject" => "Abstract apples",
-          "tracker" => {
-            "id" => issue.tracker.id,
-            "name" => "Task"
+          'id' => issue.id,
+          'subject' => 'Abstract apples',
+          'tracker' => {
+            'id' => issue.tracker.id,
+            'name' => 'Task'
           }
         },
         'project' => {
-          "id" => issue.project.id,
-          "name" => "Project alpha",
-          "status" => 1,
-          "path" => "/projects/alpha"
+          'id' => issue.project.id,
+          'name' => 'Project alpha',
+          'status' => 1,
+          'path' => '/projects/alpha'
         }
       }
     }

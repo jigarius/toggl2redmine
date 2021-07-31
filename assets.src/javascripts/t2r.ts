@@ -1,7 +1,5 @@
 // @ts-nocheck
 
-// Redmine base URL.
-const T2R_REDMINE_URL: string = window.location.origin;
 declare const T2R_REDMINE_API_KEY: string;
 declare const T2R_REDMINE_REPORT_URL_FORMAT : string;
 declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
@@ -18,7 +16,7 @@ import * as flash from "./t2r/flash.js"
 /**
  * Toggl 2 Redmine Helper.
  */
-let T2R: any = {
+const T2R: any = {
     // Browser storage.
     localStorage: new LocalStorage('t2r.'),
     // Temporary storage.
@@ -197,7 +195,7 @@ T2R.handleFilterForm = function() {
     T2R.localStorage.set('rounding-value', roundingValue);
 
     // Determine rounding direction.
-    let roundingMethod = $('select#rounding-direction').val();
+    const roundingMethod = $('select#rounding-direction').val();
     T2R.localStorage.set('rounding-direction', roundingMethod);
 
     // Determine date filter.
@@ -431,8 +429,8 @@ T2R.updateTogglReport = function () {
         var pendingEntriesExist = false;
 
         // Prepare rounding rules.
-        let roundingValue = T2R.localStorage.get('rounding-value')
-        let roundingMethod = T2R.localStorage.get('rounding-direction')
+        const roundingValue = T2R.localStorage.get('rounding-value')
+        const roundingMethod = T2R.localStorage.get('rounding-direction')
 
         for (const key in entries) {
             const entry = entries[key]
@@ -549,8 +547,9 @@ T2R.updateTogglTotals = function () {
     var total = new duration.Duration();
 
     // Iterate over all rows and add the hours.
-    $table.find('tbody tr').each(() => {
-        var $tr = $(this);
+    $table.find('tbody tr').each(function () {
+        const $tr = $(this);
+        const dur = new duration.Duration()
 
         // Ignore erroneous rows.
         if ($tr.hasClass('t2r-error')) {
@@ -563,9 +562,8 @@ T2R.updateTogglTotals = function () {
         }
 
         // Parse the input as time and add it to the total.
-        let hours = $tr.find('[data-property="hours"]').val() as string;
+        const hours = $tr.find('[data-property="hours"]').val() as string;
         try {
-            let dur = new duration.Duration();
             // Assume time to be hours and minutes.
             dur.setHHMM(hours);
             total.add(dur);
@@ -651,12 +649,12 @@ T2R.updateRedmineReportLink = function (data) {
  * Updates the total in the Redmine report footer.
  */
 T2R.updateRedmineTotals = function () {
-    var $table = T2R.getRedmineTable();
-    var total = new duration.Duration();
+    const $table = T2R.getRedmineTable()
+    const total = new duration.Duration()
 
     // Iterate over all rows and add the hours.
     $table.find('tbody tr .hours').each(function (i) {
-        let hours = $(this).text().trim();
+        const hours = $(this).text().trim();
         if (hours.length > 0) {
             total.add(new duration.Duration(hours));
         }
@@ -685,7 +683,7 @@ T2R.updateLastImportDate = function () {
 /**
  * Toggl 2 Redmine widget manager.
  */
-let T2RWidget: any = {};
+const T2RWidget: any = {};
 
 /**
  * Initializes all widgets in the given element.
@@ -693,24 +691,24 @@ let T2RWidget: any = {};
  * @param {Object} el
  */
 T2RWidget.initialize = function (el = document.body) {
-    $(el).find('[data-t2r-widget]').each(function() {
-        var el = this, $el = $(this);
-        var widgets = $el.attr('data-t2r-widget').split(' ');
-        for (var i in widgets) {
-            var widget = widgets[i];
-            var widgetFlag = 'T2RWidget' + widget + 'Init';
+    $(el).find('[data-t2r-widget]').each(function () {
+        const $el = $(this)
+        const widgets = $el.attr('data-t2r-widget').split(' ')
+
+        for (const widget of widgets) {
             // Initialize the widget, if required.
-            if (true !== $el.data(widgetFlag)) {
-                var method = 'init' + widget;
-                if ('undefined' !== typeof T2RWidget[method]) {
-                    T2RWidget[method](el);
-                    $el
-                        .data(widgetFlag, true)
-                        .addClass('t2r-widget-' + widget);
-                }
-                else {
-                    throw 'Error: To initialize "' + widget + '" please define "T2RWidget.' + method;
-                }
+            const flag = 'T2RWidget' + widget + 'Init'
+            if (true === $el.data(flag)) {
+                continue
+            }
+
+            const method = 'init' + widget;
+            if ('undefined' !== typeof T2RWidget[method]) {
+                T2RWidget[method](this);
+                $el.data(flag, true).addClass(`t2r-widget-${widget}`)
+            }
+            else {
+                throw 'Error: To initialize "' + widget + '" please define "T2RWidget.' + method
             }
         }
     });
@@ -767,8 +765,8 @@ T2RWidget.initDurationInput = function (el) {
         // Update totals as the user updates hours.
         .bind('input', T2R.updateTogglTotals)
         .bind('keyup', function (e) {
-            let $input = $(this);
-            let dur = new duration.Duration();
+            const $input = $(this)
+            const dur = new duration.Duration()
 
             // Detect current duration.
             try {
@@ -778,18 +776,18 @@ T2RWidget.initDurationInput = function (el) {
             }
 
             // Round to the nearest 5 minutes or 15 minutes.
-            var minutes = dur.minutes % 60;
-            var step = e.shiftKey ? 15 : 5;
-            let delta: number = 0
+            const mm = dur.minutes % 60
+            const step = e.shiftKey ? 15 : 5
+            let delta = 0
 
             // On "Up" press.
             if (e.key === 'ArrowUp') {
-                delta = step - (minutes % step);
+                delta = step - (mm % step);
                 dur.add(new duration.Duration(delta * 60));
             }
             // On "Down" press.
             else if (e.key === 'ArrowDown') {
-                delta = (minutes % step) || step;
+                delta = (mm % step) || step;
                 dur.sub(new duration.Duration(delta * 60));
             }
             // Do nothing.
@@ -801,19 +799,20 @@ T2RWidget.initDurationInput = function (el) {
             $(this).val(dur.asHHMM()).trigger('input').select();
         })
         .bind('change', function () {
-            let $input = $(this);
-            let value = '';
+            const $input = $(this)
+            const value = $input.val()
+            const dur = new duration.Duration()
 
             // Determine the visible value.
             try {
-                let dur = new duration.Duration();
-                dur.setHHMM(($input.val() as string));
-                value = dur.asHHMM();
-            } catch(e) {}
+                dur.setHHMM(value as string)
+            } catch(e) {
+                console.debug(`Could not understand time: ${value}`)
+            }
 
             // Update the visible value and the totals.
-            $input.val(value);
-            T2R.updateTogglTotals();
+            $input.val(dur.asHHMM())
+            T2R.updateTogglTotals()
         });
 };
 
@@ -876,16 +875,16 @@ T2RWidget.initTogglWorkspaceDropdown = function (el) {
 };
 
 T2RWidget.initDurationRoundingDirection = function (el: any) {
-    let $el = $(el);
+    const $el = $(el);
 
     // Prepare rounding options.
-    let options = {}
+    const options = {}
     options[duration.Rounding.Regular] = 'Round off'
     options[duration.Rounding.Up] = 'Round up'
     options[duration.Rounding.Down] = 'Round down'
 
     // Generate a SELECT element and use it's options.
-    var $select = T2RRenderer.render('Dropdown', {
+    const $select = T2RRenderer.render('Dropdown', {
         placeholder: 'Don\'t round',
         options: options
     });
@@ -896,7 +895,7 @@ T2RWidget.initDurationRoundingDirection = function (el: any) {
 /**
  * Toggl 2 Redmine Renderer.
  */
-let T2RRenderer: any = {};
+const T2RRenderer: any = {};
 
 T2RRenderer.renderDropdown = function (data: any) {
     var $el = $('<select />');
@@ -944,7 +943,7 @@ T2RRenderer.renderTogglRow = function (data: any) {
     const rDuration = data.roundedDuration;
 
     // Build a label for the issue.
-    let issueLabel = issue ? T2RRenderer.render('RedmineIssueLabel', issue) : T2RRenderer.render('RedmineIssueLabel', { id: data.id })
+    const issueLabel = T2RRenderer.render('RedmineIssueLabel', issue || { id: data.id })
 
     const markup = '<tr data-t2r-widget="TogglRow">'
         + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" title="Check this box if you want to import this entry." /></td>'

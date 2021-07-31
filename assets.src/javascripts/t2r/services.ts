@@ -77,7 +77,7 @@ export class RedmineService {
 
         that.handleRequestSuccess('Redmine time entries', data)
 
-        let time_entries: any[] = data.time_entries.map((entry: any) => {
+        const time_entries: any[] = data.time_entries.map((entry: any) => {
           entry.duration = Math.floor(parseFloat(entry.hours) * 3600)
           return entry
         })
@@ -170,7 +170,7 @@ export class RedmineService {
    * @todo Improve query validation.
    */
   getTogglTimeEntries(query: any, callback: any) {
-    let data: any = {}
+    const data: any = {}
 
     // Determine start date.
     try {
@@ -214,7 +214,7 @@ export class RedmineService {
    *   Receives workspaces or null.
    */
   getTogglWorkspaces(callback: any) {
-    let workspaces = this._cache.get('toggl.workspaces')
+    const workspaces = this._cache.get('toggl.workspaces')
     if (workspaces) {
       callback(workspaces)
       return

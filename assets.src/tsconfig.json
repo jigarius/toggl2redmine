@@ -5,7 +5,7 @@
     "inlineSourceMap": true,
     "module": "es2015",
     "moduleResolution": "node",
-    "outDir": "../../assets/javascripts",
+    "outDir": "../assets/javascripts",
     "removeComments": true,
     "skipLibCheck": true,
     "strict": true,

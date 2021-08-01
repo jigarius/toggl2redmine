@@ -1,3 +1,0 @@
-spec: './**/*.test.ts'
-require:
-  - './test/register.js'

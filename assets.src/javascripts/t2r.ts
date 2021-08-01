@@ -342,43 +342,30 @@ T2R.publishToRedmine = function () {
       contentType: 'application/json',
       success: function(data, status, xhr) {
         console.debug('Request successful', data);
-        var $tr = $(this).addClass('t2r-success');
+        const $tr = $(this).addClass('t2r-success');
 
         // Disable checkboxes.
         $checkbox.removeAttr('checked');
         $tr.find(':input').attr('disabled', 'disabled');
 
-        // Display success message.
-        var $message = T2RRenderer.render('StatusLabel', {
-          label: 'Imported',
-          description: 'Successfully imported to Redmine.',
-        });
-        $tr.find('td.status').html($message);
+        const statusLabel = T2RRenderer.renderIssueStatusLabel('Imported')
+        $tr.find('td.status').html(statusLabel);
       },
-      error: function(xhr, textStatus) {
+      error: function(xhr) {
         console.error('Request failed');
-        var $tr = $(this).addClass('t2r-error');
+        const $tr = $(this).addClass('t2r-error');
+        const sResponse = xhr.responseText || 'false';
+        let errors: string[] = []
 
-        // Prepare and display error message.
-        var status = {
-          label: 'Failed',
-          icon: 'error'
-        };
-        var sR = xhr.responseText || 'false';
         try {
-          var oR = jQuery.parseJSON(sR);
-          var errors = ('undefined' === typeof oR.errors)
-            ? 'Unknown error' : oR.errors;
+          const oResponse = JSON.parse(sResponse);
+          errors = (typeof oResponse.errors === 'undefined') ? ['Unknown error'] : oResponse.errors
         } catch (e) {
-          var errors = 'The server returned non-JSON response';
+          errors = ['The server returned an unexpected response']
         }
-        if (errors) {
-          errors = ('string' === typeof errors)
-            ? [errors] : errors;
-          status.description = errors.join("\n");
-        }
-        var $message = T2RRenderer.render('StatusLabel', status);
-        $tr.find('td.status').html($message);
+
+        const statusLabel = T2RRenderer.renderIssueStatusLabel('Failed', errors.join("\n"), 'error')
+        $tr.find('td.status').html(statusLabel);
       }
     });
   });
@@ -711,7 +698,7 @@ T2RRenderer.renderRedmineIssueLabel = function (issue: any): string {
 };
 
 T2RRenderer.renderTogglRow = function (data: any) {
-  const issue = data.issue || null
+  const issue = data.issue
   const issueLabel = T2RRenderer.renderRedmineIssueLabel(issue || { id: data.id })
   const project = data.project || null;
   const projectLabel = T2RRenderer.renderRedmineProjectLabel(project)
@@ -733,57 +720,46 @@ T2RRenderer.renderTogglRow = function (data: any) {
     + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Value as on Toggl is ' + oDuration.asHHMM() + '." value="' + rDuration.asHHMM() + '" size="6" maxlength="5" />'
     + '</td>'
     + '</tr>';
-  const $tr = $(markup);
 
   // Attach the entry for reference.
+  const $tr = $(markup);
   $tr.data('t2r.entry', data);
-  const $checkbox = $tr.find('.cb-import');
+
+  let statusLabel: any = null;
 
   // Status specific actions.
   switch (data.status) {
     case 'pending':
-      // Display errors, if any.
       if (data.errors.length > 0) {
         $tr.addClass('t2r-error');
-        $tr.find(':input').attr({
-          'disabled': 'disabled'
-        });
-
-        // Display status.
-        var $message = T2RRenderer.render('StatusLabel', {
-          label: 'Invalid',
-          description: data.errors.join("\n"),
-          icon: 'error'
-        });
-        $tr.find('td.status').html($message);
+        $tr.find(':input').attr('disabled', 'disabled');
+        statusLabel = T2RRenderer.renderIssueStatusLabel('Invalid', data.errors.join("\n"), 'error')
       }
       break;
 
     case 'imported':
-      $checkbox.removeAttr('checked');
+      $tr.find('.cb-import').removeAttr('checked');
       $tr.addClass('t2r-success');
       $tr.find(':input').attr('disabled', 'disabled');
-
-      // Display status.
-      var $message = T2RRenderer.render('StatusLabel', {
-        label: 'Imported',
-        description: 'Already imported to Redmine.',
-      });
-      $tr.find('td.status').html($message);
+      statusLabel = T2RRenderer.renderIssueStatusLabel('Imported')
       break;
 
     case 'running':
       $tr.addClass('t2r-running');
       $tr.find(':input').attr('disabled', 'disabled');
-
-      // Display status.
-      var $message = T2RRenderer.render('StatusLabel', {
-        label: 'Active',
-        description: 'Entry cannot be imported because the timer is still running on Toggl.',
-        icon: 'warning'
-      });
-      $tr.find('td.status').html($message);
+      statusLabel = T2RRenderer.renderIssueStatusLabel(
+        'Running',
+        'The timer is still running on Toggl.',
+        'error'
+      )
       break;
+
+    default:
+      throw `Unrecognized status: ${data.status}.`
+  }
+
+  if (statusLabel) {
+    $tr.find('td.status').html(statusLabel)
   }
 
   // Attach event listeners.
@@ -836,29 +812,27 @@ T2RRenderer.renderRedmineRow = function (data: any) {
 /**
  * Renders and returns a status label with an optional message.
  *
- * @param {*} data
- *   An object containing the following indices:
- *   - label: A status text. Example: Failed.
- *   - description: A status message. Example: Time entry is not valid.
- *   - icon: The icon to display. Example: check, error, warning.
+ * @param {string} label
+ *   A label.
+ * @param {string} description
+ *   A description (displayed as tooltip).
+ * @param {string} icon
+ *   An icon. One of checked, error, warn.
  */
-T2RRenderer.renderStatusLabel = function (data: any) {
-  // Fallback to defaults.
-  data = jQuery.extend({
-    label: 'Unknown',
-    description: '',
-    icon: 'checked'
-  }, data);
+T2RRenderer.renderIssueStatusLabel = function (
+  label: string,
+  description: string | null = null,
+  icon: string = 'checked'
+) {
+  const el = document.createElement('span')
 
-  // Prepare a label.
-  var $message = $('<span>' + data.label + '</span>')
-    .addClass('icon icon-' + data.icon);
-  // Add detailed message as tooltip.
-  if (data.description) {
-    $message.attr('title', data.description);
+  el.innerHTML = label
+  el.classList.add('icon', `icon-${icon}`)
+  if (description) {
+    el.setAttribute('title', description)
   }
 
-  return $message.tooltip();
+  return el
 };
 
 /**

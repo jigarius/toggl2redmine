@@ -1,3 +1,8 @@
+interface Optionable {
+  id: number | string
+  name: string
+}
+
 export interface TimeLogActivity {
   id: number
   name: string

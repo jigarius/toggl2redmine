@@ -3,13 +3,12 @@
 declare const T2R_REDMINE_API_KEY: string;
 declare const T2R_REDMINE_REPORT_URL_FORMAT : string;
 declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
-declare const T2R_BUTTON_ACTIONS: string;
-declare const contextMenuRightClick: any;
 
 import {LocalStorage, TemporaryStorage} from "./t2r/storage.js";
 import {translate as t} from "./t2r/i18n.js";
 import {RedmineService} from "./t2r/services.js";
 import {Widget} from "./t2r/widgets.js";
+import * as renderers from "./t2r/renderers.js";
 import * as duration from "./t2r/duration.js";
 import * as utils from "./t2r/utils.js"
 import * as flash from "./t2r/flash.js"
@@ -348,7 +347,7 @@ T2R.publishToRedmine = function () {
         $checkbox.removeAttr('checked');
         $tr.find(':input').attr('disabled', 'disabled');
 
-        const statusLabel = T2RRenderer.renderImportStatusLabel('Imported')
+        const statusLabel = renderers.renderImportStatusLabel('Imported')
         $tr.find('td.status').html(statusLabel);
       },
       error: function(xhr) {
@@ -364,7 +363,7 @@ T2R.publishToRedmine = function () {
           errors = ['The server returned an unexpected response']
         }
 
-        const statusLabel = T2RRenderer.renderImportStatusLabel('Failed', errors.join("\n"), 'error')
+        const statusLabel = renderers.renderImportStatusLabel('Failed', errors.join("\n"), 'error')
         $tr.find('td.status').html(statusLabel);
       }
     });
@@ -442,7 +441,7 @@ T2R.updateTogglReport = function () {
     for (const key in entries) {
       const entry = entries[key];
       if (entry.status === 'running') {
-        const $tr = T2RRenderer.render('TogglRow', entry);
+        const $tr = renderers.renderTogglRow(entry);
         $table.find('tbody').append($tr);
         delete entries[key];
       }
@@ -452,9 +451,18 @@ T2R.updateTogglReport = function () {
     for (const key in entries) {
       const entry = entries[key];
       if (entry.status === 'pending' && entry.errors.length === 0) {
-        const $tr = T2RRenderer.render('TogglRow', entry);
+        const $tr = renderers.renderTogglRow(entry);
         $table.find('tbody').append($tr);
         pendingEntriesExist = true;
+
+        // TODO: Set default activity on activity dropdowns.
+
+        $tr.find('input[data-property=hours]')
+          .on('input', T2R.updateTogglTotals)
+          .on('change', T2R.updateTogglTotals)
+
+        $tr.find('.cb-import')
+          .on('change', T2R.updateTogglTotals)
       }
     }
 
@@ -462,7 +470,7 @@ T2R.updateTogglReport = function () {
     for (const key in entries) {
       const entry = entries[key];
       if (entry.status === 'pending' && entry.errors.length > 0) {
-        const $tr = T2RRenderer.render('TogglRow', entry);
+        const $tr = renderers.renderTogglRow(entry);
         $table.find('tbody').append($tr);
       }
     }
@@ -471,7 +479,7 @@ T2R.updateTogglReport = function () {
     for (const key in entries) {
       const entry = entries[key];
       if (entry.status === 'imported') {
-        const $tr = T2RRenderer.render('TogglRow', entry);
+        const $tr = renderers.renderTogglRow(entry);
         $table.find('tbody').append($tr);
       }
     }
@@ -600,7 +608,7 @@ T2R.updateRedmineReport = function () {
     // Display entries from Redmine.
     for (const key in entries) {
       const entry = entries[key];
-      const markup = T2RRenderer.render('RedmineRow', entry);
+      const markup = renderers.renderRedmineRow(entry);
       $table.find('tbody').append(markup);
     }
 
@@ -667,184 +675,6 @@ T2R.updateLastImportDate = function () {
     },
   })
 }
-
-/**
- * Toggl 2 Redmine Renderer.
- */
-const T2RRenderer: any = {};
-
-T2RRenderer.renderRedmineProjectLabel = function (project: any) {
-  project ||= { name: 'Unknown', path: 'javascript:void(0)', status: 1 };
-  project.classes = ['project'];
-  if (project.status != 1) {
-    project.classes.push('closed');
-  }
-
-  return '<a href="' + project.path + '" class="' + project.classes.join(' ') + '"><strong>'
-    + utils.htmlEntityEncode(project.name)
-    + '</strong></a>';
-}
-
-T2RRenderer.renderRedmineIssueLabel = function (issue: any): string {
-  if (typeof issue['id'] == 'undefined' || !issue.id) return '-'
-  if (!issue.path) return issue.id.toString()
-
-  // Render a clickable issue label.
-  return '<a href="' + issue.path + '" target="_blank">'
-    + utils.htmlEntityEncode(issue ? issue.tracker.name : '-')
-    + utils.htmlEntityEncode(issue ? ' #' + issue.id : '')
-    + utils.htmlEntityEncode(issue.subject ? ': ' + issue.subject : '')
-    + '</a>'
-};
-
-T2RRenderer.renderTogglRow = function (data: any) {
-  const issue = data.issue
-  const issueLabel = T2RRenderer.renderRedmineIssueLabel(issue || { id: data.id })
-  const project = data.project || null;
-  const projectLabel = T2RRenderer.renderRedmineProjectLabel(project)
-  const oDuration = data.duration;
-  const rDuration = data.roundedDuration;
-
-  const markup = '<tr data-t2r-widget="TogglRow">'
-    + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" title="Check this box if you want to import this entry." /></td>'
-    + '<td class="status"></td>'
-    + '<td class="issue">'
-    + '<input data-property="issue_id" type="hidden" data-value="' + utils.htmlEntityEncode(issue ? issue.id : '') + '" value="' + (issue ? issue.id : '') + '" />'
-    + projectLabel + '<br />' + issueLabel
-    + '</td>'
-    + '<td class="comments"><input data-property="comments" type="text" value="' + utils.htmlEntityEncode(data.comments) + '" maxlength="255" /></td>'
-    + '<td class="activity">'
-    + '<select data-property="activity_id" required="required" data-placeholder="-" data-t2r-widget="RedmineActivityDropdown" data-selected="' + T2R.localStorage.get('default-activity') + '"></select>'
-    + '</td>'
-    + '<td class="hours">'
-    + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Value as on Toggl is ' + oDuration.asHHMM() + '." value="' + rDuration.asHHMM() + '" size="6" maxlength="5" />'
-    + '</td>'
-    + '</tr>';
-
-  // Attach the entry for reference.
-  const $tr = $(markup);
-  $tr.data('t2r.entry', data);
-
-  let statusLabel: any = null;
-
-  // Status specific actions.
-  switch (data.status) {
-    case 'pending':
-      if (data.errors.length > 0) {
-        $tr.addClass('t2r-error');
-        $tr.find(':input').attr('disabled', 'disabled');
-        statusLabel = T2RRenderer.renderImportStatusLabel('Invalid', data.errors.join("\n"), 'error')
-      }
-      break;
-
-    case 'imported':
-      $tr.find('.cb-import').removeAttr('checked');
-      $tr.addClass('t2r-success');
-      $tr.find(':input').attr('disabled', 'disabled');
-      statusLabel = T2RRenderer.renderImportStatusLabel('Imported')
-      break;
-
-    case 'running':
-      $tr.addClass('t2r-running');
-      $tr.find(':input').attr('disabled', 'disabled');
-      statusLabel = T2RRenderer.renderImportStatusLabel(
-        'Running',
-        'The timer is still running on Toggl.',
-        'error'
-      )
-      break;
-
-    default:
-      throw `Unrecognized status: ${data.status}.`
-  }
-
-  if (statusLabel) {
-    $tr.find('td.status').html(statusLabel)
-  }
-
-  // Attach event listeners.
-  $tr.find('input[data-property=hours]')
-    .on('input', T2R.updateTogglTotals)
-    .on('change', T2R.updateTogglTotals)
-
-  $tr.find('.cb-import')
-    .on('change', T2R.updateTogglTotals)
-
-  return $tr;
-};
-
-T2RRenderer.renderRedmineRow = function (data: any) {
-  const issue = data.issue
-  const issueLabel = T2RRenderer.renderRedmineIssueLabel(issue)
-  const project = data.project
-  const projectLabel = T2RRenderer.renderRedmineProjectLabel(project)
-  const dur = new duration.Duration(data.duration)
-  dur.roundTo(1, duration.Rounding.Up)
-
-  const markup = '<tr id="time-entry-' + data.id + '"  class="time-entry hascontextmenu">'
-    + '<td class="subject">'
-    + projectLabel + '<br />' + issueLabel
-    + '<input type="checkbox" name="ids[]" value="' + data.id + '" hidden />'
-    + '</td>'
-    + '<td class="comments">' + utils.htmlEntityEncode(data.comments) + '</td>'
-    + '<td class="activity">' + utils.htmlEntityEncode(data.activity.name) + '</td>'
-    + '<td class="hours">' + dur.asHHMM() + '</td>'
-    + '<td class="buttons">' + T2R_BUTTON_ACTIONS + '</td>'
-    + '</tr>';
-
-  const $tr = $(markup)
-  $tr.find('.js-contextmenu').on('click', contextMenuRightClick)
-
-  return $tr
-};
-
-/**
- * Returns an import status label element.
- *
- * @param {string} label
- *   A label.
- * @param {string} description
- *   A description (displayed as tooltip).
- * @param {string} icon
- *   An icon. One of checked, error, warn.
- *
- * @return {HTMLElement}
- *   A span element.
- */
-T2RRenderer.renderImportStatusLabel = function (
-  label: string,
-  description: string | null = null,
-  icon: string = 'checked'
-) {
-  const el = document.createElement('span')
-
-  el.innerHTML = label
-  el.classList.add('icon', `icon-${icon}`)
-  if (description) {
-    el.setAttribute('title', description)
-  }
-
-  return el
-};
-
-/**
- * Renders data with a mentioned template.
- *
- * @param {string} template
- *   Template ID.
- * @param {*} data
- *   The data to render.
- *
- * @returns {*}
- *   Rendered output.
- */
-T2RRenderer.render = function (template: string, data: any): any {
-  const method = 'render' + template;
-  if (typeof T2RRenderer[method] === 'undefined') {
-    throw `To render "${template}", define T2RRenderer.${method}`
-  }
-  return T2RRenderer[method](data);
-};
 
 /**
  * This is where it starts.

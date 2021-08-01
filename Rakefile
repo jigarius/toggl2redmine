@@ -4,12 +4,11 @@ REDMINE_URL = 'http://localhost:3000'
 MAILHOG_URL = 'http://localhost:8025'
 
 desc "SSH into a service. Defaults to 'redmine'."
-task :ssh, [:service] do |_t, args|
-  args.with_defaults(
-    service: 'redmine',
-    rails_env: ENV.fetch('RAILS_ENV', 'development')
-  )
-  sh "docker compose exec -e RAILS_ENV=#{args.rails_env} #{args.service} bash"
+task :ssh do
+  rails_env = ENV.fetch('RAILS_ENV', 'development')
+  service = ENV.fetch('SERVICE', 'redmine')
+
+  sh "docker compose exec -e RAILS_ENV=#{rails_env} #{service} bash"
 end
 
 desc 'Execute a Rails command'
@@ -133,9 +132,4 @@ end
 desc 'Test JavaScript code.'
 task :test_javascript do
   sh 'docker compose exec -w /app/assets.src/javascripts node npm run test'
-end
-
-desc 'Launch a terminal for running node commands on asset source files.'
-task :assets do
-  sh 'docker compose exec -w /app/assets.src node bash'
 end

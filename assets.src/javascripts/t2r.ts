@@ -712,21 +712,18 @@ T2RRenderer.renderRedmineIssueLabel = function (issue: any): string {
 
 T2RRenderer.renderTogglRow = function (data: any) {
     const issue = data.issue || null
+    const issueLabel = T2RRenderer.renderRedmineIssueLabel(issue || { id: data.id })
     const project = data.project || null;
+    const projectLabel = T2RRenderer.renderRedmineProjectLabel(project)
     const oDuration = data.duration;
     const rDuration = data.roundedDuration;
-
-    // Build a label for the issue.
-    const issueLabel = T2RRenderer.render('RedmineIssueLabel', issue || { id: data.id })
 
     const markup = '<tr data-t2r-widget="TogglRow">'
         + '<td class="checkbox"><input class="cb-import" type="checkbox" value="1" title="Check this box if you want to import this entry." /></td>'
         + '<td class="status"></td>'
         + '<td class="issue">'
         + '<input data-property="issue_id" type="hidden" data-value="' + utils.htmlEntityEncode(issue ? issue.id : '') + '" value="' + (issue ? issue.id : '') + '" />'
-        + T2RRenderer.render('RedmineProjectLabel', project)
-        + '<br />'
-        + issueLabel
+        + projectLabel + '<br />' + issueLabel
         + '</td>'
         + '<td class="comments"><input data-property="comments" type="text" value="' + utils.htmlEntityEncode(data.comments) + '" maxlength="255" /></td>'
         + '<td class="activity">'
@@ -802,18 +799,15 @@ T2RRenderer.renderTogglRow = function (data: any) {
 
 T2RRenderer.renderRedmineRow = function (data: any) {
     const issue = data.issue
+    const issueLabel = T2RRenderer.renderRedmineIssueLabel(issue)
     const project = data.project
+    const projectLabel = T2RRenderer.renderRedmineProjectLabel(project)
     const dur = new duration.Duration(data.duration)
     dur.roundTo(1, duration.Rounding.Up)
 
-    // Build a label for the issue.
-    const issueLabel = T2RRenderer.render('RedmineIssueLabel', issue)
-
     var markup = '<tr id="time-entry-' + data.id + '"  class="time-entry hascontextmenu">'
         + '<td class="subject">'
-        + T2RRenderer.render('RedmineProjectLabel', project)
-        + '<br />'
-        + issueLabel
+        + projectLabel + '<br />' + issueLabel
         + '<input type="checkbox" name="ids[]" value="' + data.id + '" hidden />'
         + '</td>'
         + '<td class="comments">' + utils.htmlEntityEncode(data.comments) + '</td>'

@@ -9,6 +9,7 @@ declare const contextMenuRightClick: any;
 import {LocalStorage, TemporaryStorage} from "./t2r/storage.js";
 import {translate as t} from "./t2r/i18n.js";
 import {RedmineService} from "./t2r/services.js";
+import {Widget} from "./t2r/widgets.js";
 import * as duration from "./t2r/duration.js";
 import * as utils from "./t2r/utils.js"
 import * as flash from "./t2r/flash.js"
@@ -497,7 +498,7 @@ T2R.updateTogglReport = function () {
         }
 
         // Initialize widgets.
-        T2RWidget.initialize($table);
+        Widget.initialize($table);
 
         // Update totals.
         T2R.updateTogglTotals();
@@ -681,236 +682,9 @@ T2R.updateLastImportDate = function () {
 }
 
 /**
- * Toggl 2 Redmine widget manager.
- */
-const T2RWidget: any = {};
-
-/**
- * Initializes all widgets in the given element.
- *
- * @param {Object} el
- */
-T2RWidget.initialize = function (el = document.body) {
-    $(el).find('[data-t2r-widget]').each(function () {
-        const $el = $(this)
-        const widgets = $el.attr('data-t2r-widget').split(' ')
-
-        for (const widget of widgets) {
-            // Initialize the widget, if required.
-            const flag = 'T2RWidget' + widget + 'Init'
-            if (true === $el.data(flag)) {
-                continue
-            }
-
-            const method = 'init' + widget;
-            if ('undefined' !== typeof T2RWidget[method]) {
-                T2RWidget[method](this);
-                $el.data(flag, true).addClass(`t2r-widget-${widget}`)
-            }
-            else {
-                throw 'Error: To initialize "' + widget + '" please define "T2RWidget.' + method
-            }
-        }
-    });
-};
-
-T2RWidget.initTooltip = function(el) {
-    $(el).tooltip();
-}
-
-T2RWidget.initTogglRow = function(el) {
-    var $el = $(el);
-
-    // If checkbox changes, update totals.
-    $el.find('.cb-import')
-        .change(T2R.updateTogglTotals)
-        // Make all inputs required.
-        .change(function () {
-            var $checkbox = $(this);
-            var checked = $checkbox.is(':checked');
-            var $tr = $checkbox.closest('tr');
-
-            // If the row is marked for import, make fields required.
-            if (checked) {
-                $tr.find(':input').not('.cb-import')
-                    .removeAttr('disabled')
-                    .attr('required', 'required');
-            }
-            // Otherwise, the fields are disabled.
-            else {
-                $tr.find(':input').not('.cb-import')
-                    .removeAttr('required')
-                    .attr('disabled', 'disabled');
-            }
-        })
-        .trigger('change');
-
-    // Initialize tooltips for all inputs.
-    $el.find(':input').tooltip();
-};
-
-T2RWidget.initDurationInput = function (el) {
-    var $el = $(el);
-    $el
-        .bind('input', function() {
-            var val = $el.val();
-            try {
-                // If a duration object could be created, then the the time is valid.
-                new duration.Duration(val);
-                el.setCustomValidity('');
-            } catch (e) {
-                el.setCustomValidity(e);
-            }
-        })
-        // Update totals as the user updates hours.
-        .bind('input', T2R.updateTogglTotals)
-        .bind('keyup', function (e) {
-            const $input = $(this)
-            const dur = new duration.Duration()
-
-            // Detect current duration.
-            try {
-                dur.setHHMM(($input.val() as string));
-            } catch(e) {
-                return;
-            }
-
-            // Round to the nearest 5 minutes or 15 minutes.
-            const mm = dur.minutes % 60
-            const step = e.shiftKey ? 15 : 5
-            let delta = 0
-
-            // On "Up" press.
-            if (e.key === 'ArrowUp') {
-                delta = step - (mm % step);
-                dur.add(new duration.Duration(delta * 60));
-            }
-            // On "Down" press.
-            else if (e.key === 'ArrowDown') {
-                delta = (mm % step) || step;
-                dur.sub(new duration.Duration(delta * 60));
-            }
-            // Do nothing.
-            else {
-                return;
-            }
-
-            // Update value in the input field.
-            $(this).val(dur.asHHMM()).trigger('input').select();
-        })
-        .bind('change', function () {
-            const $input = $(this)
-            const value = $input.val()
-            const dur = new duration.Duration()
-
-            // Determine the visible value.
-            try {
-                dur.setHHMM(value as string)
-            } catch(e) {
-                console.debug(`Could not understand time: ${value}`)
-            }
-
-            // Update the visible value and the totals.
-            $input.val(dur.asHHMM())
-            T2R.updateTogglTotals()
-        });
-};
-
-T2RWidget.initRedmineActivityDropdown = function (el) {
-    var $el = $(el)
-    T2R.redmineService.getTimeEntryActivities((activities: any[] | null) => {
-        const placeholder = $el.data('placeholder')
-        const options = {}
-
-        for (const activity of activities) {
-            options[activity.id] = activity.name;
-        }
-
-        // Generate a SELECT element and use it's options.
-        const $select = T2RRenderer.render('Dropdown', {
-            placeholder: placeholder,
-            options: options
-        });
-
-        $el.append($select.find('option'));
-
-        // Mark selection.
-        const value = $el.data('selected');
-        if ('undefined' !== typeof value) {
-            $el.val(value).data('selected', null);
-        }
-    })
-}
-
-T2RWidget.initTogglWorkspaceDropdown = function (el) {
-    const $el = $(el);
-    T2R.redmineService.getTogglWorkspaces((workspaces) => {
-        // Determine the default Toggl workspace.
-        if (workspaces.length > 0) {
-            T2R.tempStorage.set('default_toggl_workspace', workspaces[0].id)
-        }
-
-        const placeholder = $el.attr('placeholder') || $el.data('placeholder')
-
-        // Prepare options.
-        const options = {}
-        for (const workspace of workspaces) {
-            options[workspace.id] = workspace.name
-        }
-
-        // Generate a SELECT element and use it's options.
-        const $select = T2RRenderer.render('Dropdown', {
-            placeholder: placeholder,
-            options: options
-        })
-
-        $el.append($select.find('option'))
-
-        // Mark selection.
-        const value = $el.data('selected')
-        if ('undefined' !== typeof value) {
-            $el.val(value).data('selected', null)
-        }
-    });
-};
-
-T2RWidget.initDurationRoundingDirection = function (el: any) {
-    const $el = $(el);
-
-    // Prepare rounding options.
-    const options = {}
-    options[duration.Rounding.Regular] = 'Round off'
-    options[duration.Rounding.Up] = 'Round up'
-    options[duration.Rounding.Down] = 'Round down'
-
-    // Generate a SELECT element and use it's options.
-    const $select = T2RRenderer.render('Dropdown', {
-        placeholder: 'Don\'t round',
-        options: options
-    });
-
-    $el.append($select.find('option'));
-};
-
-/**
  * Toggl 2 Redmine Renderer.
  */
 const T2RRenderer: any = {};
-
-T2RRenderer.renderDropdown = function (data: any) {
-    var $el = $('<select />');
-    if ('undefined' !== typeof data.placeholder) {
-        $el.append('<option value="">' + data.placeholder + '</option>');
-    }
-    if ('undefined' !== typeof data.attributes) {
-        $el.attr(data.attributes);
-    }
-    for (var value in data.options) {
-        var label = data.options[value];
-        $el.append('<option value="' + value + '">' + label + '</option>');
-    }
-    return $el;
-};
 
 T2RRenderer.renderRedmineProjectLabel = function (project: any) {
     project ||= { name: 'Unknown', path: 'javascript:void(0)', status: 1 };
@@ -962,8 +736,8 @@ T2RRenderer.renderTogglRow = function (data: any) {
         + '<input data-property="hours" required="required" data-t2r-widget="DurationInput" type="text" title="Value as on Toggl is ' + oDuration.asHHMM() + '." value="' + rDuration.asHHMM() + '" size="6" maxlength="5" />'
         + '</td>'
         + '</tr>';
-
     const $tr = $(markup);
+
     // Attach the entry for reference.
     $tr.data('t2r.entry', data);
     const $checkbox = $tr.find('.cb-import');
@@ -1015,6 +789,14 @@ T2RRenderer.renderTogglRow = function (data: any) {
             break;
     }
 
+    // Attach event listeners.
+    $tr.find('input[data-property=hours]')
+      .on('input', T2R.updateTogglTotals)
+      .on('change', T2R.updateTogglTotals)
+
+    $tr.find('.cb-import')
+      .on('change', T2R.updateTogglTotals)
+
     return $tr;
 };
 
@@ -1050,7 +832,7 @@ T2RRenderer.renderRedmineRow = function (data: any) {
     }
 
     // Initialize widgets.
-    T2RWidget.initialize($tr);
+    Widget.initialize($tr);
 
     $tr.find('.js-contextmenu').bind('click', contextMenuRightClick);
 
@@ -1108,7 +890,7 @@ T2RRenderer.render = function (template: string, data: any): any {
  * This is where it starts.
  */
 $(() => {
-    T2RWidget.initialize();
+    Widget.initialize();
     T2R.initTogglReport();
     T2R.initFilterForm();
     T2R.updateLastImportDate();

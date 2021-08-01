@@ -781,7 +781,7 @@ T2RRenderer.renderRedmineRow = function (data: any) {
   const dur = new duration.Duration(data.duration)
   dur.roundTo(1, duration.Rounding.Up)
 
-  var markup = '<tr id="time-entry-' + data.id + '"  class="time-entry hascontextmenu">'
+  const markup = '<tr id="time-entry-' + data.id + '"  class="time-entry hascontextmenu">'
     + '<td class="subject">'
     + projectLabel + '<br />' + issueLabel
     + '<input type="checkbox" name="ids[]" value="' + data.id + '" hidden />'
@@ -791,22 +791,11 @@ T2RRenderer.renderRedmineRow = function (data: any) {
     + '<td class="hours">' + dur.asHHMM() + '</td>'
     + '<td class="buttons">' + T2R_BUTTON_ACTIONS + '</td>'
     + '</tr>';
-  var $tr = $(markup);
 
-  // If there's no associated issue.
-  if (!issue) {
-    $tr.addClass('error');
-    $tr.find(':input').attr({
-      'disabled': 'disabled'
-    });
-  }
+  const $tr = $(markup)
+  $tr.find('.js-contextmenu').on('click', contextMenuRightClick)
 
-  // Initialize widgets.
-  Widget.initialize($tr);
-
-  $tr.find('.js-contextmenu').bind('click', contextMenuRightClick);
-
-  return $tr;
+  return $tr
 };
 
 /**

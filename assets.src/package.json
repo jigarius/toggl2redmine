@@ -4,7 +4,7 @@
   "description": "JavaScript for the Toggl 2 Redmine plugin.",
   "main": "t2r.js",
   "scripts": {
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint javascripts --ext .ts",
     "test": "mocha",
     "watch": "tsc -w"
   },

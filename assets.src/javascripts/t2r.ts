@@ -348,7 +348,7 @@ T2R.publishToRedmine = function () {
         $checkbox.removeAttr('checked');
         $tr.find(':input').attr('disabled', 'disabled');
 
-        const statusLabel = T2RRenderer.renderIssueStatusLabel('Imported')
+        const statusLabel = T2RRenderer.renderImportStatusLabel('Imported')
         $tr.find('td.status').html(statusLabel);
       },
       error: function(xhr) {
@@ -364,7 +364,7 @@ T2R.publishToRedmine = function () {
           errors = ['The server returned an unexpected response']
         }
 
-        const statusLabel = T2RRenderer.renderIssueStatusLabel('Failed', errors.join("\n"), 'error')
+        const statusLabel = T2RRenderer.renderImportStatusLabel('Failed', errors.join("\n"), 'error')
         $tr.find('td.status').html(statusLabel);
       }
     });
@@ -733,7 +733,7 @@ T2RRenderer.renderTogglRow = function (data: any) {
       if (data.errors.length > 0) {
         $tr.addClass('t2r-error');
         $tr.find(':input').attr('disabled', 'disabled');
-        statusLabel = T2RRenderer.renderIssueStatusLabel('Invalid', data.errors.join("\n"), 'error')
+        statusLabel = T2RRenderer.renderImportStatusLabel('Invalid', data.errors.join("\n"), 'error')
       }
       break;
 
@@ -741,13 +741,13 @@ T2RRenderer.renderTogglRow = function (data: any) {
       $tr.find('.cb-import').removeAttr('checked');
       $tr.addClass('t2r-success');
       $tr.find(':input').attr('disabled', 'disabled');
-      statusLabel = T2RRenderer.renderIssueStatusLabel('Imported')
+      statusLabel = T2RRenderer.renderImportStatusLabel('Imported')
       break;
 
     case 'running':
       $tr.addClass('t2r-running');
       $tr.find(':input').attr('disabled', 'disabled');
-      statusLabel = T2RRenderer.renderIssueStatusLabel(
+      statusLabel = T2RRenderer.renderImportStatusLabel(
         'Running',
         'The timer is still running on Toggl.',
         'error'
@@ -799,7 +799,7 @@ T2RRenderer.renderRedmineRow = function (data: any) {
 };
 
 /**
- * Renders and returns a status label with an optional message.
+ * Returns an import status label element.
  *
  * @param {string} label
  *   A label.
@@ -807,8 +807,11 @@ T2RRenderer.renderRedmineRow = function (data: any) {
  *   A description (displayed as tooltip).
  * @param {string} icon
  *   An icon. One of checked, error, warn.
+ *
+ * @return {HTMLElement}
+ *   A span element.
  */
-T2RRenderer.renderIssueStatusLabel = function (
+T2RRenderer.renderImportStatusLabel = function (
   label: string,
   description: string | null = null,
   icon: string = 'checked'

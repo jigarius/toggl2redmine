@@ -1,7 +1,5 @@
 FROM redmine:4.2
 
-ENV TERM=xterm-256color
-
 RUN apt update -qq > /dev/null \
   && apt install -qqy build-essential make vim less > /dev/null
 

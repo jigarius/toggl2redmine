@@ -38,8 +38,10 @@ services:
     volumes:
       - ./.docker/mysql/init:/docker-entrypoint-initdb.d
   node:
-    image: node:16-alpine
+    image: node:16.x-toggl2redmine
     container_name: redmine-node
+    hostname: node
+    build: .docker/node
     command: ['tail', '-f', '/dev/null']
     volumes:
       - .:/app

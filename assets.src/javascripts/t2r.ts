@@ -21,8 +21,11 @@ class PublishForm {
   static _instance: PublishForm | null
 
   private constructor(element: HTMLElement) {
+    var that = this
     this.element = $(element)
-    this.element.on('submit', T2R.handlePublishForm)
+    this.element.on('submit', () => {
+      return that.onSubmit()
+    })
   }
 
   public static instance(): PublishForm {
@@ -34,7 +37,7 @@ class PublishForm {
     return PublishForm._instance!
   }
 
-  public static onSubmit() {
+  public onSubmit() {
     if (confirm('This action cannot be undone. Do you really want to continue?')) {
       setTimeout(T2R.publishToRedmine, 0)
     }
@@ -57,6 +60,172 @@ class PublishForm {
 }
 
 /**
+ * The filter form.
+ */
+class FilterForm {
+  readonly element: JQuery<HTMLElement>
+  static _instance: FilterForm | null
+
+  public static instance(): FilterForm {
+    if (!FilterForm._instance) {
+      const elem = document.getElementById('filter-form')!
+      FilterForm._instance = new FilterForm(elem)
+    }
+
+    return FilterForm._instance!
+  }
+
+  private constructor(element: HTMLElement) {
+    this.element = $(element)
+    this.init()
+  }
+
+  public getDefaults(): any {
+    return {
+      date: utils.dateFormatYYYYMMDD(new Date()),
+      'toggl-workspace': T2R.localStorage.get('toggl-workspace'),
+      'default-activity': T2R.localStorage.get('default-activity'),
+      'rounding-value': T2R.localStorage.get('rounding-value'),
+      'rounding-direction': T2R.localStorage.get('rounding-direction')
+    }
+  }
+
+  public getValues() {
+    const $defaultActivity = $('select#default-activity')
+    const defaultActivity = $defaultActivity.val() || $defaultActivity.data('selected')
+
+    const $togglWorkspace = $('select#toggl-workspace')
+    let togglWorkspace = $togglWorkspace.val() || $togglWorkspace.data('selected')
+
+    let roundingValue = $('input#rounding-value').val()
+    roundingValue = roundingValue ? parseInt(roundingValue as string) : 0
+    roundingValue = isNaN(roundingValue) ? 0 : roundingValue
+
+    const roundingMethod = $('select#rounding-direction').val()
+
+    let sDate: string | null = $('#date').val() as string
+    try {
+      utils.dateStringToObject(sDate + ' 00:00:00')
+    } catch (e) {
+      sDate = null
+    }
+
+    return {
+      'default-activity': defaultActivity,
+      'toggl-workspace': togglWorkspace,
+      'rounding-direction': roundingMethod,
+      'rounding-value': roundingValue,
+      date: sDate
+    }
+  }
+
+  public setValues(values: any) {
+    this.element
+      .find(':input')
+      .each(function () {
+        const $field = $(this)
+        const name = $field.attr('name')
+        const value = values[name]
+
+        if (typeof value === 'undefined') return
+
+        switch (name) {
+          case 'default-activity':
+          case 'toggl-workspace':
+            $field
+              .data('selected', value)
+              .val(value)
+            break;
+
+          default:
+            if (typeof value !== 'undefined') {
+              $field.val(values[name])
+            }
+            break;
+        }
+      })
+  }
+
+  private init() {
+    const $form = this.element
+    const that = this
+
+    // Initialize apply filters button.
+    $form.find('#btn-apply-filters')
+      .on('click', () => {
+        return that.onSubmit()
+      })
+
+    // Initialize reset filters button.
+    $form.find('#btn-reset-filters')
+      .on('click',() => {
+        that.reset()
+        return false
+      })
+
+    // Handle filter form submission.
+    $form.on('submit',(e) => {
+      e.preventDefault()
+      return that.onSubmit()
+    });
+  }
+
+  public reset(values: any = {}) {
+    // Merge values with defaults.
+    const defaults = this.getDefaults()
+    for (const name in defaults) {
+      const value = values[name]
+      if (typeof value === 'undefined' || '' === value || false === value) {
+        values[name] = defaults[name];
+      }
+    }
+
+    this.element.find(':input').val('')
+    this.setValues(values)
+    this.onSubmit()
+  }
+
+  public onSubmit() {
+    const values = this.getValues()
+
+    if (!values['date']) {
+      this.element.find('#date').trigger('focus')
+      return false
+    }
+
+    T2R.localStorage.set('default-activity', values['default-activity'])
+    T2R.localStorage.set('toggl-workspace', values['toggl-workspace'])
+    T2R.localStorage.set('rounding-value', values['rounding-value'])
+    T2R.localStorage.set('rounding-direction', values['rounding-direction'])
+
+    // Store date and update URL hash.
+    const sDate = T2R.tempStorage.set('date', values['date'])
+    const oDate = utils.dateStringToObject(sDate)!
+    window.location.hash = sDate as string
+
+    // Show date in the headings.
+    $('h2 .date').html('(' + oDate.toLocaleDateString() + ')')
+
+    // Log the event.
+    console.info('Filter form updated: ', {
+      'date': T2R.tempStorage.get('date'),
+      'default-activity': T2R.localStorage.get('default-activity'),
+      'toggl-workspace': T2R.localStorage.get('toggl-workspace'),
+      'rounding-value': T2R.localStorage.get('rounding-value'),
+      'rounding-direction': T2R.localStorage.get('rounding-direction')
+    });
+
+    setTimeout(() => {
+      T2R.updateRedmineReport();
+      T2R.updateTogglReport();
+    }, 250);
+
+    T2R.publishForm.enable()
+    return false
+  }
+}
+
+/**
  * Toggl 2 Redmine Helper.
  */
 const T2R: any = {
@@ -66,18 +235,10 @@ const T2R: any = {
   tempStorage: new TemporaryStorage(),
   // Redmine service.
   redmineService: new RedmineService(T2R_REDMINE_API_KEY),
+  // Filter form.
+  filterForm: null,
   // Publish form.
   publishForm: null
-}
-
-/**
- * Returns the form containing filters.
- *
- * @return {Object}
- *   jQuery object for the filter form.
- */
-T2R.getFilterForm = function () {
-  return $('#filter-form');
 }
 
 /**
@@ -115,163 +276,6 @@ T2R.initTogglReport = function () {
         .prop('checked', checked)
         .trigger('change');
     });
-}
-
-/**
- * Filter form initializer.
- */
-T2R.initFilterForm = function () {
-  var $form = T2R.getFilterForm();
-
-  // Initialize apply filters button.
-  $form.find('#btn-apply-filters').click(function () {
-    T2R.handleFilterForm();
-    return false;
-  });
-
-  // Initialize reset filters button.
-  $form.find('#btn-reset-filters').click(function () {
-    T2R.resetFilterForm();
-    return false;
-  });
-
-  // Initialize tooltips for form fields.
-  $form.find('[title]').tooltip();
-
-  // Handle filter form submission.
-  $form.submit(function (e) {
-    e.preventDefault();
-    T2R.handleFilterForm();
-  });
-
-  // Reset the form to set default values.
-  var data = {
-    date: utils.getDateFromLocationHash()
-  };
-  T2R.resetFilterForm(data);
-}
-
-/**
- * Filter form resetter.
- *
- * @param {object} data
- *   Default values to populate.
- */
-T2R.resetFilterForm = function (data) {
-  data = data || {};
-
-  // Default values.
-  var defaults = {
-    date: utils.dateFormatYYYYMMDD(new Date()),
-    'toggl-workspace': T2R.localStorage.get('toggl-workspace'),
-    'default-activity': T2R.localStorage.get('default-activity'),
-    'rounding-value': T2R.localStorage.get('rounding-value'),
-    'rounding-direction': T2R.localStorage.get('rounding-direction')
-  };
-
-  // Merge with defaults.
-  for (var name in defaults) {
-    var value = data[name];
-    if ('undefined' == typeof value || '' === value || false === value) {
-      data[name] = defaults[name];
-    }
-  }
-
-  // Initialize all form inputs.
-  T2R.getFilterForm().find(':input')
-    .each(function () {
-      var $field = $(this).val('');
-      var name = $field.attr('name');
-      // Populate default value, if set.
-      switch (name) {
-        case 'default-activity':
-        case 'toggl-workspace':
-          $field
-            .data('selected', data[name])
-            .val(data[name]);
-          break;
-
-        default:
-          if ('undefined' !== typeof data[name]) {
-            $field.val(data[name]);
-          }
-          break;
-      }
-    });
-
-  // Submit the filter form to update the reports.
-  T2R.handleFilterForm();
-}
-
-/**
- * Filter form submission handler.
- */
-T2R.handleFilterForm = function() {
-  // Determine default activity.
-  var $defaultActivity = $('select#default-activity');
-  var defaultActivity = $defaultActivity.val();
-  if (null === defaultActivity) {
-    defaultActivity = $defaultActivity.data('selected');
-  }
-  T2R.localStorage.set('default-activity', defaultActivity);
-
-  // Determine toggl workspace.
-  var $togglWorkspace = $('select#toggl-workspace');
-  var togglWorkspace = $togglWorkspace.val();
-  if (null === togglWorkspace) {
-    togglWorkspace = $togglWorkspace.data('selected');
-  }
-  T2R.localStorage.set('toggl-workspace', togglWorkspace);
-
-  // Determine rounding value.
-  let roundingValue = $('input#rounding-value').val();
-  roundingValue = roundingValue ? parseInt(roundingValue as string) : 0;
-  roundingValue = isNaN(roundingValue) ? 0 : roundingValue;
-  T2R.localStorage.set('rounding-value', roundingValue);
-
-  // Determine rounding direction.
-  const roundingMethod = $('select#rounding-direction').val();
-  T2R.localStorage.set('rounding-direction', roundingMethod);
-
-  // Determine date filter.
-  const $date = $('#date')
-  const sDate = $date.val()
-  if (!sDate) {
-    $date.focus()
-    return false
-  }
-
-  let oDate: Date
-  try {
-    oDate = utils.dateStringToObject(sDate + ' 00:00:00')!
-    // Show date in the headings.
-    $('h2 .date').html('(' + oDate!.toLocaleDateString() + ')')
-  } catch (e) {
-    $date.focus()
-    return false
-  }
-
-  // Store date and update URL hash.
-  T2R.tempStorage.set('date', sDate)
-  window.location.hash = T2R.tempStorage.get('date')
-
-  // Log the event.
-  console.info('Filter form updated: ', {
-    'date': T2R.tempStorage.get('date'),
-    'default-activity': T2R.localStorage.get('default-activity'),
-    'toggl-workspace': T2R.localStorage.get('toggl-workspace'),
-    'rounding-value': T2R.localStorage.get('rounding-value'),
-    'rounding-direction': T2R.localStorage.get('rounding-direction')
-  });
-
-  // Update both the Redmine and Toggl reports.
-  setTimeout(function() {
-    T2R.updateRedmineReport();
-    T2R.updateTogglReport();
-  }, 250);
-
-  // Unlock the publish form if it was previously locked.
-  T2R.publishForm.enable()
 }
 
 /**
@@ -390,17 +394,9 @@ T2R.updateTogglReport = function () {
 
   // Determine report date.
   const date = T2R.tempStorage.get('date');
-  const query = {
-    from: date + ' 00:00:00',
-    till: date + ' 23:59:59',
-    workspace: T2R.localStorage.get('toggl-workspace')
-  }
+  const workspaceId = T2R.localStorage.get('toggl-workspace')
 
-  // Update other elements.
-  T2R.updateTogglReportLink({
-    date: date,
-    workspace: query.workspace
-  });
+  T2R.updateTogglReportLink(date, workspaceId);
 
   T2R.publishForm.disable()
 
@@ -410,6 +406,11 @@ T2R.updateTogglReport = function () {
     .attr('disabled', 'disabled');
 
   // Fetch time entries from Toggl.
+  const query = {
+    from: date + ' 00:00:00',
+    till: date + ' 23:59:59',
+    workspace: workspaceId
+  }
   T2R.redmineService.getTogglTimeEntries(query, function (entries) {
     var $table = T2R.getTogglTable();
     var pendingEntriesExist = false;
@@ -504,8 +505,8 @@ T2R.updateTogglReport = function () {
     if (pendingEntriesExist) {
       // If the update was triggered from the filter form, then focus the
       // "check-all" button to allow easier keyboard navigation.
-      if (T2R.getFilterForm().has(':focus').length > 0) {
-        $checkAll.focus();
+      if (T2R.filterForm.element.has(':focus').length > 0) {
+        $checkAll.trigger('focus');
       }
 
       // Enable the "check-all" checkbox.
@@ -519,17 +520,17 @@ T2R.updateTogglReport = function () {
 /**
  * Updates the Toggl report URL.
  *
- * @param {object} data
- *   An object containing report URL variables.
- *   - date: The date.
- *   - workspace: Workspace ID.
+ * @param {date} date
+ *   Report date.
+ * @param {number|null} workspaceId
+ *   Toggl workspace ID.
  */
-T2R.updateTogglReportLink = function (data) {
-  data.workspace = data.workspace || T2R.tempStorage.get('default_toggl_workspace', 0);
+T2R.updateTogglReportLink = function (date: string, workspaceId: number | null) {
+  workspaceId = workspaceId || T2R.tempStorage.get('default_toggl_workspace', 0)
 
-  var url = T2R_TOGGL_REPORT_URL_FORMAT
-    .replace(/\[@date\]/g, data.date)
-    .replace('[@workspace]', data.workspace);
+  const url = T2R_TOGGL_REPORT_URL_FORMAT
+    .replace(/\[@date\]/g, date)
+    .replace('[@workspace]', workspaceId.toString());
   $('#toggl-report-link').attr('href', url);
 }
 
@@ -583,18 +584,13 @@ T2R.updateRedmineReport = function () {
   till = utils.dateStringToObject(till);
   var from = till;
 
+  T2R.updateRedmineReportLink(from)
+
   // Fetch time entries from Redmine.
   const query = {
     from: from.toISOString().split('T')[0] + 'T00:00:00Z',
     till: till.toISOString().split('T')[0] + 'T00:00:00Z'
-  };
-
-  // Update Redmine report link.
-  T2R.updateRedmineReportLink({
-    date: T2R.tempStorage.get('date')
-  });
-
-  // Fetch time entries from Redmine.
+  }
   T2R.redmineService.getTimeEntries(query, (entries: any[] | null) => {
     if (entries === null) {
       flash.error('An error has occurred. Please try again after some time.')
@@ -629,14 +625,12 @@ T2R.updateRedmineReport = function () {
 /**
  * Updates the Redmine report URL.
  *
- * @param {object} data
- *   An object containing report URL variables.
- *   - date: Report date.
+ * @param {string} date
+ *   Report date.
  */
-T2R.updateRedmineReportLink = function (data) {
-  var url = T2R_REDMINE_REPORT_URL_FORMAT
-    .replace('[@date]', data.date);
-  $('#redmine-report-link').attr('href', url);
+T2R.updateRedmineReportLink = function (date) {
+  const url = T2R_REDMINE_REPORT_URL_FORMAT.replace('[@date]', date)
+  $('#redmine-report-link').attr('href', url)
 }
 
 /**
@@ -680,7 +674,10 @@ T2R.updateLastImportDate = function () {
 $(() => {
   Widget.initialize();
   T2R.publishForm = PublishForm.instance()
+
+  T2R.filterForm = FilterForm.instance()
+  T2R.filterForm.reset({ date: utils.getDateFromLocationHash() })
+
   T2R.initTogglReport();
-  T2R.initFilterForm();
   T2R.updateLastImportDate();
 });

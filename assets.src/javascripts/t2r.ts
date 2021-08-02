@@ -216,12 +216,335 @@ class FilterForm {
     });
 
     setTimeout(() => {
-      T2R.updateRedmineReport();
-      T2R.updateTogglReport();
+      T2R.redmineReport.update()
+      T2R.togglReport.update()
     }, 250);
 
     T2R.publishForm.enable()
     return false
+  }
+}
+
+/**
+ * The Redmine report table.
+ */
+class RedmineReport {
+  readonly element: JQuery<HTMLElement>
+  static _instance: RedmineReport | null
+
+  public static instance(): RedmineReport {
+    if (!RedmineReport._instance) {
+      const elem = document.getElementById('redmine-report')!
+      RedmineReport._instance = new RedmineReport(elem)
+    }
+
+    return RedmineReport._instance!
+  }
+
+  private constructor(element: HTMLElement) {
+    this.element = $(element)
+  }
+
+  public update() {
+    var that = this
+
+    this.showLoader()
+    this.makeEmpty()
+
+    const sDate: string = T2R.tempStorage.get('date')
+    const oDate = utils.dateStringToObject(sDate)!
+
+    this.updateLink(sDate)
+
+    const query = {
+      from: oDate.toISOString().split('T')[0] + 'T00:00:00Z',
+      till: oDate.toISOString().split('T')[0] + 'T00:00:00Z'
+    }
+    T2R.redmineService.getTimeEntries(query, (entries: any[] | null) => {
+      if (entries === null) {
+        flash.error('An error has occurred. Please try again after some time.')
+        entries = []
+      }
+
+      if (entries.length === 0) {
+        that.showEmptyMessage()
+      }
+
+      for (const time_entry of entries) {
+        const markup = renderers.renderRedmineRow(time_entry)
+        that.element.find('tbody').append(markup)
+      }
+
+      that.updateTotal()
+      that.hideLoader()
+    });
+  }
+
+  private updateLink(date: string) {
+    const url = T2R_REDMINE_REPORT_URL_FORMAT.replace('[@date]', date)
+    $('#redmine-report-link').attr('href', url)
+  }
+
+  public updateTotal() {
+    const total = new duration.Duration()
+
+    // Iterate over all rows and add the hours.
+    this.element.find('tbody tr .hours')
+      .each(function () {
+        const hours = $(this).text().trim();
+        if (hours.length > 0) {
+          total.add(new duration.Duration(hours));
+        }
+      })
+
+    this.element.find('[data-property="total-hours"]').html(total.asHHMM());
+  }
+
+  public showEmptyMessage() {
+    const colspan = this.element.find('thead tr:first th').length
+    const message = t('t2r.error.list_empty')
+    const markup = `<tr><td colspan="${colspan}">${message}</td></tr>`
+    this.element.find('tbody').html(markup);
+  }
+
+  private makeEmpty() {
+    this.element.find('tbody').html('')
+  }
+
+  public showLoader() {
+    this.element.addClass('t2r-loading')
+  }
+
+  public hideLoader() {
+    this.element.removeClass('t2r-loading')
+  }
+}
+
+class TogglReport {
+  readonly element: JQuery<HTMLElement>
+  readonly checkAll: JQuery<HTMLElement>
+  static _instance: TogglReport | null
+
+  public static instance(): TogglReport {
+    if (!TogglReport._instance) {
+      const elem = document.getElementById('toggl-report')!
+      TogglReport._instance = new TogglReport(elem)
+    }
+
+    return TogglReport._instance!
+  }
+
+  private constructor(element: HTMLElement) {
+    this.element = $(element)
+    this.checkAll = this.element.find('input.check-all')
+    this.init()
+  }
+
+  private init() {
+    var that = this
+    this.checkAll.tooltip()
+      .on('change',() => {
+        const checked = $(this).prop('checked');
+        that.element.find('tbody input.cb-import:enabled')
+          .prop('checked', checked)
+          .trigger('change')
+      })
+  }
+
+  public update() {
+    var that = this
+
+    T2R.publishForm.disable()
+    this.showLoader()
+    this.makeEmpty()
+
+    // Determine report date.
+    const sDate = T2R.tempStorage.get('date');
+    const workspaceId = T2R.localStorage.get('toggl-workspace')
+
+    this.updateLink(sDate, workspaceId)
+
+    // Uncheck the "check all" checkbox.
+    this.checkAll
+      .prop('checked', false)
+      .attr('disabled', 'disabled')
+
+    // Fetch time entries from Toggl.
+    const query = {
+      from: sDate + ' 00:00:00',
+      till: sDate + ' 23:59:59',
+      workspace: workspaceId
+    }
+    T2R.redmineService.getTogglTimeEntries(query, (entries: any) => {
+      let pendingEntriesExist = false
+
+      // Prepare rounding rules.
+      const roundingValue = T2R.localStorage.get('rounding-value')
+      const roundingMethod = T2R.localStorage.get('rounding-direction')
+
+      // TODO: Use entries.map() instead?
+      for (const key in entries) {
+        const entry = entries[key]
+
+        entry.duration = new duration.Duration(Math.max(0, entry.duration))
+        entry.roundedDuration = new duration.Duration(entry.duration.seconds)
+
+        // Prepare rounded duration as per rounding rules.
+        if (roundingMethod !== '' && roundingValue > 0) {
+          entry.roundedDuration.roundTo(roundingValue, roundingMethod)
+        }
+        else {
+          entry.roundedDuration.roundTo(1, duration.Rounding.Regular)
+        }
+
+        entries[key] = entry
+      }
+
+      if (0 === entries.length) {
+        this.showEmptyMessage()
+      }
+
+      // Display entries that are running at the moment.
+      for (const key in entries) {
+        const entry = entries[key];
+        if (entry.status === 'running') {
+          const $tr = renderers.renderTogglRow(entry);
+          that.element.find('tbody').append($tr);
+          delete entries[key];
+        }
+      }
+
+      // Display entries eligible for import.
+      for (const key in entries) {
+        const entry = entries[key];
+        if (entry.status === 'pending' && entry.errors.length === 0) {
+          const $tr = renderers.renderTogglRow(entry);
+          that.element.find('tbody').append($tr);
+          pendingEntriesExist = true
+
+          // TODO: Set default activity on activity dropdowns.
+
+          $tr.find('input[data-property=hours]')
+            .on('input', T2R.updateTogglTotals)
+            .on('change', T2R.updateTogglTotals)
+
+          console.log($tr.find('select[data-property=activity_id]'))
+          console.log(T2R.localStorage.get('default-activity'))
+
+          $tr.find('select[data-property=activity_id]')
+            .attr('data-selected', T2R.localStorage.get('default-activity'))
+
+          $tr.find('.cb-import')
+            .on('change', T2R.updateTogglTotals)
+        }
+      }
+
+      // Display entries not eligible for import.
+      for (const key in entries) {
+        const entry = entries[key];
+        if (entry.status === 'pending' && entry.errors.length > 0) {
+          const $tr = renderers.renderTogglRow(entry);
+          that.element.find('tbody').append($tr);
+        }
+      }
+
+      // Display entries which are already import.
+      for (const key in entries) {
+        const entry = entries[key];
+        if (entry.status === 'imported') {
+          const $tr = renderers.renderTogglRow(entry);
+          that.element.find('tbody').append($tr);
+        }
+      }
+
+      that.updateTotal()
+      Widget.initialize(that.element[0])
+      that.hideLoader()
+
+      if (!pendingEntriesExist) {
+        return
+      }
+
+      that.checkAll.removeAttr('disabled')
+      T2R.publishForm.enable()
+
+      // If the update was triggered from the filter form, then focus the
+      // "check-all" button to allow easier keyboard navigation.
+      if (T2R.filterForm.element.has(':focus').length > 0) {
+        that.checkAll.trigger('focus')
+      }
+    })
+  }
+
+  /**
+   * Updates the Toggl report URL.
+   *
+   * @param {date} date
+   *   Report date.
+   * @param {number|null} workspaceId
+   *   Toggl workspace ID.
+   */
+  private updateLink(date: string, workspaceId: number | null) {
+    workspaceId = workspaceId || T2R.tempStorage.get('default_toggl_workspace', 0)
+
+    const url = T2R_TOGGL_REPORT_URL_FORMAT
+      .replace(/\[@date\]/g, date)
+      .replace('[@workspace]', workspaceId.toString());
+    $('#toggl-report-link').attr('href', url);
+  }
+
+  /**
+   * Updates the total in the Redmine report footer.
+   */
+  private updateTotal() {
+    const total = new duration.Duration()
+
+    // Iterate over all rows and add the hours.
+    this.element.find('tbody tr').each(function () {
+      const $tr = $(this)
+      const dur = new duration.Duration()
+
+      // Ignore erroneous rows.
+      if ($tr.hasClass('t2r-error')) {
+        return
+      }
+
+      // Ignore unchecked rows.
+      if (!$tr.find('.cb-import').is(':checked')) {
+        return
+      }
+
+      // Parse the input as time and add it to the total.
+      const hours = $tr.find('[data-property="hours"]').val() as string
+      try {
+        // Assume time to be hours and minutes.
+        dur.setHHMM(hours);
+        total.add(dur);
+      } catch(e) {
+        console.error(e);
+      }
+    })
+
+    this.element.find('[data-property="total-hours"]').html(total.asHHMM())
+  }
+
+  public showEmptyMessage() {
+    const colspan = this.element.find('thead tr:first th').length
+    const message = t('t2r.error.list_empty')
+    const markup = `<tr><td colspan="${colspan}">${message}</td></tr>`
+    this.element.find('tbody').html(markup);
+  }
+
+  private makeEmpty() {
+    this.element.find('tbody').html('')
+  }
+
+  public showLoader() {
+    this.element.addClass('t2r-loading')
+  }
+
+  public hideLoader() {
+    this.element.removeClass('t2r-loading')
   }
 }
 
@@ -238,7 +561,9 @@ const T2R: any = {
   // Filter form.
   filterForm: null,
   // Publish form.
-  publishForm: null
+  publishForm: null,
+  redmineReport: null,
+  togglReport: null
 }
 
 /**
@@ -249,33 +574,6 @@ const T2R: any = {
  */
 T2R.getTogglTable = function () {
   return $('#toggl-report');
-}
-
-/**
- * Returns the Redmine report table.
- *
- * @return {Object}
- *   jQuery object for the Redmine report table.
- */
-T2R.getRedmineTable = function () {
-  return $('#redmine-report');
-}
-
-/**
- * Initializes the Toggl report.
- */
-T2R.initTogglReport = function () {
-  // Initialize the check-all heading.
-  T2R.getTogglTable()
-    .find('input.check-all')
-    .tooltip()
-    .change(function () {
-      var checked = $(this).prop('checked');
-      var $table = T2R.getTogglTable();
-      $table.find('tbody input.cb-import:enabled')
-        .prop('checked', checked)
-        .trigger('change');
-    });
 }
 
 /**
@@ -378,278 +676,10 @@ T2R.publishToRedmine = function () {
     if (T2R.redmineService.requestQueue.length === 0) {
       clearInterval(T2R.__publishWatcher);
       T2R.publishForm.enable()
-      T2R.updateRedmineReport();
+      T2R.redmineReport.update()
       T2R.updateLastImported();
     }
   }, 250);
-}
-
-/**
- * Refresh the Toggl report table.
- */
-T2R.updateTogglReport = function () {
-  // Prepare the table for update.
-  var $table = T2R.getTogglTable().addClass('t2r-loading');
-  $table.find('tbody').html('');
-
-  // Determine report date.
-  const date = T2R.tempStorage.get('date');
-  const workspaceId = T2R.localStorage.get('toggl-workspace')
-
-  T2R.updateTogglReportLink(date, workspaceId);
-
-  T2R.publishForm.disable()
-
-  // Uncheck the "check all" checkbox.
-  const $checkAll = $table.find('.check-all')
-    .prop('checked', false)
-    .attr('disabled', 'disabled');
-
-  // Fetch time entries from Toggl.
-  const query = {
-    from: date + ' 00:00:00',
-    till: date + ' 23:59:59',
-    workspace: workspaceId
-  }
-  T2R.redmineService.getTogglTimeEntries(query, function (entries) {
-    var $table = T2R.getTogglTable();
-    var pendingEntriesExist = false;
-
-    // Prepare rounding rules.
-    const roundingValue = T2R.localStorage.get('rounding-value')
-    const roundingMethod = T2R.localStorage.get('rounding-direction')
-
-    for (const key in entries) {
-      const entry = entries[key]
-
-      entry.duration = new duration.Duration(Math.max(0, entry.duration))
-      entry.roundedDuration = new duration.Duration(entry.duration.seconds)
-
-      // Prepare rounded duration as per rounding rules.
-      if (roundingMethod !== '' && roundingValue > 0) {
-        entry.roundedDuration.roundTo(roundingValue, roundingMethod)
-      }
-      else {
-        entry.roundedDuration.roundTo(1, duration.Rounding.Regular)
-      }
-
-      // Include the entry in the output.
-      entries[key] = entry
-    }
-
-    // Display entries that are running at the moment.
-    for (const key in entries) {
-      const entry = entries[key];
-      if (entry.status === 'running') {
-        const $tr = renderers.renderTogglRow(entry);
-        $table.find('tbody').append($tr);
-        delete entries[key];
-      }
-    }
-
-    // Display entries eligible for import.
-    for (const key in entries) {
-      const entry = entries[key];
-      if (entry.status === 'pending' && entry.errors.length === 0) {
-        const $tr = renderers.renderTogglRow(entry);
-        $table.find('tbody').append($tr);
-        pendingEntriesExist = true;
-
-        // TODO: Set default activity on activity dropdowns.
-
-        $tr.find('input[data-property=hours]')
-          .on('input', T2R.updateTogglTotals)
-          .on('change', T2R.updateTogglTotals)
-
-        $tr.find('.cb-import')
-          .on('change', T2R.updateTogglTotals)
-      }
-    }
-
-    // Display entries not eligible for import.
-    for (const key in entries) {
-      const entry = entries[key];
-      if (entry.status === 'pending' && entry.errors.length > 0) {
-        const $tr = renderers.renderTogglRow(entry);
-        $table.find('tbody').append($tr);
-      }
-    }
-
-    // Display entries which are already import.
-    for (const key in entries) {
-      const entry = entries[key];
-      if (entry.status === 'imported') {
-        const $tr = renderers.renderTogglRow(entry);
-        $table.find('tbody').append($tr);
-      }
-    }
-
-    // Display empty table message, if required.
-    if (0 === entries.length) {
-      const markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
-        + t('t2r.error.list_empty')
-        + '</td></tr>';
-      $table.find('tbody').append(markup);
-    }
-
-    // Initialize widgets.
-    Widget.initialize($table);
-
-    // Update totals.
-    T2R.updateTogglTotals();
-
-    // Remove loader.
-    $table.removeClass('t2r-loading');
-
-    // If pending entries exist.
-    if (pendingEntriesExist) {
-      // If the update was triggered from the filter form, then focus the
-      // "check-all" button to allow easier keyboard navigation.
-      if (T2R.filterForm.element.has(':focus').length > 0) {
-        $checkAll.trigger('focus');
-      }
-
-      // Enable the "check-all" checkbox.
-      $checkAll.removeAttr('disabled');
-
-      T2R.publishForm.enable()
-    }
-  });
-}
-
-/**
- * Updates the Toggl report URL.
- *
- * @param {date} date
- *   Report date.
- * @param {number|null} workspaceId
- *   Toggl workspace ID.
- */
-T2R.updateTogglReportLink = function (date: string, workspaceId: number | null) {
-  workspaceId = workspaceId || T2R.tempStorage.get('default_toggl_workspace', 0)
-
-  const url = T2R_TOGGL_REPORT_URL_FORMAT
-    .replace(/\[@date\]/g, date)
-    .replace('[@workspace]', workspaceId.toString());
-  $('#toggl-report-link').attr('href', url);
-}
-
-/**
- * Updates the total in the Redmine report footer.
- */
-T2R.updateTogglTotals = function () {
-  var $table = T2R.getTogglTable();
-  var total = new duration.Duration();
-
-  // Iterate over all rows and add the hours.
-  $table.find('tbody tr').each(function () {
-    const $tr = $(this);
-    const dur = new duration.Duration()
-
-    // Ignore erroneous rows.
-    if ($tr.hasClass('t2r-error')) {
-      return;
-    }
-
-    // Ignore unchecked rows.
-    if (!$tr.find('.cb-import').is(':checked')) {
-      return;
-    }
-
-    // Parse the input as time and add it to the total.
-    const hours = $tr.find('[data-property="hours"]').val() as string;
-    try {
-      // Assume time to be hours and minutes.
-      dur.setHHMM(hours);
-      total.add(dur);
-    } catch(e) {
-      console.error(e);
-    }
-  });
-
-  // Show the total in the table footer.
-  $table.find('[data-property="total-hours"]').html(total.asHHMM());
-}
-
-/**
- * Updates the Redmine time entry report.
- */
-T2R.updateRedmineReport = function () {
-  // Prepare the table for update.
-  var $table = T2R.getRedmineTable().addClass('t2r-loading');
-  $table.find('tbody').html('');
-
-  // Determine Redmine API friendly date range.
-  var till = T2R.tempStorage.get('date');
-  till = utils.dateStringToObject(till);
-  var from = till;
-
-  T2R.updateRedmineReportLink(from)
-
-  // Fetch time entries from Redmine.
-  const query = {
-    from: from.toISOString().split('T')[0] + 'T00:00:00Z',
-    till: till.toISOString().split('T')[0] + 'T00:00:00Z'
-  }
-  T2R.redmineService.getTimeEntries(query, (entries: any[] | null) => {
-    if (entries === null) {
-      flash.error('An error has occurred. Please try again after some time.')
-      entries = []
-    }
-
-    const $table = T2R.getRedmineTable().addClass('t2r-loading');
-
-    // Display entries from Redmine.
-    for (const key in entries) {
-      const entry = entries[key];
-      const markup = renderers.renderRedmineRow(entry);
-      $table.find('tbody').append(markup);
-    }
-
-    // Display empty table message, if required.
-    if (0 === entries.length) {
-      const markup = '<tr><td colspan="' + $table.find('thead tr:first th').length + '">'
-        + t('t2r.error.list_empty')
-        + '</td></tr>';
-      $table.find('tbody').html(markup);
-    }
-
-    // Update totals.
-    T2R.updateRedmineTotals();
-
-    // Remove loader.
-    $table.removeClass('t2r-loading');
-  });
-}
-
-/**
- * Updates the Redmine report URL.
- *
- * @param {string} date
- *   Report date.
- */
-T2R.updateRedmineReportLink = function (date) {
-  const url = T2R_REDMINE_REPORT_URL_FORMAT.replace('[@date]', date)
-  $('#redmine-report-link').attr('href', url)
-}
-
-/**
- * Updates the total in the Redmine report footer.
- */
-T2R.updateRedmineTotals = function () {
-  const $table = T2R.getRedmineTable()
-  const total = new duration.Duration()
-
-  // Iterate over all rows and add the hours.
-  $table.find('tbody tr .hours').each(function (i) {
-    const hours = $(this).text().trim();
-    if (hours.length > 0) {
-      total.add(new duration.Duration(hours));
-    }
-  });
-
-  // Show the total in the table footer.
-  $table.find('[data-property="total-hours"]').html(total.asHHMM());
 }
 
 /**
@@ -674,10 +704,11 @@ T2R.updateLastImportDate = function () {
 $(() => {
   Widget.initialize();
   T2R.publishForm = PublishForm.instance()
-
   T2R.filterForm = FilterForm.instance()
+  T2R.redmineReport = RedmineReport.instance()
+  T2R.togglReport = TogglReport.instance()
+
   T2R.filterForm.reset({ date: utils.getDateFromLocationHash() })
 
-  T2R.initTogglReport();
   T2R.updateLastImportDate();
 });

@@ -14,6 +14,49 @@ import * as utils from "./t2r/utils.js"
 import * as flash from "./t2r/flash.js"
 
 /**
+ * The 'Import to Redmine' form.
+ */
+class PublishForm {
+  readonly element: JQuery<HTMLElement>
+  static _instance: PublishForm | null
+
+  private constructor(element: HTMLElement) {
+    this.element = $(element)
+    this.element.on('submit', T2R.handlePublishForm)
+  }
+
+  public static instance(): PublishForm {
+    if (!PublishForm._instance) {
+      const elem = document.getElementById('publish-form')!
+      PublishForm._instance = new PublishForm(elem)
+    }
+
+    return PublishForm._instance!
+  }
+
+  public static onSubmit() {
+    if (confirm('This action cannot be undone. Do you really want to continue?')) {
+      setTimeout(T2R.publishToRedmine, 0)
+    }
+    return false
+  }
+
+  /**
+   * Disables form submission.
+   */
+  public disable() {
+    this.element.find('#btn-publish').attr('disabled', 'disabled')
+  }
+
+  /**
+   * Enables form submission.
+   */
+  public enable() {
+    this.element.find('#btn-publish').removeAttr('disabled')
+  }
+}
+
+/**
  * Toggl 2 Redmine Helper.
  */
 const T2R: any = {
@@ -22,7 +65,9 @@ const T2R: any = {
   // Temporary storage.
   tempStorage: new TemporaryStorage(),
   // Redmine service.
-  redmineService: new RedmineService(T2R_REDMINE_API_KEY)
+  redmineService: new RedmineService(T2R_REDMINE_API_KEY),
+  // Publish form.
+  publishForm: null
 }
 
 /**
@@ -33,16 +78,6 @@ const T2R: any = {
  */
 T2R.getFilterForm = function () {
   return $('#filter-form');
-}
-
-/**
- * Returns the form to publish data to Redmine.
- *
- * @return {Object}
- *   jQuery object for the publish form.
- */
-T2R.getPublishForm = function () {
-  return $('#publish-form');
 }
 
 /**
@@ -236,56 +271,21 @@ T2R.handleFilterForm = function() {
   }, 250);
 
   // Unlock the publish form if it was previously locked.
-  T2R.unlockPublishForm();
-}
-
-/**
- * Publish form initializer.
- */
-T2R.initPublishForm = function () {
-  T2R.getPublishForm().submit(T2R.handlePublishForm);
-}
-
-/**
- * Locks the publish form.
- *
- * This disallows the user to submit the form.
- */
-T2R.lockPublishForm = function () {
-  T2R.getPublishForm().find('#btn-publish').attr('disabled', 'disabled');
-}
-
-/**
- * Unlocks the publish form.
- *
- * This allows the user to submit it.
- */
-T2R.unlockPublishForm = function () {
-  T2R.getPublishForm().find('#btn-publish').removeAttr('disabled');
-}
-
-/**
- * Publish form submission handler.
- */
-T2R.handlePublishForm = function() {
-  if (confirm('This action cannot be undone. Do you really want to continue?')) {
-    setTimeout(T2R.publishToRedmine);
-  }
-  return false;
+  T2R.publishForm.enable()
 }
 
 /**
  * Publishes selected Toggl data to Redmine.
  */
 T2R.publishToRedmine = function () {
-  T2R.lockPublishForm();
+  T2R.publishForm.disable()
   flash.clear();
 
   // Check for eligible entries.
   var $checkboxes = $('#toggl-report tbody tr input.cb-import');
   if ($checkboxes.filter(':checked').length <= 0) {
     flash.error('Please select the entries which you want to import to Redmine.');
-    T2R.unlockPublishForm();
+    T2R.publishForm.enable()
     return;
   }
 
@@ -373,7 +373,7 @@ T2R.publishToRedmine = function () {
   T2R.__publishWatcher = setInterval(function () {
     if (T2R.redmineService.requestQueue.length === 0) {
       clearInterval(T2R.__publishWatcher);
-      T2R.unlockPublishForm();
+      T2R.publishForm.enable()
       T2R.updateRedmineReport();
       T2R.updateLastImported();
     }
@@ -402,8 +402,7 @@ T2R.updateTogglReport = function () {
     workspace: query.workspace
   });
 
-  // Lock the publish form.
-  T2R.lockPublishForm();
+  T2R.publishForm.disable()
 
   // Uncheck the "check all" checkbox.
   const $checkAll = $table.find('.check-all')
@@ -512,8 +511,7 @@ T2R.updateTogglReport = function () {
       // Enable the "check-all" checkbox.
       $checkAll.removeAttr('disabled');
 
-      // Unlock publish form.
-      T2R.unlockPublishForm();
+      T2R.publishForm.enable()
     }
   });
 }
@@ -681,8 +679,8 @@ T2R.updateLastImportDate = function () {
  */
 $(() => {
   Widget.initialize();
+  T2R.publishForm = PublishForm.instance()
   T2R.initTogglReport();
   T2R.initFilterForm();
   T2R.updateLastImportDate();
-  T2R.initPublishForm();
 });

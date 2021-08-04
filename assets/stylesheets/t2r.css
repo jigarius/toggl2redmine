@@ -48,7 +48,7 @@
   text-align: center !important;
   width: 30px;
 }
-.t2r-table td.status span {
+.t2r-table td.status span[title] {
   cursor: help;
 }
 .t2r-table th.hours,

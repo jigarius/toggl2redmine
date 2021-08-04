@@ -137,7 +137,7 @@ export function renderRedmineRow(data: any) {
 export function renderImportStatusLabel(
   label: string,
   description: string | null = null,
-  icon: string = 'checked'
+  icon = 'checked'
 ) {
   const el = document.createElement('span')
 

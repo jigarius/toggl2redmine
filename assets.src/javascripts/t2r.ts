@@ -95,7 +95,7 @@ class FilterForm {
     const defaultActivity = $defaultActivity.val() || $defaultActivity.data('selected')
 
     const $togglWorkspace = $('select#toggl-workspace')
-    let togglWorkspace = $togglWorkspace.val() || $togglWorkspace.data('selected')
+    const togglWorkspace = $togglWorkspace.val() || $togglWorkspace.data('selected')
 
     let roundingValue = $('input#rounding-value').val()
     roundingValue = roundingValue ? parseInt(roundingValue as string) : 0
@@ -641,7 +641,7 @@ T2R.publishToRedmine = function () {
       context: $tr,
       data: JSON.stringify(data),
       contentType: 'application/json',
-      success: function(data, status, xhr) {
+      success: function(data) {
         console.debug('Request successful', data);
         const $tr = $(this).addClass('t2r-success');
 

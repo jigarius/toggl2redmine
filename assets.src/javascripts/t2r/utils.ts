@@ -72,7 +72,7 @@ export function getDateFromLocationHash(): string | undefined {
   const matches = window.location.hash.match(/^#?([\d]{4}-[\d]{2}-[\d]{2})$/);
   if (!matches) return
 
-  const match: string = matches.pop()!;
+  const match: string = matches.pop() as string
   if (!dateStringToObject(match)) return
 
   console.debug('Got date from URL fragment', match);

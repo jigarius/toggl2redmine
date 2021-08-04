@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 declare const T2R_REDMINE_API_KEY: string;
 declare const T2R_REDMINE_REPORT_URL_FORMAT : string;
 declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
@@ -124,7 +122,7 @@ class FilterForm {
       .find(':input')
       .each(function () {
         const $field = $(this)
-        const name = $field.attr('name')
+        const name = $field.attr('name') as string
         const value = values[name]
 
         if (typeof value === 'undefined') return
@@ -489,7 +487,7 @@ class TogglReport {
 
     const url = T2R_TOGGL_REPORT_URL_FORMAT
       .replace(/\[@date\]/g, date)
-      .replace('[@workspace]', workspaceId.toString());
+      .replace('[@workspace]', workspaceId!.toString());
     $('#toggl-report-link').attr('href', url);
   }
 
@@ -606,17 +604,18 @@ T2R.publishToRedmine = function () {
     // Prepare the data to be pushed to Redmine.
     var redmine_entry = {
       spent_on: T2R.tempStorage.get('date'),
-      issue_id: parseInt($tr.find('[data-property="issue_id"]').val()),
+      issue_id: parseInt($tr.find('[data-property="issue_id"]').val() as string),
       comments: $tr.find('[data-property="comments"]').val(),
-      activity_id: parseInt($tr.find('[data-property="activity_id"]').val()),
+      activity_id: parseInt($tr.find('[data-property="activity_id"]').val() as string),
+      hours: '0.00'
     };
 
     // Convert time to Redmine-friendly format, i.e. hh:mm.
-    var durationInput = $tr.find('[data-property="hours"]').val();
-    var dur = new duration.Duration();
+    const durationInput = $tr.find('[data-property="hours"]').val() as string
+    const dur = new duration.Duration();
     try {
       dur.setHHMM(durationInput);
-      redmine_entry.hours = dur.asDecimal();
+      redmine_entry.hours = dur.asDecimal()
     } catch (e) {
       console.warn('Invalid duration. Ignoring entry.', redmine_entry);
       return;
@@ -641,7 +640,7 @@ T2R.publishToRedmine = function () {
       context: $tr,
       data: JSON.stringify(data),
       contentType: 'application/json',
-      success: function(data) {
+      success: function(data: any) {
         console.debug('Request successful', data);
         const $tr = $(this).addClass('t2r-success');
 
@@ -652,7 +651,7 @@ T2R.publishToRedmine = function () {
         const statusLabel = renderers.renderImportStatusLabel('Imported')
         $tr.find('td.status').html(statusLabel);
       },
-      error: function(xhr) {
+      error: function(xhr: any) {
         console.error('Request failed');
         const $tr = $(this).addClass('t2r-error');
         const sResponse = xhr.responseText || 'false';
@@ -687,7 +686,7 @@ T2R.publishToRedmine = function () {
  */
 T2R.updateLastImportDate = function () {
   const $context = $('#last-imported')
-  T2R.redmineService.getLastImportDate((lastImportDate) => {
+  T2R.redmineService.getLastImportDate((lastImportDate: Date | null) => {
     const sDate = lastImportDate ? lastImportDate.toLocaleDateString() : 'Unknown';
     console.debug(`Last import date: ${sDate}`)
     $context.text(sDate).removeClass('t2r-loading');

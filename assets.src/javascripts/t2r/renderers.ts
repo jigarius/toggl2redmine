@@ -17,8 +17,8 @@ export function renderRedmineProjectLabel(project: any) {
 }
 
 export function renderRedmineIssueLabel(issue: any): string {
-  if (typeof issue['id'] == 'undefined' || !issue.id) return '-'
-  if (!issue.path) return issue.id.toString()
+  if (typeof issue['id'] === 'undefined' || !issue.id) return '-'
+  if (!issue.subject) return issue.id.toString()
 
   // Render a clickable issue label.
   return '<a href="' + issue.path + '" target="_blank">'

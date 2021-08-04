@@ -131,5 +131,10 @@ end
 
 desc 'Test JavaScript code.'
 task :test_javascript do
-  sh 'docker compose exec -w /app/assets.src/javascripts node npm run test'
+  sh 'docker compose exec -w /app/assets.src node npm run test'
+end
+
+desc 'Watch and compile CSS and JS assets.'
+task :watch do
+  sh 'docker compose exec -w /app/assets.src node npm run watch'
 end

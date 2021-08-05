@@ -19,10 +19,11 @@ class PublishForm {
   static _instance: PublishForm | null
 
   private constructor(element: HTMLElement) {
-    var that = this
+    const that = this
     this.element = $(element)
     this.element.on('submit', () => {
-      return that.onSubmit()
+      that.onSubmit()
+      return false
     })
   }
 
@@ -36,10 +37,82 @@ class PublishForm {
   }
 
   public onSubmit() {
-    if (confirm('This action cannot be undone. Do you really want to continue?')) {
-      setTimeout(T2R.publishToRedmine, 0)
+    if (!confirm('This action cannot be undone. Do you really want to continue?')) {
+      return
     }
-    return false
+
+    this.disable()
+    flash.clear()
+
+    // If no entries are selected for import.
+    if (T2R.togglReport.element.find('tbody input.cb-import').filter(':checked').length === 0) {
+      flash.error('Please select the entries which you want to import to Redmine.');
+      this.enable()
+      return
+    }
+
+    console.info('Sending time entries to Redmine.')
+    T2R.togglReport.element.find('tbody tr').each(function (this: HTMLElement) {
+      const $tr = $(this)
+
+      // If the item is not marked for import, ignore it.
+      if (!$tr.find('input.cb-import').prop('checked')) {
+        return
+      }
+
+      const timeEntry = {
+        spent_on: T2R.tempStorage.get('date') as string,
+        issue_id: parseInt($tr.find('[data-property="issue_id"]').val() as string),
+        comments: $tr.find('[data-property="comments"]').val() as string,
+        activity_id: parseInt($tr.find('[data-property="activity_id"]').val() as string),
+        hours: '0.00'
+      }
+
+      // Convert time to Redmine-friendly format, i.e. hh:mm.
+      const dur = new duration.Duration()
+      try {
+        dur.setHHMM($tr.find('[data-property="hours"]').val() as string)
+        timeEntry.hours = dur.asDecimal()
+      } catch (e) {
+        console.warn('Entry ignored: Invalid duration.', timeEntry)
+        return
+      }
+
+      // Ignore entries with 0 duration.
+      if (dur.seconds < 30) {
+        console.warn('Entry ignored: Duration is less than 30 seconds.', timeEntry);
+        return
+      }
+
+      T2R.redmineService.postTimeEntry({
+        time_entry: timeEntry,
+        toggl_ids: $tr.data('t2r.entry').ids
+      }, (errors: string[]) => {
+        if (errors.length !== 0) {
+          $tr.addClass('t2r-error')
+          const statusLabel = renderers.renderImportStatusLabel('Failed', errors.join("\n"), 'error')
+          $tr.find('td.status').html(statusLabel)
+
+          return
+        }
+
+        $tr.addClass('t2r-success')
+        $tr.find(':input').attr('disabled', 'disabled')
+        $tr.find('input.cb-import').removeAttr('checked')
+
+        const statusLabel = renderers.renderImportStatusLabel('Imported')
+        $tr.find('td.status').html(statusLabel)
+      })
+    })
+
+    // Refresh the Redmine report when all items are processed.
+    T2R.__publishWatcher = setInterval(() => {
+      if (T2R.redmineService.requestQueue.length === 0) {
+        clearInterval(T2R.__publishWatcher);
+        T2R.publishForm.enable()
+        T2R.redmineReport.update()
+      }
+    }, 250);
   }
 
   /**
@@ -569,84 +642,6 @@ const T2R: any = {
   publishForm: null,
   redmineReport: null,
   togglReport: null
-}
-
-/**
- * Publishes selected Toggl data to Redmine.
- */
-T2R.publishToRedmine = function () {
-  T2R.publishForm.disable()
-  flash.clear();
-
-  // Check for eligible entries.
-  const $checkboxes = $('#toggl-report tbody tr input.cb-import');
-  if ($checkboxes.filter(':checked').length <= 0) {
-    flash.error('Please select the entries which you want to import to Redmine.');
-    T2R.publishForm.enable()
-    return;
-  }
-
-  // Post eligible entries to Redmine.
-  console.info('Pushing time entries to Redmine.')
-  $('#toggl-report tbody tr').each(function () {
-    const $tr = $(this)
-    const toggl_entry = $tr.data('t2r.entry');
-
-    // If the item is not marked for import, ignore it.
-    if (!$tr.find('input.cb-import').prop('checked')) {
-      return;
-    }
-
-    // Prepare the data to be pushed to Redmine.
-    const redmine_entry = {
-      spent_on: T2R.tempStorage.get('date') as string,
-      issue_id: parseInt($tr.find('[data-property="issue_id"]').val() as string),
-      comments: $tr.find('[data-property="comments"]').val() as string,
-      activity_id: parseInt($tr.find('[data-property="activity_id"]').val() as string),
-      hours: '0.00'
-    }
-
-    // Convert time to Redmine-friendly format, i.e. hh:mm.
-    const dur = new duration.Duration();
-    try {
-      dur.setHHMM($tr.find('[data-property="hours"]').val() as string)
-      redmine_entry.hours = dur.asDecimal()
-    } catch (e) {
-      console.warn('Invalid duration. Ignoring entry.', redmine_entry)
-      return
-    }
-
-    // Ignore entries with 0 duration.
-    if (dur.seconds < 30) {
-      console.warn('Entry ignored: Duration is less than 30 seconds.', redmine_entry);
-    }
-
-    T2R.redmineService.postTimeEntry(redmine_entry, toggl_entry.ids, (errors: string[]) => {
-      if (errors.length !== 0) {
-        $tr.addClass('t2r-error')
-        const statusLabel = renderers.renderImportStatusLabel('Failed', errors.join("\n"), 'error')
-        $tr.find('td.status').html(statusLabel)
-
-        return
-      }
-
-      $tr.addClass('t2r-success')
-      $tr.find(':input').attr('disabled', 'disabled')
-      $tr.find('input.cb-import').removeAttr('checked')
-
-      const statusLabel = renderers.renderImportStatusLabel('Imported')
-      $tr.find('td.status').html(statusLabel)
-    })
-  })
-
-  // Refresh the Redmine report when all items are processed.
-  T2R.__publishWatcher = setInterval(() => {
-    if (T2R.redmineService.requestQueue.length === 0) {
-      clearInterval(T2R.__publishWatcher);
-      T2R.publishForm.enable()
-      T2R.redmineReport.update()
-    }
-  }, 250);
 }
 
 /**

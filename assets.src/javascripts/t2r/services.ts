@@ -1,14 +1,16 @@
 import * as utils from "./utils.js"
 import {RequestQueue} from "./request.js"
 import {TemporaryStorage} from "./storage.js"
-import * as renderers from "./renderers";
 
-interface TimeEntryInput {
-  spent_on: string
-  issue_id: number
-  comments: string
-  activity_id: number | null
-  hours: string
+export interface PostTimeEntryParams {
+  time_entry: {
+    spent_on: string
+    issue_id: number
+    comments: string
+    activity_id: number | null
+    hours: string
+  },
+  toggl_ids: number[]
 }
 
 /**
@@ -246,23 +248,18 @@ export class RedmineService {
   /**
    * Attempts to create a Time Entry on Redmine.
    *
-   * @param {TimeEntryInput} time_entry
+   * @param {TimeEntryPostParams} params
    *   Time entry data.
-   * @param {number[]} toggl_ids
-   *   IDs of associated Toggl time entries.
    * @param callback
    *   Receives an array of error messages, which is empty on success.
    */
-  postTimeEntry(time_entry: TimeEntryInput, toggl_ids: number[], callback: any) {
+  postTimeEntry(params: PostTimeEntryParams, callback: any) {
     const that = this
     this.request({
       async: true,
       url: '/toggl2redmine/import',
       method: 'post',
-      data: JSON.stringify({
-        time_entry: time_entry,
-        toggl_ids: toggl_ids
-      }),
+      data: JSON.stringify(params),
       contentType: 'application/json',
       success: (data: any) => {
         that.handleRequestSuccess('Time entry import', data)

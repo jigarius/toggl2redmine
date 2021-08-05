@@ -253,6 +253,7 @@ class RedmineReport {
     const oDate = utils.dateStringToObject(sDate)!
 
     this.updateLink(sDate)
+    this.updateLastImportDate()
 
     const query = {
       from: oDate.toISOString().split('T')[0] + 'T00:00:00Z',
@@ -296,6 +297,20 @@ class RedmineReport {
       })
 
     this.element.find('[data-property="total-hours"]').html(total.asHHMM());
+  }
+
+  /**
+   * Updates the date of the latest time entry on Redmine.
+   */
+  public updateLastImportDate() {
+    const $el = $('#last-imported')
+      .html('&nbsp;')
+      .addClass('t2r-loading')
+
+    T2R.redmineService.getLastImportDate((lastImportDate: Date | null) => {
+      const sDate = lastImportDate ? lastImportDate.toLocaleDateString() : 'Unknown'
+      $el.text(sDate).removeClass('t2r-loading')
+    })
   }
 
   public showEmptyMessage() {
@@ -550,28 +565,13 @@ class TogglReport {
  * Toggl 2 Redmine Helper.
  */
 const T2R: any = {
-  // Browser storage.
   localStorage: new LocalStorage('t2r.'),
-  // Temporary storage.
   tempStorage: new TemporaryStorage(),
-  // Redmine service.
   redmineService: new RedmineService(T2R_REDMINE_API_KEY),
-  // Filter form.
   filterForm: null,
-  // Publish form.
   publishForm: null,
   redmineReport: null,
   togglReport: null
-}
-
-/**
- * Returns the Toggl report table.
- *
- * @return {Object}
- *   jQuery object for the Toggl report table.
- */
-T2R.getTogglTable = function () {
-  return $('#toggl-report');
 }
 
 /**
@@ -676,25 +676,8 @@ T2R.publishToRedmine = function () {
       clearInterval(T2R.__publishWatcher);
       T2R.publishForm.enable()
       T2R.redmineReport.update()
-      T2R.updateLastImported();
     }
   }, 250);
-}
-
-/**
- * Updates the date of the latest time entry on Redmine.
- */
-T2R.updateLastImportDate = function () {
-  const $context = $('#last-imported')
-  T2R.redmineService.getLastImportDate((lastImportDate: Date | null) => {
-    const sDate = lastImportDate ? lastImportDate.toLocaleDateString() : 'Unknown';
-    console.debug(`Last import date: ${sDate}`)
-    $context.text(sDate).removeClass('t2r-loading');
-  },{
-    beforeSend: function () {
-      $context.html('&nbsp;').addClass('t2r-loading');
-    },
-  })
 }
 
 /**
@@ -708,6 +691,4 @@ $(() => {
   T2R.togglReport = TogglReport.instance()
 
   T2R.filterForm.reset({ date: utils.getDateFromLocationHash() })
-
-  T2R.updateLastImportDate();
 });

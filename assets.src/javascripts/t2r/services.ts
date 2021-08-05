@@ -1,6 +1,15 @@
 import * as utils from "./utils.js"
 import {RequestQueue} from "./request.js"
 import {TemporaryStorage} from "./storage.js"
+import * as renderers from "./renderers";
+
+interface TimeEntryInput {
+  spent_on: string
+  issue_id: number
+  comments: string
+  activity_id: number | null
+  hours: string
+}
 
 /**
  * Sends requests to Redmine API endpoints.
@@ -41,11 +50,11 @@ export class RedmineService {
   }
 
   handleRequestSuccess(type: string, data: any) {
-    console.debug(`Fetched: ${type}`, data)
+    console.debug(`Request succeeded: ${type}`, data)
   }
 
   handleRequestError(type: string) {
-    console.error(`Fetch failed: ${type}`)
+    console.error(`Request failed: ${type}`)
   }
 
   /**
@@ -232,6 +241,47 @@ export class RedmineService {
         that.handleRequestError('Toggl workspaces')
       }
     })
+  }
+
+  /**
+   * Attempts to create a Time Entry on Redmine.
+   *
+   * @param {TimeEntryInput} time_entry
+   *   Time entry data.
+   * @param {number[]} toggl_ids
+   *   IDs of associated Toggl time entries.
+   * @param callback
+   *   Receives an array of error messages, which is empty on success.
+   */
+  postTimeEntry(time_entry: TimeEntryInput, toggl_ids: number[], callback: any) {
+    const that = this
+    this.request({
+      async: true,
+      url: '/toggl2redmine/import',
+      method: 'post',
+      data: JSON.stringify({
+        time_entry: time_entry,
+        toggl_ids: toggl_ids
+      }),
+      contentType: 'application/json',
+      success: (data: any) => {
+        that.handleRequestSuccess('Time entry import', data)
+        callback([])
+      },
+      error: function(xhr: any) {
+        that.handleRequestError('Time entry import')
+        let errors: string[]
+
+        try {
+          const oResponse = JSON.parse(xhr.responseText)
+          errors = (typeof oResponse.errors === 'undefined') ? ['Unknown error'] : oResponse.errors
+        } catch (e) {
+          errors = ['The server returned an unexpected response']
+        }
+
+        callback(errors)
+      }
+    });
   }
 
 }

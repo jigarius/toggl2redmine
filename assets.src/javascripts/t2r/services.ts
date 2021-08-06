@@ -2,7 +2,7 @@ import * as utils from "./utils.js"
 import {RequestQueue} from "./request.js"
 import {TemporaryStorage} from "./storage.js"
 
-export interface PostTimeEntryParams {
+interface TimeEntryPostParams {
   time_entry: {
     spent_on: string
     issue_id: number
@@ -62,22 +62,23 @@ export class RedmineService {
   /**
    * Fetches Redmine time entries.
    *
-   * @param {Object} query
-   *   Applied filters.
+   * @param {object} params
+   *   Query parameters.
    * @param {function} callback
    *   Receives time entries or null.
-   *
-   * @todo Perform query validation.
    */
-  getTimeEntries(query: any, callback: any) {
-    var that = this
+  getTimeEntries(params: {
+    from: string
+    till: string
+  }, callback: any) {
+    const that = this
     this.request({
       async: true,
       method: 'get',
       url: '/toggl2redmine/redmine/time_entries',
       data: {
-        from: query.from,
-        till: query.till
+        from: params.from,
+        till: params.till
       },
       success: function (data: any) {
         if (typeof data.time_entries === 'undefined') {
@@ -140,7 +141,7 @@ export class RedmineService {
    * @param opts
    *   Options to be passed to jQuery.ajax().
    */
-  getLastImportDate(callback: any, opts: any = null) {
+  getLastImportDate(callback: any, opts: JQueryAjaxSettings | null = null) {
     opts = opts || {}
     opts.url = '/time_entries.json'
     opts.data = {
@@ -173,35 +174,37 @@ export class RedmineService {
   /**
    * Fetches Toggl time entries.
    *
-   * @param query
-   *   Filters to be applied, e.g. from, till, workspace.
+   * @param {object} params
+   *   Query parameters.
    * @param {function} callback
    *   Receives Toggl time entry groups or null.
    *
-   * @todo Improve query validation.
+   * @todo Rename workspace to workspaceId
    */
-  getTogglTimeEntries(query: any, callback: any) {
+  getTogglTimeEntries(params: {
+    from: string
+    till: string
+    workspace: number | null
+  }, callback: any) {
     const data: any = {}
 
-    // Determine start date.
     try {
-      data.from = utils.dateStringToObject(query.from)!.toISOString()
+      data.from = utils.dateStringToObject(params.from)!.toISOString()
     } catch(e) {
-      console.error('Invalid start date', query.from)
+      console.error('Invalid start date', params.from)
       alert('Error: Invalid start date!')
     }
 
-    // Determine end date.
     try {
-      data.till = utils.dateStringToObject(query.till)!.toISOString()
+      data.till = utils.dateStringToObject(params.till)!.toISOString()
     } catch(e) {
-      console.error('Invalid end date', query.till)
+      console.error('Invalid end date', params.till)
       alert('Error: Invalid end date!');
     }
 
     // Filter by workspace?
-    if (query.workspace) {
-      data.workspaces = query.workspace
+    if (params.workspace) {
+      data.workspaces = params.workspace
     }
 
     this.request({
@@ -253,7 +256,7 @@ export class RedmineService {
    * @param callback
    *   Receives an array of error messages, which is empty on success.
    */
-  postTimeEntry(params: PostTimeEntryParams, callback: any) {
+  postTimeEntry(params: TimeEntryPostParams, callback: any) {
     const that = this
     this.request({
       async: true,

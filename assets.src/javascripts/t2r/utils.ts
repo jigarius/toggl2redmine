@@ -1,11 +1,4 @@
 /**
- * A no-op callback which simply logs all arguments.
- */
-export function noopCallback(data: any) {
-  console.warn('No callback was provided to handle this data ', data);
-}
-
-/**
  * Replaces certain characters with HTML entities.
  */
 export function htmlEntityEncode(str: string): string {
@@ -24,13 +17,15 @@ export function htmlEntityEncode(str: string): string {
  * @param {string} date
  *   The string to parse as a date.
  *
- * @returns {Date}
+ * @returns {Date|undefined}
  *   The date as an object.
  */
 export function dateStringToObject(date: string): Date | undefined {
   // Split the date into parts.
   // Don't use Date.parse() as it works differently depending on the browser.
-  const dateParts: any[] = date.split(/[^\d]/);
+  const dateParts: number[] = date.split(/[^\d]/).map((part) => {
+    return parseInt(part)
+  });
 
   // Must have at least the "date" part.
   if (dateParts.length < 3) {
@@ -41,12 +36,12 @@ export function dateStringToObject(date: string): Date | undefined {
   // Assume time parts to be 00 if not defined.
   for (let i = 3; i <= 6; i++) {
     if (typeof dateParts[i] === 'undefined') {
-      dateParts[i] = '0';
+      dateParts[i] = 0;
     }
   }
 
   // Adjust month count to begin with 0.
-  dateParts[1] = parseInt(dateParts[1]) - 1;
+  dateParts[1] -= 1;
 
   // Create date with yyyy-mm-dd hh:mm:ss ms.
   try {

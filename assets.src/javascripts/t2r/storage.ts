@@ -1,8 +1,10 @@
+/* eslint @typescript-eslint/no-explicit-any: 0 */
+
 /**
  * Wrapper around the browser's local storage.
  */
 export class LocalStorage {
-  private _prefix: string
+  private readonly _prefix: string
 
   constructor(prefix: string) {
     this._prefix = prefix
@@ -25,7 +27,7 @@ export class LocalStorage {
     return fallback
   }
 
-  set(key: string, value: any): any {
+  set<Type>(key: string, value: Type): Type {
     if (value === null) {
       return this.delete(this.prefix + key)
     }
@@ -52,7 +54,7 @@ export class TemporaryStorage {
     this.data = {}
   }
 
-  get(key: string, fallback: any = null) {
+  get(key: string, fallback: any = null): any {
     if (typeof this.data[key] !== 'undefined') {
       return this.data[key]
     }
@@ -60,7 +62,7 @@ export class TemporaryStorage {
     return fallback
   }
 
-  set(key: string, value: any) {
+  set<Type>(key: string, value: Type): Type {
     this.data[key] = value || null
     return this.data[key]
   }

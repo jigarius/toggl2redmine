@@ -9,7 +9,7 @@ export class RequestQueue {
    * Requests to be processed.
    * @private
    */
-  private _items: any[]
+  private _items: JQuery.AjaxSettings[]
 
   /**
    * Whether a request is in progress.
@@ -35,7 +35,7 @@ export class RequestQueue {
    * Requests be executed one after the other until all items in the queue have
    * been processed.
    */
-  addItem(opts: any) {
+  addItem(opts: JQuery.AjaxSettings): void {
     this._items.push(opts)
     this.processItem()
   }
@@ -43,24 +43,27 @@ export class RequestQueue {
   /**
    * Processes the next request.
    */
-  processItem() {
-    if (this._items.length === 0 || this._requestInProgress) return
+  processItem(): void {
+    if (this.length === 0 || this._requestInProgress) return
     this._requestInProgress = true;
 
     const that = this
     const opts = this._items.shift()
-    console.debug('Processing AJAX queue (' + this.length + ' remaining).', opts);
+    if (opts === undefined) {
+      return
+    }
+
+    console.debug('Processing AJAX queue (' + this.length + ' remaining).', opts)
 
     const originalCallback = opts.complete
-    opts.complete = function (xhr: any, status: string) {
-      // Call the original callback.
-      if (originalCallback) {
-        originalCallback.call(this, xhr, status);
+    opts.complete = function (xhr: JQuery.jqXHR, status: string) {
+      if (originalCallback !== undefined) {
+        (originalCallback).call(this, xhr, status)
       }
 
       // Process the next item in the queue, if any.
-      that._requestInProgress = false;
-      that.processItem();
+      that._requestInProgress = false
+      that.processItem()
     };
 
     // Process current item.

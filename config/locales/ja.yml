@@ -1,0 +1,34 @@
+ja:
+  activerecord:
+    attributes:
+      toggl_mapping:
+        id: 'ID'
+        toggl_id: 'Toggl ID'
+        time_entry_id: 'タイムエントリーID'
+  t2r:
+    button_help: 'ヘルプ'
+    button_import_to_redmine: 'Redmineにインポート'
+    caption_redmine_report: 'Redmineに記録されている時間'
+    caption_toggl_report: 'Togglに記録されている時間'
+    label_default_activity: 'デフォルトの作業分類'
+    label_basic_options: '基本オプション'
+    label_advanced_options: '高度なオプション'
+    label_toggl_workspace: 'Togglのワークスペース'
+    label_duration_rounding: '時間の丸め'
+    label_hour_plural: '時間'
+    label_last_imported: '最後にインポートした日：%{date}'
+    label_status: 'ステータス'
+    text_add_toggl_api_key: 'Toggl 2 Redmineを利用するにはToggl API Tokenを設定してください'
+    text_db_transaction_warning: '利用中のデータベースはトランザクションをサポートしていません。Toggl 2 RedmineのREADMEを参照するようにシステム管理者に依頼してください'
+    tooltip_date_filter: 'インポートする日付を選択してください'
+    tooltip_duration_rounding_logic: 'Togglの時間を丸める方法を選択してください'
+    tooltip_duration_rounding_value: 'Togglの全ての時間エントリーはこの数値(分)単位で丸められます'
+    tooltip_hours_column_header: "1:50は1時間50分を表しています。 'Up'または'Down'キーを押すと5分単位で丸められます、'Shift'キーとともに押すと15分単位で丸められます"
+    tooltip_status_column_header: "各行のステータスを確認するにはアイコンにマウスを乗せます。 例：Imported、Failed、Error"
+    tooltip_help: '混乱していますか?、チュートリアルを見る'
+    redmine_report_footer: '既に記録されている時間'
+    toggl_report_footer: 'インポートする時間'
+    error:
+      ajax_load: 'サーバーからデータを取得できませんでした。もう一度ページをリロードしてください。'
+      list_empty: '表示する情報はありません'
+      project_closed: 'プロジェクトは終了しています'

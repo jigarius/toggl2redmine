@@ -1,4 +1,81 @@
-export enum Rounding {
+/**
+ * A wrapper for JavaScript's Date object.
+ */
+export class DateTime {
+
+  private _date: Date;
+
+  constructor(date: Date | undefined) {
+    this._date = date || new Date()
+  }
+
+  /**
+   * Format a date as YYYY-MM-DD.
+   *
+   * @param {Date} date
+   *   A date.
+   *
+   * @returns {String}
+   *   HTML-friendly date, e.g. 2021-02-28.
+   */
+  asHtmlDate(): string {
+    const yyyy = this._date.getFullYear();
+    const mm = (this._date.getMonth() + 1).toString().padStart(2, '0')
+    const dd = this._date.getDate().toString().padStart(2, '0')
+
+    return `${yyyy}-${mm}-${dd}`
+  }
+
+  /**
+   * Creates an instance from a date string.
+   *
+   * @param {string} date
+   *   The string to parse as a date.
+   *
+   * @returns {DateTime|undefined}
+   *   The date as an object.
+   */
+  static fromString(date: string): DateTime | undefined {
+    // Don't use Date.parse() as it works differently depending on the browser.
+    const dateParts: number[] = date.split(/[^\d]/).map((part) => {
+      return parseInt(part)
+    });
+
+    // Must have at least the "date" part.
+    if (dateParts.length < 3) {
+      console.error('Invalid date', date)
+      return
+    }
+
+    // Assume time parts to be 00 if not defined.
+    for (let i = 3; i <= 6; i++) {
+      if (typeof dateParts[i] === 'undefined') {
+        dateParts[i] = 0;
+      }
+    }
+
+    // Adjust month count to begin with 0.
+    dateParts[1] -= 1;
+
+    try {
+      return new DateTime(new Date(
+        dateParts[0],
+        dateParts[1],
+        dateParts[2],
+        dateParts[3],
+        dateParts[4],
+        dateParts[5],
+        dateParts[6]
+      ));
+    } catch(e) {
+      console.error('Invalid date', date)
+      return
+    }
+  }
+
+}
+
+export enum RoundingMethod {
   Up = 'U',
   Down = 'D',
   Regular = 'R'
@@ -166,10 +243,10 @@ export class Duration {
    *
    * @param {*} minutes
    *   Number of minutes to round to. Ex: 5, 10 or 15.
-   * @param {Rounding} method
+   * @param {RoundingMethod} method
    *   Rounding logic.
    */
-  roundTo(minutes: number, method: Rounding) {
+  roundTo(minutes: number, method: RoundingMethod) {
     if (0 === minutes) return
     const seconds: number = minutes * 60;
 
@@ -179,20 +256,20 @@ export class Duration {
 
     // Round according to rounding method.
     switch (method) {
-      case Rounding.Regular:
+      case RoundingMethod.Regular:
         if (correction >= seconds / 2) {
-          this.roundTo(minutes, Rounding.Up);
+          this.roundTo(minutes, RoundingMethod.Up);
         }
         else {
-          this.roundTo(minutes, Rounding.Down);
+          this.roundTo(minutes, RoundingMethod.Down);
         }
         break;
 
-      case Rounding.Up:
+      case RoundingMethod.Up:
         this.add(new Duration(seconds - correction));
         break;
 
-      case Rounding.Down:
+      case RoundingMethod.Down:
         this.sub(new Duration(correction));
         break;
 

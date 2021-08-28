@@ -1,5 +1,5 @@
 import * as utils from "./utils.js";
-import * as duration from "./duration.js";
+import * as datetime from "./datetime.js";
 
 declare const T2R_BUTTON_ACTIONS: string;
 declare const contextMenuRightClick: any;
@@ -101,8 +101,8 @@ export function renderRedmineRow(data: any) {
   const issueLabel = renderRedmineIssueLabel(issue)
   const project = data.project
   const projectLabel = renderRedmineProjectLabel(project)
-  const dur = new duration.Duration(data.duration)
-  dur.roundTo(1, duration.Rounding.Up)
+  const dur = new datetime.Duration(data.duration)
+  dur.roundTo(1, datetime.RoundingMethod.Up)
 
   const markup = '<tr id="time-entry-' + data.id + '"  class="time-entry hascontextmenu">'
     + '<td class="subject">'

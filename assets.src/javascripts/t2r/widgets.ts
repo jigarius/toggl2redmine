@@ -1,4 +1,4 @@
-import * as duration from "./duration.js"
+import * as datetime from "./datetime.js"
 import {RedmineService} from "./services.js";
 
 declare const T2R_REDMINE_API_KEY: string;
@@ -113,7 +113,7 @@ Widget.initDurationInput = function (el: any) {
       const val = $el.val() as string
       try {
         // If a duration object could be created, then the the time is valid.
-        new duration.Duration(val)
+        new datetime.Duration(val)
         el.setCustomValidity('')
       } catch (e) {
         el.setCustomValidity(e)
@@ -122,7 +122,7 @@ Widget.initDurationInput = function (el: any) {
     // Update totals as the user updates hours.
     .on('keyup', function (e) {
       const $input = $(this)
-      const dur = new duration.Duration()
+      const dur = new datetime.Duration()
 
       // Detect current duration.
       try {
@@ -139,12 +139,12 @@ Widget.initDurationInput = function (el: any) {
       // On "Up" press.
       if (e.key === 'ArrowUp') {
         delta = step - (mm % step);
-        dur.add(new duration.Duration(delta * 60));
+        dur.add(new datetime.Duration(delta * 60));
       }
       // On "Down" press.
       else if (e.key === 'ArrowDown') {
         delta = (mm % step) || step;
-        dur.sub(new duration.Duration(delta * 60));
+        dur.sub(new datetime.Duration(delta * 60));
       }
       // Do nothing.
       else {
@@ -157,7 +157,7 @@ Widget.initDurationInput = function (el: any) {
     .on('change', function () {
       const $input = $(this)
       const value = $input.val()
-      const dur = new duration.Duration()
+      const dur = new datetime.Duration()
 
       // Determine the visible value.
       try {
@@ -213,9 +213,9 @@ Widget.initDurationRoundingDirection = function (el: any) {
 
   // Prepare rounding options.
   const options: any = {}
-  options[duration.Rounding.Regular] = 'Round off'
-  options[duration.Rounding.Up] = 'Round up'
-  options[duration.Rounding.Down] = 'Round down'
+  options[datetime.RoundingMethod.Regular] = 'Round off'
+  options[datetime.RoundingMethod.Up] = 'Round up'
+  options[datetime.RoundingMethod.Down] = 'Round down'
 
   // Generate a SELECT element and use it's options.
   const $select = buildDropdownFromDictionary({

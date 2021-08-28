@@ -445,7 +445,7 @@ class TogglReport {
     this.makeEmpty()
 
     // Determine report date.
-    const sDate = T2R.tempStorage.get('date');
+    const sDate = T2R.tempStorage.get('date')
     const workspaceId = T2R.localStorage.get('toggl-workspace')
 
     this.updateLink(sDate, workspaceId)
@@ -457,8 +457,8 @@ class TogglReport {
 
     // Fetch time entries from Toggl.
     const query = {
-      from: sDate + ' 00:00:00',
-      till: sDate + ' 23:59:59',
+      from: datetime.DateTime.fromString(sDate + ' 00:00:00'),
+      till: datetime.DateTime.fromString(sDate + ' 23:59:59'),
       workspace: workspaceId
     }
     T2R.redmineService.getTogglTimeEntries(query, (entries: any) => {

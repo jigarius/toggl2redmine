@@ -151,7 +151,7 @@ export class RedmineService {
       user_id: 'me',
       limit: 1,
       // Ignore entries made in the future.
-      to: utils.dateFormatYYYYMMDD(new Date())
+      to: (new datetime.DateTime()).toHTMLDate()
     }
 
     let that = this

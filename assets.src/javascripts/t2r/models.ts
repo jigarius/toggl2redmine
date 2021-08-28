@@ -1,13 +1,15 @@
+import * as datetime from "./datetime.js"
+
 interface Optionable {
   id: number | string
   name: string
 }
 
-export interface TimeLogActivity {
+export interface TimeEntryActivity {
   id: number
   name: string
-  is_default?: boolean
-  active?: boolean
+  active: boolean
+  is_default: boolean
 }
 
 export interface Issue {
@@ -32,10 +34,13 @@ export interface Tracker {
 export interface TimeEntry {
   id: number
   hours: string
+  // todo: Only allow Duration.
+  duration: datetime.Duration | number
   comments: string
-  activity: TimeLogActivity
+  activity: TimeEntryActivity
   issue: Issue
   project: Project
+  spent_on?: string
 }
 
 export interface TogglWorkspace {
@@ -53,4 +58,8 @@ export interface TogglTimeEntry {
   status: string // todo: Use enum?
   issue: Issue
   project: Project
+}
+
+export interface KeyedTogglTimeEntryCollection {
+  [index:string]: TogglTimeEntry
 }

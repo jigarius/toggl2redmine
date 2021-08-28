@@ -19,6 +19,8 @@ export function htmlEntityEncode(str: string): string {
  *
  * @returns {Date|undefined}
  *   The date as an object.
+ *
+ * @deprecated
  */
 export function dateStringToObject(date: string): Date | undefined {
   // Split the date into parts.
@@ -82,6 +84,8 @@ export function getDateFromLocationHash(): string | undefined {
  *
  * @returns {String}
  *   Formatted date, e.g. 2021-02-28.
+ *
+ * @deprecated
  */
 export function dateFormatYYYYMMDD(date: Date): string {
   const yyyy = date.getFullYear();

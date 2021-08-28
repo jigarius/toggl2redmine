@@ -181,33 +181,21 @@ export class RedmineService {
    *   Query parameters.
    * @param {function} callback
    *   Receives Toggl time entry groups or null.
-   *
-   * @todo Rename workspace to workspaceId
    */
   getTogglTimeEntries(params: {
-    from: string
-    till: string
-    workspace: number | null
+    from: datetime.DateTime
+    till: datetime.DateTime
+    workspaceId: number | null
   }, callback: any) {
     const data: any = {}
 
-    try {
-      data.from = utils.dateStringToObject(params.from)!.toISOString()
-    } catch(e) {
-      console.error('Invalid start date', params.from)
-      alert('Error: Invalid start date!')
-    }
-
-    try {
-      data.till = utils.dateStringToObject(params.till)!.toISOString()
-    } catch(e) {
-      console.error('Invalid end date', params.till)
-      alert('Error: Invalid end date!');
-    }
+    data.from = params.from.toISOString()
+    data.till = params.till.toISOString()
 
     // Filter by workspace?
-    if (params.workspace) {
-      data.workspaces = params.workspace
+    if (params.workspaceId) {
+      // @todo Rename workspaces to workspaceId
+      data.workspaces = params.workspaceId
     }
 
     this.request({

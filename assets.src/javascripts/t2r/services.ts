@@ -1,5 +1,4 @@
 import * as datetime from "./datetime.js"
-import * as utils from "./utils.js"
 import {RequestQueue} from "./request.js"
 import {TemporaryStorage} from "./storage.js"
 
@@ -42,7 +41,7 @@ export class RedmineAPIService {
    * @param opts
    *   Request options.
    */
-  request(opts: any) {
+  request(opts: any): void {
     opts.timeout = opts.timeout || 3000
 
     // Prepend Redmine URL for relative URLs.
@@ -56,11 +55,11 @@ export class RedmineAPIService {
     this.requestQueue.addItem(opts)
   }
 
-  handleRequestSuccess(type: string, data: any) {
+  handleRequestSuccess(type: string, data: any): void {
     console.debug(`Request succeeded: ${type}`, data)
   }
 
-  handleRequestError(type: string) {
+  handleRequestError(type: string): void {
     console.error(`Request failed: ${type}`)
   }
 
@@ -75,7 +74,7 @@ export class RedmineAPIService {
   getTimeEntries(params: {
     from: datetime.DateTime
     till: datetime.DateTime
-  }, callback: any) {
+  }, callback: any): void {
     const that = this
     this.request({
       async: true,
@@ -114,7 +113,7 @@ export class RedmineAPIService {
    * @param callback
    *   function (activities, null) {}
    */
-  getTimeEntryActivities(callback: any) {
+  getTimeEntryActivities(callback: any): void {
     const activities: any[] = this._cache.get('redmine.activities')
     if (activities) {
       callback(activities)
@@ -144,7 +143,7 @@ export class RedmineAPIService {
    * @param {GetLastExportDateCallback}
    *   Receives a Date object or null.
    */
-  getLastImportDate(callback: GetLastExportDateCallback) {
+  getLastImportDate(callback: GetLastExportDateCallback): void {
     const opts: JQuery.AjaxSettings = {}
     opts.url = '/time_entries.json'
     opts.data = {
@@ -186,7 +185,7 @@ export class RedmineAPIService {
     from: datetime.DateTime
     till: datetime.DateTime
     workspaceId: number | null
-  }, callback: any) {
+  }, callback: any): void {
     const data: any = {}
 
     data.from = params.from.toISOString()
@@ -218,7 +217,7 @@ export class RedmineAPIService {
    * @param {function} callback
    *   Receives workspaces or null.
    */
-  getTogglWorkspaces(callback: any) {
+  getTogglWorkspaces(callback: any): void {
     const workspaces = this._cache.get('toggl.workspaces')
     if (workspaces) {
       callback(workspaces)
@@ -247,7 +246,7 @@ export class RedmineAPIService {
    * @param callback
    *   Receives an array of error messages, which is empty on success.
    */
-  postTimeEntry(params: PostTimeEntryParams, callback: any) {
+  postTimeEntry(params: PostTimeEntryParams, callback: any): void {
     const that = this
     this.request({
       async: true,

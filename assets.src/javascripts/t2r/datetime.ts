@@ -171,7 +171,7 @@ export class Duration {
    *
    * @param {string} hhmm
    */
-  setHHMM(hhmm: string) {
+  setHHMM(hhmm: string): void {
     let parts: any[] | null
     let pattern: RegExp
     let hh: number | null
@@ -245,11 +245,11 @@ export class Duration {
     return output.substr(0, output.length - 1);
   }
 
-  add(other: Duration) {
+  add(other: Duration): void {
     this.seconds = this.seconds + other.seconds
   }
 
-  sub(other: Duration) {
+  sub(other: Duration): void {
     // Duration cannot be negative.
     this.seconds = Math.max(this.seconds - other.seconds, 0)
   }
@@ -262,7 +262,7 @@ export class Duration {
    * @param {RoundingMethod} method
    *   Rounding logic.
    */
-  roundTo(minutes: number, method: RoundingMethod) {
+  roundTo(minutes: number, method: RoundingMethod): void {
     if (0 === minutes) return
     const seconds: number = minutes * 60;
 

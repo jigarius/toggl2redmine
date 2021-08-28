@@ -152,10 +152,8 @@ class FilterForm {
   }
 
   public getDefaults(): any {
-    let oDate = new datetime.DateTime()
     return {
-      date: oDate.toHTMLDate(),
-      oDate: oDate,
+      date: (new datetime.DateTime()).toHTMLDate(),
       'toggl-workspace': T2R.localStorage.get('toggl-workspace'),
       'default-activity': T2R.localStorage.get('default-activity'),
       'rounding-value': T2R.localStorage.get('rounding-value'),
@@ -176,11 +174,13 @@ class FilterForm {
 
     const roundingMethod = $('select#rounding-direction').val()
 
-    let sDate: string | null = $('#date').val() as string
+    const sDate: string | null = $('#date').val() as string
     let oDate: datetime.DateTime | undefined
     try {
       oDate = datetime.DateTime.fromString(sDate)
-    } catch (e) {}
+    } catch (e) {
+      console.error(e)
+    }
 
     return {
       'default-activity': defaultActivity,
@@ -267,7 +267,7 @@ class FilterForm {
     }
 
     // Store date and update URL hash.
-    let oDate = values['oDate']
+    const oDate = values['oDate']
     if (!oDate) {
       alert('Please enter a valid date.')
       this.element.find('#date').trigger('focus')

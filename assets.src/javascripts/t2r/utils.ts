@@ -1,5 +1,4 @@
 import * as datetime from "./datetime.js"
-import {DateTime} from "./datetime.js";
 
 /**
  * Replaces certain characters with HTML entities.

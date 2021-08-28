@@ -1,5 +1,7 @@
+interface StringMap { [index:string]: string }
+
 // UI translations.
-declare const T2R_TRANSLATIONS: any
+declare const T2R_TRANSLATIONS: StringMap
 
 /**
  * Equivalent of I18n.t().
@@ -17,7 +19,7 @@ declare const T2R_TRANSLATIONS: any
  * @returns {string}
  *   Translated string if available.
  */
-export function translate(key: string, vars: any = {}): string {
+export function translate(key: string, vars: StringMap = {}): string {
   if (typeof T2R_TRANSLATIONS[key] === 'undefined') {
     const lang = $('html').attr('lang') || '??'
     return `translation missing: ${lang}.${key}`

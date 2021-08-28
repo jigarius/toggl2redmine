@@ -380,8 +380,8 @@ class RedmineReport {
       .html('&nbsp;')
       .addClass('t2r-loading')
 
-    T2R.redmineService.getLastImportDate((lastImportDate: Date | null) => {
-      const sDate = lastImportDate ? lastImportDate.toLocaleDateString() : 'Unknown'
+    T2R.redmineService.getLastImportDate((lastImportDate: datetime.DateTime | null) => {
+      const sDate = lastImportDate ? lastImportDate.date.toLocaleDateString() : 'Unknown'
       $el.text(sDate).removeClass('t2r-loading')
     })
   }

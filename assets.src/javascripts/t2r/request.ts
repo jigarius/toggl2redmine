@@ -55,7 +55,7 @@ export class RequestQueue {
 
     console.debug('Processing AJAX queue (' + this.length + ' remaining).', opts)
 
-    const originalCallback = opts.complete as JQuery.Ajax.CompleteCallback<any>
+    const originalCallback = opts.complete as JQuery.Ajax.CompleteCallback<Element>
     opts.complete = function (xhr: JQuery.jqXHR, status: JQuery.Ajax.TextStatus) {
       if (originalCallback !== undefined) {
         (originalCallback).call(this, xhr, status)

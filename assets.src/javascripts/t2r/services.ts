@@ -3,7 +3,7 @@ import * as utils from "./utils.js"
 import {RequestQueue} from "./request.js"
 import {TemporaryStorage} from "./storage.js"
 
-interface TimeEntryPostParams {
+interface PostTimeEntryParams {
   time_entry: {
     spent_on: string
     issue_id: number
@@ -254,12 +254,12 @@ export class RedmineService {
   /**
    * Attempts to create a Time Entry on Redmine.
    *
-   * @param {TimeEntryPostParams} params
+   * @param {PostTimeEntryParams} params
    *   Time entry data.
    * @param callback
    *   Receives an array of error messages, which is empty on success.
    */
-  postTimeEntry(params: TimeEntryPostParams, callback: any) {
+  postTimeEntry(params: PostTimeEntryParams, callback: any) {
     const that = this
     this.request({
       async: true,

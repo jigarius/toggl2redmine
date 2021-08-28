@@ -579,7 +579,7 @@ class TogglReport {
 
     const url = T2R_TOGGL_REPORT_URL_FORMAT
       .replace(/\[@date\]/g, date)
-      .replace('[@workspace]', workspaceId!.toString());
+      .replace('[@workspace]', (workspaceId as number).toString());
     $('#toggl-report-link').attr('href', url);
   }
 

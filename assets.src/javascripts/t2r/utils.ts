@@ -1,3 +1,6 @@
+import * as datetime from "./datetime.js"
+import {DateTime} from "./datetime.js";
+
 /**
  * Replaces certain characters with HTML entities.
  */
@@ -70,10 +73,11 @@ export function getDateFromLocationHash(): string | undefined {
   if (!matches) return
 
   const match: string = matches.pop() as string
-  if (!dateStringToObject(match)) return
-
-  console.debug('Got date from URL fragment', match);
-  return match;
+  try {
+    return datetime.DateTime.fromString(match).toHTMLDate()
+  } catch(e) {
+    console.debug('Date not detected in URL fragment')
+  }
 }
 
 /**

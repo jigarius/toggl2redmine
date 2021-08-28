@@ -15,57 +15,6 @@ export function htmlEntityEncode(str: string): string {
 }
 
 /**
- * Converts a date string into a Date object.
- *
- * @param {string} date
- *   The string to parse as a date.
- *
- * @returns {Date|undefined}
- *   The date as an object.
- *
- * @deprecated
- */
-export function dateStringToObject(date: string): Date | undefined {
-  // Split the date into parts.
-  // Don't use Date.parse() as it works differently depending on the browser.
-  const dateParts: number[] = date.split(/[^\d]/).map((part) => {
-    return parseInt(part)
-  });
-
-  // Must have at least the "date" part.
-  if (dateParts.length < 3) {
-    console.error('Invalid date', date)
-    return
-  }
-
-  // Assume time parts to be 00 if not defined.
-  for (let i = 3; i <= 6; i++) {
-    if (typeof dateParts[i] === 'undefined') {
-      dateParts[i] = 0;
-    }
-  }
-
-  // Adjust month count to begin with 0.
-  dateParts[1] -= 1;
-
-  // Create date with yyyy-mm-dd hh:mm:ss ms.
-  try {
-    return new Date(
-      dateParts[0],
-      dateParts[1],
-      dateParts[2],
-      dateParts[3],
-      dateParts[4],
-      dateParts[5],
-      dateParts[6]
-    );
-  } catch(e) {
-    console.error('Invalid date', date)
-    return
-  }
-}
-
-/**
  * Gets date from window.location.hash.
  */
 export function getDateFromLocationHash(): string | undefined {
@@ -78,23 +27,4 @@ export function getDateFromLocationHash(): string | undefined {
   } catch(e) {
     console.debug('Date not detected in URL fragment')
   }
-}
-
-/**
- * Format a date as YYYY-MM-DD.
- *
- * @param {Date} date
- *   A date.
- *
- * @returns {String}
- *   Formatted date, e.g. 2021-02-28.
- *
- * @deprecated
- */
-export function dateFormatYYYYMMDD(date: Date): string {
-  const yyyy = date.getFullYear();
-  const mm = (date.getMonth() + 1).toString().padStart(2, '0')
-  const dd = date.getDate().toString().padStart(2, '0')
-
-  return `${yyyy}-${mm}-${dd}`;
 }

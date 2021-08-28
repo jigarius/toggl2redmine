@@ -81,7 +81,8 @@ class T2rTogglControllerTest < T2r::IntegrationTest
           'tracker' => {
             'id' => issue.tracker.id,
             'name' => 'Task'
-          }
+          },
+          'path' => "/issues/#{issue.id}"
         },
         'project' => {
           'id' => issue.project.id,
@@ -104,7 +105,8 @@ class T2rTogglControllerTest < T2r::IntegrationTest
           'tracker' => {
             'id' => issue.tracker.id,
             'name' => 'Task'
-          }
+          },
+          'path' => "/issues/#{issue.id}"
         },
         'project' => {
           'id' => issue.project.id,
@@ -189,7 +191,8 @@ class T2rTogglControllerTest < T2r::IntegrationTest
           'tracker' => {
             'id' => issue.tracker.id,
             'name' => issue.tracker.name
-          }
+          },
+          'path' => "/issues/#{issue.id}"
         },
         'project' => {
           'id' => issue.project.id,

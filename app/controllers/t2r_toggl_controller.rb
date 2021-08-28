@@ -26,6 +26,7 @@ class T2rTogglController < T2rBaseController
               tracker: { only: %i[id name] }
             }
           )
+        item['issue']['path'] = issue_path(group.issue)
       end
 
       if group.project && user_is_member_of?(@user, group.project)

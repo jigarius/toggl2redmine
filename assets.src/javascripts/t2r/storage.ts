@@ -18,7 +18,7 @@ export class LocalStorage {
     return this._prefix
   }
 
-  get(key: string, fallback: any = null): any {
+  get<Type>(key: string, fallback: Type | null = null): string | Type | null {
     const value = window.localStorage.getItem(this.prefix + key)
     if (value !== null) {
       return value
@@ -32,8 +32,13 @@ export class LocalStorage {
       return this.delete(this.prefix + key)
     }
 
-    window.localStorage.setItem(this.prefix + key, value)
-    return value;
+    try {
+      window.localStorage.setItem(this.prefix + key, (value as any).toString())
+      return value;
+    } catch(e) {
+      console.error('Value not representable as string', value)
+      throw 'Value could not be stored'
+    }
   }
 
   delete(key: string): any {

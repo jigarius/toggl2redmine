@@ -1,6 +1,47 @@
 import * as datetime from "./datetime.js"
+import * as models from "./models.js"
 import {RequestQueue} from "./request.js"
 import {TemporaryStorage} from "./storage.js"
+import {TimeEntryActivity} from "./models.js"
+
+interface GetLastExportDateCallback {
+  (date: datetime.DateTime | null): void
+}
+
+interface GetTimeEntriesParams {
+  from: datetime.DateTime
+  till: datetime.DateTime
+}
+
+interface GetTimeEntriesResponse {
+  time_entries: models.TimeEntry[]
+}
+
+interface GetTimeEntriesCallback {
+  (entries: models.TimeEntry[] | null): void
+}
+
+interface GetTimeEntryActivitiesResponse {
+  time_entry_activities: models.TimeEntryActivity[]
+}
+
+interface GetTimeEntryActivitiesCallback {
+  (activities: TimeEntryActivity[] | null): void
+}
+
+interface GetTogglTimeEntriesParams {
+  from: datetime.DateTime
+  till: datetime.DateTime
+  workspaceId: number | null
+}
+
+interface GetTogglTimeEntriesCallback {
+  (entries: models.KeyedTogglTimeEntryCollection): void
+}
+
+interface GetTogglWorkspacesCallback {
+  (workspaces: models.TogglWorkspace[] | null): void
+}
 
 interface PostTimeEntryParams {
   time_entry: {
@@ -13,8 +54,8 @@ interface PostTimeEntryParams {
   toggl_ids: number[]
 }
 
-interface GetLastExportDateCallback {
-  (date: datetime.DateTime | null): void
+interface PostTimeEntryCallback {
+  (errors: string[]): void
 }
 
 /**
@@ -41,21 +82,21 @@ export class RedmineAPIService {
    * @param opts
    *   Request options.
    */
-  request(opts: any): void {
-    opts.timeout = opts.timeout || 3000
+  request(opts: JQuery.AjaxSettings): void {
+    if (!opts.url) throw 'Missing required parameter: url'
 
-    // Prepend Redmine URL for relative URLs.
     if (opts.url.match(/^\//)) {
       opts.url = this._baseUrl + opts.url
     }
 
     opts.headers = opts.headers || {}
     opts.headers['X-Redmine-API-Key'] = this._apiKey
+    opts.timeout = opts.timeout || 3000
 
     this.requestQueue.addItem(opts)
   }
 
-  handleRequestSuccess(type: string, data: any): void {
+  handleRequestSuccess<Type>(type: string, data: Type): void {
     console.debug(`Request succeeded: ${type}`, data)
   }
 
@@ -71,10 +112,7 @@ export class RedmineAPIService {
    * @param {function} callback
    *   Receives time entries or null.
    */
-  getTimeEntries(params: {
-    from: datetime.DateTime
-    till: datetime.DateTime
-  }, callback: any): void {
+  getTimeEntries(params: GetTimeEntriesParams, callback: GetTimeEntriesCallback): void {
     const that = this
     this.request({
       async: true,
@@ -84,7 +122,7 @@ export class RedmineAPIService {
         from: params.from.toISOString(true),
         till: params.till.toISOString(true)
       },
-      success: function (data: any) {
+      success: function (data: GetTimeEntriesResponse) {
         if (typeof data.time_entries === 'undefined') {
           that.handleRequestError('Redmine time entries')
           callback(null)
@@ -93,7 +131,7 @@ export class RedmineAPIService {
 
         that.handleRequestSuccess('Redmine time entries', data)
 
-        const time_entries: any[] = data.time_entries.map((entry: any) => {
+        const time_entries: models.TimeEntry[] = data.time_entries.map((entry: models.TimeEntry) => {
           entry.duration = Math.floor(parseFloat(entry.hours) * 3600)
           return entry
         })
@@ -113,17 +151,17 @@ export class RedmineAPIService {
    * @param callback
    *   function (activities, null) {}
    */
-  getTimeEntryActivities(callback: any): void {
-    const activities: any[] = this._cache.get('redmine.activities')
+  getTimeEntryActivities(callback: GetTimeEntryActivitiesCallback): void {
+    const activities: TimeEntryActivity[] = this._cache.get('redmine.activities')
     if (activities) {
       callback(activities)
       return
     }
 
-    var that = this
+    const that = this
     this.request({
       url: '/enumerations/time_entry_activities.json',
-      success: (data: any) => {
+      success: (data: GetTimeEntryActivitiesResponse) => {
         that.handleRequestSuccess('Time entry activities', data)
         that._cache.set('redmine.activities', data.time_entry_activities)
         callback(data.time_entry_activities)
@@ -140,7 +178,7 @@ export class RedmineAPIService {
    *
    * Time entries for future dates are ignored.
    *
-   * @param {GetLastExportDateCallback}
+   * @param {GetLastExportDateCallback} callback
    *   Receives a Date object or null.
    */
   getLastImportDate(callback: GetLastExportDateCallback): void {
@@ -154,14 +192,14 @@ export class RedmineAPIService {
     }
 
     const that = this
-    opts.success = (data: any) => {
+    opts.success = (data: GetTimeEntriesResponse) => {
       this.handleRequestSuccess('Last import date', data)
       if (data.time_entries.length === 0) {
         callback(null)
         return
       }
 
-      const lastTimeEntry = data.time_entries.pop()
+      const lastTimeEntry = data.time_entries.pop() as models.TimeEntry
       const lastImportDate = datetime.DateTime.fromString(`${lastTimeEntry.spent_on} 00:00:00`)
       callback(lastImportDate)
     }
@@ -181,32 +219,24 @@ export class RedmineAPIService {
    * @param {function} callback
    *   Receives Toggl time entry groups or null.
    */
-  getTogglTimeEntries(params: {
-    from: datetime.DateTime
-    till: datetime.DateTime
-    workspaceId: number | null
-  }, callback: any): void {
-    const data: any = {}
-
-    data.from = params.from.toISOString()
-    data.till = params.till.toISOString()
-
-    // Filter by workspace?
-    if (params.workspaceId) {
+  getTogglTimeEntries(params: GetTogglTimeEntriesParams, callback: GetTogglTimeEntriesCallback): void {
+    const data = {
+      from: params.from.toISOString(),
+      till: params.till.toISOString(),
       // @todo Rename workspaces to workspaceId
-      data.workspaces = params.workspaceId
+      workspaces: params.workspaceId || null
     }
 
     this.request({
       url: '/toggl2redmine/toggl/time_entries',
       data: data,
-      success: (time_entries: any) => {
+      success: (time_entries: models.KeyedTogglTimeEntryCollection) => {
         this.handleRequestSuccess('Toggl time entries', time_entries)
         callback(time_entries)
       },
       error: () => {
         this.handleRequestError('Toggl time entries')
-        callback(null)
+        callback({})
       }
     })
   }
@@ -217,23 +247,24 @@ export class RedmineAPIService {
    * @param {function} callback
    *   Receives workspaces or null.
    */
-  getTogglWorkspaces(callback: any): void {
+  getTogglWorkspaces(callback: GetTogglWorkspacesCallback): void {
     const workspaces = this._cache.get('toggl.workspaces')
     if (workspaces) {
       callback(workspaces)
       return
     }
 
-    var that = this
+    const that = this
     this.request({
       url: '/toggl2redmine/toggl/workspaces',
-      success: (workspaces: any[]) => {
+      success: (workspaces: models.TogglWorkspace[]) => {
         that.handleRequestSuccess('Toggl workspaces', workspaces)
         that._cache.set('toggl.workspaces', workspaces)
         callback(workspaces)
       },
       error: () => {
         that.handleRequestError('Toggl workspaces')
+        callback(null)
       }
     })
   }
@@ -243,10 +274,10 @@ export class RedmineAPIService {
    *
    * @param {PostTimeEntryParams} params
    *   Time entry data.
-   * @param callback
+   * @param {PostTimeEntryCallback} callback
    *   Receives an array of error messages, which is empty on success.
    */
-  postTimeEntry(params: PostTimeEntryParams, callback: any): void {
+  postTimeEntry(params: PostTimeEntryParams, callback: PostTimeEntryCallback): void {
     const that = this
     this.request({
       async: true,
@@ -254,11 +285,11 @@ export class RedmineAPIService {
       method: 'post',
       data: JSON.stringify(params),
       contentType: 'application/json',
-      success: (data: any) => {
+      success: (data: string[]) => {
         that.handleRequestSuccess('Time entry import', data)
         callback([])
       },
-      error: function(xhr: any) {
+      error: function(xhr: JQuery.jqXHR) {
         that.handleRequestError('Time entry import')
         let errors: string[]
 

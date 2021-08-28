@@ -323,15 +323,12 @@ class RedmineReport {
     this.makeEmpty()
 
     const sDate: string = T2R.tempStorage.get('date')
-    const oDate = utils.dateStringToObject(sDate)!
+    const oDate = datetime.DateTime.fromString(sDate)
 
     this.updateLink(sDate)
     this.updateLastImportDate()
 
-    const query = {
-      from: oDate.toISOString().split('T')[0] + 'T00:00:00Z',
-      till: oDate.toISOString().split('T')[0] + 'T00:00:00Z'
-    }
+    const query = { from: oDate, till: oDate }
     T2R.redmineService.getTimeEntries(query, (entries: any[] | null) => {
       if (entries === null) {
         flash.error('An error has occurred. Please try again after some time.')

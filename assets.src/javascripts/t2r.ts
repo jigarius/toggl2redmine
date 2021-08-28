@@ -152,8 +152,10 @@ class FilterForm {
   }
 
   public getDefaults(): any {
+    let oDate = new datetime.DateTime()
     return {
-      date: utils.dateFormatYYYYMMDD(new Date()),
+      date: oDate.toHTMLDate(),
+      oDate: oDate,
       'toggl-workspace': T2R.localStorage.get('toggl-workspace'),
       'default-activity': T2R.localStorage.get('default-activity'),
       'rounding-value': T2R.localStorage.get('rounding-value'),
@@ -175,18 +177,18 @@ class FilterForm {
     const roundingMethod = $('select#rounding-direction').val()
 
     let sDate: string | null = $('#date').val() as string
+    let oDate: datetime.DateTime | undefined
     try {
-      utils.dateStringToObject(sDate + ' 00:00:00')
-    } catch (e) {
-      sDate = null
-    }
+      oDate = datetime.DateTime.fromString(sDate)
+    } catch (e) {}
 
     return {
       'default-activity': defaultActivity,
       'toggl-workspace': togglWorkspace,
       'rounding-direction': roundingMethod,
       'rounding-value': roundingValue,
-      date: sDate
+      date: sDate,
+      oDate: oDate
     }
   }
 
@@ -264,27 +266,30 @@ class FilterForm {
       return false
     }
 
+    // Store date and update URL hash.
+    let oDate = values['oDate']
+    if (!oDate) {
+      alert('Please enter a valid date.')
+      this.element.find('#date').trigger('focus')
+      return false
+    }
+
     T2R.localStorage.set('default-activity', values['default-activity'])
     T2R.localStorage.set('toggl-workspace', values['toggl-workspace'])
     T2R.localStorage.set('rounding-value', values['rounding-value'])
     T2R.localStorage.set('rounding-direction', values['rounding-direction'])
+    T2R.tempStorage.set('date', oDate.toHTMLDate())
 
-    // Store date and update URL hash.
-    const sDate = T2R.tempStorage.set('date', values['date'])
-    const oDate = utils.dateStringToObject(sDate)!
-    window.location.hash = sDate as string
-
-    // Show date in the headings.
-    $('h2 .date').html('(' + oDate.toLocaleDateString() + ')')
-
-    // Log the event.
-    console.info('Filter form updated: ', {
+    console.info('Filter form updated', {
       'date': T2R.tempStorage.get('date'),
       'default-activity': T2R.localStorage.get('default-activity'),
       'toggl-workspace': T2R.localStorage.get('toggl-workspace'),
       'rounding-value': T2R.localStorage.get('rounding-value'),
       'rounding-direction': T2R.localStorage.get('rounding-direction')
     });
+
+    window.location.hash = oDate.toHTMLDate()
+    $('h2 .date').html('(' + oDate.date.toLocaleDateString() + ')')
 
     setTimeout(() => {
       T2R.redmineReport.update()

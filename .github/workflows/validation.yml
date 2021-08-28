@@ -2,18 +2,19 @@ name: validation
 on:
   - push
 jobs:
-  lint:
+  lint_ruby:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-ruby@v1
+      - name: Install Ruby
+        uses: actions/setup-ruby@v1
         with:
           ruby-version: '2.6'
-      - name: Prepare
+      - name: Install gems
         run: gem install rubocop
       - name: Lint
         run: rubocop
-  test:
+  test_ruby:
     runs-on: ubuntu-latest
     steps:
       - name: Test Redmine Plugin
@@ -23,3 +24,20 @@ jobs:
           redmine_version: v4.0
           ruby_version: v2.6
           database: mysql
+  check_javascript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: Install node packages
+        working-directory: ./assets.src
+        run: npm install
+      - name: Lint
+        working-directory: ./assets.src
+        run: npm run lint
+      - name: Test
+        working-directory: ./assets.src
+        run: npm run test

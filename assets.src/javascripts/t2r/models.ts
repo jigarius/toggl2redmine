@@ -51,7 +51,9 @@ export interface TogglWorkspace {
 export interface TogglTimeEntry {
   key: string
   comments: string
-  duration: number
+  // todo: Use only datetime.Duration
+  duration: datetime.Duration | number
+  roundedDuration?: datetime.Duration
   errors: string[]
   ids: number[]
   issue_id: number

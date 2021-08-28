@@ -6,6 +6,7 @@ import {LocalStorage, TemporaryStorage} from "./t2r/storage.js";
 import {translate as t} from "./t2r/i18n.js";
 import {RedmineAPIService} from "./t2r/services.js";
 import {Widget} from "./t2r/widgets.js";
+import * as models from "./t2r/models.js";
 import * as renderers from "./t2r/renderers.js";
 import * as datetime from "./t2r/datetime.js";
 import * as utils from "./t2r/utils.js"
@@ -29,11 +30,12 @@ class PublishForm {
 
   public static instance(): PublishForm {
     if (!PublishForm._instance) {
-      const elem = document.getElementById('publish-form')!
-      PublishForm._instance = new PublishForm(elem)
+      PublishForm._instance = new PublishForm(
+        document.getElementById('publish-form') as HTMLElement
+      )
     }
 
-    return PublishForm._instance!
+    return PublishForm._instance as PublishForm
   }
 
   public onSubmit() {
@@ -139,11 +141,12 @@ class FilterForm {
 
   public static instance(): FilterForm {
     if (!FilterForm._instance) {
-      const elem = document.getElementById('filter-form')!
-      FilterForm._instance = new FilterForm(elem)
+      FilterForm._instance = new FilterForm(
+        document.getElementById('filter-form') as HTMLElement
+      )
     }
 
-    return FilterForm._instance!
+    return FilterForm._instance as FilterForm
   }
 
   private constructor(element: HTMLElement) {
@@ -310,11 +313,12 @@ class RedmineReport {
 
   public static instance(): RedmineReport {
     if (!RedmineReport._instance) {
-      const elem = document.getElementById('redmine-report')!
-      RedmineReport._instance = new RedmineReport(elem)
+      RedmineReport._instance = new RedmineReport(
+          document.getElementById('redmine-report') as HTMLElement
+      )
     }
 
-    return RedmineReport._instance!
+    return RedmineReport._instance as RedmineReport
   }
 
   private constructor(element: HTMLElement) {
@@ -334,7 +338,7 @@ class RedmineReport {
     this.updateLastImportDate()
 
     const query = { from: oDate, till: oDate }
-    T2R.redmineService.getTimeEntries(query, (entries: any[] | null) => {
+    T2R.redmineService.getTimeEntries(query, (entries: models.TimeEntry[] | null) => {
       if (entries === null) {
         flash.error('An error has occurred. Please try again after some time.')
         entries = []
@@ -415,11 +419,12 @@ class TogglReport {
 
   public static instance(): TogglReport {
     if (!TogglReport._instance) {
-      const elem = document.getElementById('toggl-report')!
-      TogglReport._instance = new TogglReport(elem)
+      TogglReport._instance = new TogglReport(
+        document.getElementById('toggl-report') as HTMLElement
+      )
     }
 
-    return TogglReport._instance!
+    return TogglReport._instance as TogglReport
   }
 
   private constructor(element: HTMLElement) {
@@ -448,7 +453,7 @@ class TogglReport {
 
     // Determine report date.
     const sDate = T2R.tempStorage.get('date')
-    const workspaceId = T2R.localStorage.get('toggl-workspace')
+    const workspaceId = T2R.localStorage.get('toggl-workspace') as number | null
 
     this.updateLink(sDate, workspaceId)
 
@@ -463,7 +468,7 @@ class TogglReport {
       till: datetime.DateTime.fromString(sDate + ' 23:59:59'),
       workspace: workspaceId
     }
-    T2R.redmineService.getTogglTimeEntries(query, (entries: any) => {
+    T2R.redmineService.getTogglTimeEntries(query, (entries: models.KeyedTogglTimeEntryCollection) => {
       let pendingEntriesExist = false
 
       // Prepare rounding rules.
@@ -474,7 +479,7 @@ class TogglReport {
       for (const key in entries) {
         const entry = entries[key]
 
-        entry.duration = new datetime.Duration(Math.max(0, entry.duration))
+        entry.duration = new datetime.Duration(Math.max(0, entry.duration as number))
         entry.roundedDuration = new datetime.Duration(entry.duration.seconds)
 
         // Prepare rounded duration as per rounding rules.
@@ -488,7 +493,7 @@ class TogglReport {
         entries[key] = entry
       }
 
-      if (0 === entries.length) {
+      if (entries === {}) {
         this.showEmptyMessage()
       }
 
@@ -635,6 +640,8 @@ class TogglReport {
 
 /**
  * Toggl 2 Redmine Helper.
+ *
+ * @todo Remove the T2R constant.
  */
 const T2R: any = {
   localStorage: new LocalStorage('t2r.'),

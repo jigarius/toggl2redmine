@@ -39,7 +39,7 @@ export class DateTime {
       return this.date.toISOString()
     }
 
-    return this.date.toISOString().split('T')[0] + 'T00:00:00Z'
+    return this.date.toISOString().split('T')[0] + 'T00:00:00.000Z'
   }
 
   /**
@@ -70,13 +70,19 @@ export class DateTime {
       }
     }
 
-    // Adjust month count to begin with 0.
-    dateParts[1] -= 1;
+    // No part of the date can be non-numeric.
+    for (let i = 1; i <= 6; i++) {
+      if (isNaN(dateParts[i])) throw `Invalid date: ${date}`
+    }
+
+    if (dateParts[1] < 1 || dateParts[1] > 12) {
+      throw `Invalid date: ${date}`
+    }
 
     try {
       return new DateTime(new Date(
         dateParts[0],
-        dateParts[1],
+        dateParts[1] - 1,
         dateParts[2],
         dateParts[3],
         dateParts[4],

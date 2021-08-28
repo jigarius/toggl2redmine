@@ -1,10 +1,10 @@
 import * as datetime from "./datetime.js"
-import {RedmineService} from "./services.js";
+import {RedmineAPIService} from "./services.js";
 
 declare const T2R_REDMINE_API_KEY: string;
 
 // Redmine service.
-const redmineService = new RedmineService(T2R_REDMINE_API_KEY)
+const redmineService = new RedmineAPIService(T2R_REDMINE_API_KEY)
 
 /**
  * Toggl 2 Redmine widget manager.

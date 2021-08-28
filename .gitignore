@@ -6,6 +6,7 @@
 
 # Node
 node_modules
+assets/javascripts/test
 
 # Miscellaneous.
 .rails

@@ -3,14 +3,14 @@
  */
 export class DateTime {
 
-  private _date: Date;
+  readonly date: Date;
 
-  constructor(date: Date | undefined) {
-    this._date = date || new Date()
+  constructor(date: Date | undefined = undefined) {
+    this.date = date || new Date()
   }
 
   /**
-   * Format a date as YYYY-MM-DD.
+   * Format date as YYYY-MM-DD.
    *
    * @param {Date} date
    *   A date.
@@ -18,12 +18,27 @@ export class DateTime {
    * @returns {String}
    *   HTML-friendly date, e.g. 2021-02-28.
    */
-  asHtmlDate(): string {
-    const yyyy = this._date.getFullYear();
-    const mm = (this._date.getMonth() + 1).toString().padStart(2, '0')
-    const dd = this._date.getDate().toString().padStart(2, '0')
+  toHTMLDate(): string {
+    const yyyy = this.date.getFullYear();
+    const mm = (this.date.getMonth() + 1).toString().padStart(2, '0')
+    const dd = this.date.getDate().toString().padStart(2, '0')
 
     return `${yyyy}-${mm}-${dd}`
+  }
+
+  /**
+   * Format date in ISO format.
+   *
+   * Example: 2021-08-28T10:32:43.144Z
+   *
+   * @param zeroTime
+   *   Whether time should be set to 00:00:00.
+   */
+  toISOString(zeroTime: boolean = false): string {
+    let result = this.date.toISOString()
+    if (!zeroTime) return result
+
+    return result.split('T')[0] + 'T00:00:00Z'
   }
 
   /**
@@ -35,7 +50,7 @@ export class DateTime {
    * @returns {DateTime|undefined}
    *   The date as an object.
    */
-  static fromString(date: string): DateTime | undefined {
+  static fromString(date: string): DateTime {
     // Don't use Date.parse() as it works differently depending on the browser.
     const dateParts: number[] = date.split(/[^\d]/).map((part) => {
       return parseInt(part)
@@ -44,7 +59,7 @@ export class DateTime {
     // Must have at least the "date" part.
     if (dateParts.length < 3) {
       console.error('Invalid date', date)
-      return
+      throw `Invalid date: ${date}`
     }
 
     // Assume time parts to be 00 if not defined.
@@ -69,7 +84,7 @@ export class DateTime {
       ));
     } catch(e) {
       console.error('Invalid date', date)
-      return
+      throw `Invalid date: ${date}`
     }
   }
 

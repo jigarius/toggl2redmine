@@ -202,12 +202,14 @@ export class Duration {
     }
 
     // Parse hh.mm as decimal. Ex: 2.5 = 2h 30m.
-    pattern = /^(\d{0,2})\.(\d{0,2})$/;
+    pattern = /^(\d{0,2})\.(\d{1,2})$/
     if (hhmm.match(pattern)) {
       const matches = hhmm.match(pattern) as RegExpMatchArray
       parts = matches.slice(-2)
-      mm = (60 * parseInt(parts[1])) / Math.pow(10, parts[1].length)
-      hh = Math.round(parseInt(parts[0]))
+      hh = parseInt(parts[0] || '0')
+      hh = Math.round(hh)
+      mm = parseInt(parts[1] || '0')
+      mm = (60 * mm) / Math.pow(10, parts[1].length)
 
       this.seconds = hh * 60 * 60 + mm * 60
       return

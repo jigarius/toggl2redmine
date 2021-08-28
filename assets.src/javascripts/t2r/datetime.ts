@@ -34,11 +34,12 @@ export class DateTime {
    * @param zeroTime
    *   Whether time should be set to 00:00:00.
    */
-  toISOString(zeroTime: boolean = false): string {
-    let result = this.date.toISOString()
-    if (!zeroTime) return result
+  toISOString(zeroTime = false): string {
+    if (!zeroTime) {
+      return this.date.toISOString()
+    }
 
-    return result.split('T')[0] + 'T00:00:00Z'
+    return this.date.toISOString().split('T')[0] + 'T00:00:00Z'
   }
 
   /**

@@ -145,7 +145,7 @@ export class RedmineService {
    *   Receives a Date object or null.
    */
   getLastImportDate(callback: GetLastExportDateCallback) {
-    let opts: JQuery.AjaxSettings = {}
+    const opts: JQuery.AjaxSettings = {}
     opts.url = '/time_entries.json'
     opts.data = {
       user_id: 'me',
@@ -154,7 +154,7 @@ export class RedmineService {
       to: (new datetime.DateTime()).toHTMLDate()
     }
 
-    let that = this
+    const that = this
     opts.success = (data: any) => {
       this.handleRequestSuccess('Last import date', data)
       if (data.time_entries.length === 0) {

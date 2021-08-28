@@ -172,16 +172,17 @@ export class Duration {
    * @param {string} hhmm
    */
   setHHMM(hhmm: string): void {
-    let parts: any[] | null
+    let parts: string[] = []
     let pattern: RegExp
     let hh: number | null
     let mm: number | null
     const error = `Invalid hh:mm format: ${hhmm}`
 
     // Parse hh only. Ex: 2 = 2h 00m.
-    pattern = /^(\d{0,2})$/;
+    pattern = /^(\d{0,2})$/
     if (hhmm.match(pattern)) {
-      hh = parseInt(hhmm.match(pattern)!.pop()!)
+      const matches = hhmm.match(pattern) as RegExpMatchArray
+      hh = parseInt(matches.pop() as string)
       this.seconds = hh * 60 * 60
       return
     }
@@ -189,13 +190,12 @@ export class Duration {
     // Parse hh:mm duration. Ex: 2:30 = 2h 30m.
     pattern = /^(\d{0,2}):(\d{0,2})$/;
     if (hhmm.match(pattern)) {
-      parts = hhmm.match(pattern)!.slice(-2);
+      const matches = hhmm.match(pattern) as RegExpMatchArray
+      parts = matches.slice(-2)
       mm = parseInt(parts.pop() || '0')
       hh = parseInt(parts.pop() || '0')
 
-      if (mm > 59) {
-        throw error
-      }
+      if (mm > 59) throw error
 
       this.seconds = hh * 60 * 60 + mm * 60
       return
@@ -204,16 +204,15 @@ export class Duration {
     // Parse hh.mm as decimal. Ex: 2.5 = 2h 30m.
     pattern = /^(\d{0,2})\.(\d{0,2})$/;
     if (hhmm.match(pattern)) {
-      parts = hhmm.match(pattern)!.slice(-2);
-
-      mm = (60 * parts[1]) / Math.pow(10, parts[1].length);
-      hh = Math.round(parts[0]);
+      const matches = hhmm.match(pattern) as RegExpMatchArray
+      parts = matches.slice(-2)
+      mm = (60 * parseInt(parts[1])) / Math.pow(10, parts[1].length)
+      hh = Math.round(parseInt(parts[0]))
 
       this.seconds = hh * 60 * 60 + mm * 60
       return
     }
 
-    // No pattern matched? Throw error.
     throw error
   }
 
@@ -223,7 +222,7 @@ export class Duration {
    * @return string
    *   Time in hh:mm format.
    */
-  asHHMM() {
+  asHHMM(): string {
     const hh: string = this.hours.toString().padStart(2, '0')
     const mm: string = (this.minutes % 60).toString().padStart(2, '0')
 

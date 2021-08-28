@@ -79,10 +79,19 @@ describe('class t2r.Duration', () => {
     const dur: datetime.Duration = new datetime.Duration()
 
     dur.setHHMM('.5')
+    expect(dur.seconds).to.equal(1800)
     expect(dur.asHHMM()).to.equal('00:30')
 
     dur.setHHMM('2.25')
     expect(dur.asHHMM()).to.equal('02:15')
+
+    expect(
+      () => { dur.setHHMM('2.') }
+    ).to.throw('Invalid hh:mm format: 2.')
+
+    expect(
+        () => { dur.setHHMM('.') }
+    ).to.throw('Invalid hh:mm format: .')
   })
 
   it('.asHHMM()', () => {

@@ -7,7 +7,7 @@ import {translate as t} from "./t2r/i18n.js";
 import {RedmineService} from "./t2r/services.js";
 import {Widget} from "./t2r/widgets.js";
 import * as renderers from "./t2r/renderers.js";
-import * as duration from "./t2r/duration.js";
+import * as datetime from "./t2r/datetime.js";
 import * as utils from "./t2r/utils.js"
 import * as flash from "./t2r/flash.js"
 
@@ -69,7 +69,7 @@ class PublishForm {
       }
 
       // Convert time to Redmine-friendly format, i.e. hh:mm.
-      const dur = new duration.Duration()
+      const dur = new datetime.Duration()
       try {
         dur.setHHMM($tr.find('[data-property="hours"]').val() as string)
         timeEntry.hours = dur.asDecimal()
@@ -358,14 +358,14 @@ class RedmineReport {
   }
 
   public updateTotal() {
-    const total = new duration.Duration()
+    const total = new datetime.Duration()
 
     // Iterate over all rows and add the hours.
     this.element.find('tbody tr .hours')
       .each(function () {
         const hours = $(this).text().trim();
         if (hours.length > 0) {
-          total.add(new duration.Duration(hours));
+          total.add(new datetime.Duration(hours));
         }
       })
 
@@ -472,15 +472,15 @@ class TogglReport {
       for (const key in entries) {
         const entry = entries[key]
 
-        entry.duration = new duration.Duration(Math.max(0, entry.duration))
-        entry.roundedDuration = new duration.Duration(entry.duration.seconds)
+        entry.duration = new datetime.Duration(Math.max(0, entry.duration))
+        entry.roundedDuration = new datetime.Duration(entry.duration.seconds)
 
         // Prepare rounded duration as per rounding rules.
         if (roundingMethod !== '' && roundingValue > 0) {
           entry.roundedDuration.roundTo(roundingValue, roundingMethod)
         }
         else {
-          entry.roundedDuration.roundTo(1, duration.Rounding.Regular)
+          entry.roundedDuration.roundTo(1, datetime.RoundingMethod.Regular)
         }
 
         entries[key] = entry
@@ -580,12 +580,12 @@ class TogglReport {
    * Updates the total in the Redmine report footer.
    */
   private updateTotal() {
-    const total = new duration.Duration()
+    const total = new datetime.Duration()
 
     // Iterate over all rows and add the hours.
     this.element.find('tbody tr').each(function () {
       const $tr = $(this)
-      const dur = new duration.Duration()
+      const dur = new datetime.Duration()
 
       // Ignore erroneous rows.
       if ($tr.hasClass('t2r-error')) {

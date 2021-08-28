@@ -1,3 +1,4 @@
+import * as datetime from "./datetime.js"
 import * as utils from "./utils.js"
 import {RequestQueue} from "./request.js"
 import {TemporaryStorage} from "./storage.js"
@@ -11,6 +12,10 @@ interface TimeEntryPostParams {
     hours: string
   },
   toggl_ids: number[]
+}
+
+interface GetLastExportDateCallback {
+  (date: datetime.DateTime | null): void
 }
 
 /**
@@ -136,13 +141,11 @@ export class RedmineService {
    *
    * Time entries for future dates are ignored.
    *
-   * @param {function} callback
+   * @param {GetLastExportDateCallback}
    *   Receives a Date object or null.
-   * @param opts
-   *   Options to be passed to jQuery.ajax().
    */
-  getLastImportDate(callback: any, opts: JQueryAjaxSettings | null = null) {
-    opts = opts || {}
+  getLastImportDate(callback: GetLastExportDateCallback) {
+    let opts: JQuery.AjaxSettings = {}
     opts.url = '/time_entries.json'
     opts.data = {
       user_id: 'me',
@@ -151,7 +154,7 @@ export class RedmineService {
       to: utils.dateFormatYYYYMMDD(new Date())
     }
 
-    var that = this
+    let that = this
     opts.success = (data: any) => {
       this.handleRequestSuccess('Last import date', data)
       if (data.time_entries.length === 0) {
@@ -160,7 +163,7 @@ export class RedmineService {
       }
 
       const lastTimeEntry = data.time_entries.pop()
-      const lastImportDate: Date = utils.dateStringToObject(`${lastTimeEntry.spent_on} 00:00:00`)!
+      const lastImportDate = datetime.DateTime.fromString(`${lastTimeEntry.spent_on} 00:00:00`)
       callback(lastImportDate)
     }
     opts.error = () => {

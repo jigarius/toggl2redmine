@@ -4,7 +4,7 @@ declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
 
 import {LocalStorage, TemporaryStorage} from "./t2r/storage.js";
 import {translate as t} from "./t2r/i18n.js";
-import {RedmineService} from "./t2r/services.js";
+import {RedmineAPIService} from "./t2r/services.js";
 import {Widget} from "./t2r/widgets.js";
 import * as renderers from "./t2r/renderers.js";
 import * as datetime from "./t2r/datetime.js";
@@ -639,7 +639,7 @@ class TogglReport {
 const T2R: any = {
   localStorage: new LocalStorage('t2r.'),
   tempStorage: new TemporaryStorage(),
-  redmineService: new RedmineService(T2R_REDMINE_API_KEY),
+  redmineService: new RedmineAPIService(T2R_REDMINE_API_KEY),
   filterForm: null,
   publishForm: null,
   redmineReport: null,

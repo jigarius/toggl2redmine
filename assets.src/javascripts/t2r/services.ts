@@ -21,7 +21,7 @@ interface GetLastExportDateCallback {
 /**
  * Sends requests to Redmine API endpoints.
  */
-export class RedmineService {
+export class RedmineAPIService {
   readonly _apiKey: string
   readonly _baseUrl: string
   readonly _cache: TemporaryStorage

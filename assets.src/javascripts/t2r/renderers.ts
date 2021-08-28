@@ -4,7 +4,7 @@ import * as datetime from "./datetime.js";
 declare const T2R_BUTTON_ACTIONS: string;
 declare const contextMenuRightClick: any;
 
-export function renderRedmineProjectLabel(project: any) {
+export function renderRedmineProjectLabel(project: any): string {
   project ||= { name: 'Unknown', path: 'javascript:void(0)', status: 1 };
   project.classes = ['project'];
   if (project.status != 1) {
@@ -28,7 +28,7 @@ export function renderRedmineIssueLabel(issue: any): string {
     + '</a>'
 }
 
-export function renderTogglRow(data: any) {
+export function renderTogglRow(data: any): JQuery<HTMLElement> {
   const issue = data.issue
   const issueLabel = renderRedmineIssueLabel(issue || { id: data.id })
   const project = data.project || null;
@@ -96,7 +96,7 @@ export function renderTogglRow(data: any) {
   return $tr;
 }
 
-export function renderRedmineRow(data: any) {
+export function renderRedmineRow(data: any): JQuery<HTMLElement> {
   const issue = data.issue
   const issueLabel = renderRedmineIssueLabel(issue)
   const project = data.project
@@ -138,7 +138,7 @@ export function renderImportStatusLabel(
   label: string,
   description: string | null = null,
   icon = 'checked'
-) {
+): HTMLElement {
   const el = document.createElement('span')
 
   el.innerHTML = label

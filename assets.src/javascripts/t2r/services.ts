@@ -73,8 +73,8 @@ export class RedmineService {
    *   Receives time entries or null.
    */
   getTimeEntries(params: {
-    from: string
-    till: string
+    from: datetime.DateTime
+    till: datetime.DateTime
   }, callback: any) {
     const that = this
     this.request({
@@ -82,8 +82,8 @@ export class RedmineService {
       method: 'get',
       url: '/toggl2redmine/redmine/time_entries',
       data: {
-        from: params.from,
-        till: params.till
+        from: params.from.toISOString(true),
+        till: params.till.toISOString(true)
       },
       success: function (data: any) {
         if (typeof data.time_entries === 'undefined') {

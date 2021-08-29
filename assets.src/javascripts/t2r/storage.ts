@@ -28,7 +28,7 @@ export class LocalStorage {
   }
 
   set<Type>(key: string, value: Type): Type {
-    if (value === null) {
+    if (value === null || typeof value === 'undefined') {
       return this.delete(this.prefix + key)
     }
 

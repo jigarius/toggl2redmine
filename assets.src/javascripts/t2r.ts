@@ -1,3 +1,5 @@
+import {RoundingMethod} from "./t2r/datetime.js";
+
 declare const T2R_REDMINE_API_KEY: string;
 declare const T2R_REDMINE_REPORT_URL_FORMAT : string;
 declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
@@ -133,8 +135,16 @@ class PublishForm {
 }
 
 /**
- * The filter form.
+ * The filter/options form.
  */
+interface FilterFormValues {
+  date?: string,
+  'default-activity'?: number,
+  'toggl-workspace'?: number,
+  'rounding-value'?: number,
+  'rounding-direction'?: RoundingMethod
+}
+
 class FilterForm {
   readonly element: JQuery<HTMLElement>
   static _instance: FilterForm | null
@@ -154,70 +164,115 @@ class FilterForm {
     this.init()
   }
 
-  public getDefaults(): any {
-    return {
-      date: (new datetime.DateTime()).toHTMLDate(),
-      'toggl-workspace': T2R.localStorage.get('toggl-workspace'),
-      'default-activity': T2R.localStorage.get('default-activity'),
-      'rounding-value': T2R.localStorage.get('rounding-value'),
-      'rounding-direction': T2R.localStorage.get('rounding-direction')
+  public getDefaults(): FilterFormValues {
+    const values: FilterFormValues = {}
+
+    values['date'] = (new datetime.DateTime).toHTMLDate()
+
+    const workspaceId = T2R.localStorage.get('toggl-workspace')
+    if (workspaceId) {
+      values['toggl-workspace'] = parseInt(workspaceId)
     }
+
+    const defaultActivityId = T2R.localStorage.get('default-activity')
+    if (defaultActivityId) {
+      values['default-activity'] = parseInt(defaultActivityId)
+    }
+
+    const roundingValue = T2R.localStorage.get('rounding-value') || '0'
+    values['rounding-value'] = parseInt(roundingValue)
+
+    const roundingDirection = T2R.localStorage.get('rounding-direction')
+    if (roundingDirection) {
+      values['rounding-direction'] = roundingDirection
+    }
+
+    return values
   }
 
-  public getValues() {
-    const $defaultActivity = $('select#default-activity')
-    const defaultActivity = $defaultActivity.val() || $defaultActivity.data('selected')
+  public getValues(): FilterFormValues {
+    const values: FilterFormValues = {}
 
-    const $togglWorkspace = $('select#toggl-workspace')
-    const togglWorkspace = $togglWorkspace.val() || $togglWorkspace.data('selected')
+    const $defaultActivityId = $('select#default-activity')
+    const defaultActivityId = $defaultActivityId.val() || $defaultActivityId.data('selected')
+    if (defaultActivityId) {
+      values['default-activity'] = parseInt(defaultActivityId)
+    }
 
-    let roundingValue = $('input#rounding-value').val()
-    roundingValue = roundingValue ? parseInt(roundingValue as string) : 0
-    roundingValue = isNaN(roundingValue) ? 0 : roundingValue
+    const $togglWorkspaceId = $('select#toggl-workspace')
+    const togglWorkspaceId = $togglWorkspaceId.val() || $togglWorkspaceId.data('selected')
+    if (togglWorkspaceId) {
+      values['toggl-workspace'] = togglWorkspaceId
+    }
+
+    const sRoundingValue = $('input#rounding-value').val() as string
+    const nRoundingValue = parseInt(sRoundingValue)
+    if (sRoundingValue && !isNaN(nRoundingValue)) {
+      values['rounding-value'] = parseInt(sRoundingValue)
+    }
 
     const roundingMethod = $('select#rounding-direction').val()
+    if (roundingMethod) {
+      values['rounding-direction'] = roundingMethod as RoundingMethod
+    }
 
-    const sDate: string | null = $('#date').val() as string
-    let oDate: datetime.DateTime | undefined
+    const sDate: string = $('#date').val() as string
     try {
-      oDate = datetime.DateTime.fromString(sDate)
+      datetime.DateTime.fromString(sDate)
+      values['date'] = sDate
     } catch (e) {
       console.error(e)
     }
 
-    return {
-      'default-activity': defaultActivity,
-      'toggl-workspace': togglWorkspace,
-      'rounding-direction': roundingMethod,
-      'rounding-value': roundingValue,
-      date: sDate,
-      oDate: oDate
-    }
+    return values
   }
 
-  public setValues(values: any) {
+  public setValues(values: FilterFormValues) {
     this.element
       .find(':input')
       .each(function () {
         const $field = $(this)
         const name = $field.attr('name') as string
-        const value = values[name]
 
-        if (typeof value === 'undefined') return
+        if (!name) return
 
         switch (name) {
+          case 'date':
+            if (!values['date']) return
+
+            $field.val(values['date'] as string)
+            break
+
           case 'default-activity':
-          case 'toggl-workspace':
+            if (!values['default-activity']) return
+
             $field
-              .data('selected', value)
-              .val(value)
-            break;
+              .data('selected', values['default-activity'] as number)
+              .val(values['default-activity'] as number)
+            break
+
+          case 'toggl-workspace':
+            if (!values['toggl-workspace']) return
+
+            $field
+              .data('selected', values['toggl-workspace'] as number)
+              .val(values['toggl-workspace'] as number)
+            break
+
+          case 'rounding-direction':
+            if (!values['rounding-direction']) return
+
+            $field.val(values['rounding-direction'] as string)
+            break
+
+          case 'rounding-value':
+            if (!values['rounding-value']) return
+
+            $field.val(values['rounding-value'] as number)
+            break
 
           default:
-            if (typeof value !== 'undefined') {
-              $field.val(values[name])
-            }
-            break;
+            throw `Unexpected field: ${name}`
         }
       })
   }
@@ -246,14 +301,27 @@ class FilterForm {
     });
   }
 
-  public reset(values: any = {}) {
-    // Merge values with defaults.
+  public reset(values: FilterFormValues = {}) {
     const defaults = this.getDefaults()
-    for (const name in defaults) {
-      const value = values[name]
-      if (typeof value === 'undefined' || '' === value || false === value) {
-        values[name] = defaults[name];
-      }
+
+    if (!values['date']) {
+      values['date'] = defaults['date']
+    }
+
+    if (!values['default-activity']) {
+      values['default-activity'] = defaults['default-activity']
+    }
+
+    if (!values['toggl-workspace']) {
+      values['toggl-workspace'] = defaults['toggl-workspace']
+    }
+
+    if (!values['rounding-direction']) {
+      values['rounding-direction'] = defaults['rounding-direction']
+    }
+
+    if (!values['rounding-value']) {
+      values['rounding-value'] = defaults['rounding-value']
     }
 
     this.element.find(':input').val('')
@@ -270,7 +338,7 @@ class FilterForm {
     }
 
     // Store date and update URL hash.
-    const oDate = values['oDate']
+    const oDate = datetime.DateTime.fromString(values['date'])
     if (!oDate) {
       alert('Please enter a valid date.')
       this.element.find('#date').trigger('focus')
@@ -283,7 +351,7 @@ class FilterForm {
     T2R.localStorage.set('rounding-direction', values['rounding-direction'])
     T2R.tempStorage.set('date', oDate.toHTMLDate())
 
-    console.info('Filter form updated', {
+    console.info('Filter form submitted', {
       'date': T2R.tempStorage.get('date'),
       'default-activity': T2R.localStorage.get('default-activity'),
       'toggl-workspace': T2R.localStorage.get('toggl-workspace'),

@@ -2,6 +2,6 @@ open:
   name: Open
   is_closed: false
 
-close:
-  name: Close
+closed:
+  name: Closed
   is_closed: true

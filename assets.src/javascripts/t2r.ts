@@ -5,7 +5,7 @@ declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
 import {LocalStorage, TemporaryStorage} from "./t2r/storage.js";
 import {translate as t} from "./t2r/i18n.js";
 import {RedmineAPIService} from "./t2r/services.js";
-import {Widget} from "./t2r/widgets.js";
+import * as widget from "./t2r/widgets.js";
 import * as models from "./t2r/models.js";
 import * as renderers from "./t2r/renderers.js";
 import * as datetime from "./t2r/datetime.js";
@@ -548,7 +548,7 @@ class TogglReport {
       }
 
       that.updateTotal()
-      Widget.initialize(that.element[0])
+      widget.initialize(that.element[0])
       that.hideLoader()
 
       if (!pendingEntriesExist) {
@@ -657,7 +657,7 @@ const T2R: any = {
  * This is where it starts.
  */
 $(() => {
-  Widget.initialize();
+  widget.initialize();
   T2R.publishForm = PublishForm.instance()
   T2R.filterForm = FilterForm.instance()
   T2R.redmineReport = RedmineReport.instance()

@@ -1,10 +1,5 @@
 import * as datetime from "./datetime.js"
 
-interface Optionable {
-  id: number | string
-  name: string
-}
-
 export interface TimeEntryActivity {
   id: number
   name: string
@@ -17,6 +12,7 @@ export interface Issue {
   subject: string
   path: string
   tracker: Tracker
+  status: number // todo: Reveal this from server-side.
 }
 
 export interface Project {
@@ -34,8 +30,7 @@ export interface Tracker {
 export interface TimeEntry {
   id: number
   hours: string
-  // todo: Only allow Duration.
-  duration: datetime.Duration | number
+  duration: datetime.Duration
   comments: string
   activity: TimeEntryActivity
   issue: Issue
@@ -56,10 +51,10 @@ export interface TogglTimeEntry {
   roundedDuration?: datetime.Duration
   errors: string[]
   ids: number[]
-  issue_id: number
+  issue_id: number | null
   status: string // todo: Use enum?
-  issue: Issue
-  project: Project
+  issue: Issue | null
+  project: Project | null
 }
 
 export interface KeyedTogglTimeEntryCollection {

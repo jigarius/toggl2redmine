@@ -132,7 +132,9 @@ export class RedmineAPIService {
         that.handleRequestSuccess('Redmine time entries', data)
 
         const time_entries: models.TimeEntry[] = data.time_entries.map((entry: models.TimeEntry) => {
-          entry.duration = Math.floor(parseFloat(entry.hours) * 3600)
+          entry.duration = new datetime.Duration(
+            Math.floor(parseFloat(entry.hours) * 3600)
+          )
           return entry
         })
 

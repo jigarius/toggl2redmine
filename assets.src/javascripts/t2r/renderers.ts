@@ -11,17 +11,22 @@ export function renderRedmineProjectLabel(project: models.Project): string {
     classes.push('closed')
   }
 
-  return '<a href="' + project.path + '" class="' + classes.join(' ') + '"><strong>'
+  return '<a href="' + project.path + '" class="' + classes.join(' ') + '" target="_blank"><strong>'
     + utils.htmlEntityEncode(project.name)
     + '</strong></a>';
 }
 
 export function renderRedmineProjectStubLabel(): string {
-  return '<span class="project unknown">-</span>'
+  return '<span class="project"><strong>-</strong></span>'
 }
 
 export function renderRedmineIssueLabel(issue: models.Issue): string {
-  return '<a href="' + issue.path + '" target="_blank">'
+  const classes = ['issue']
+  if (issue.is_closed) {
+    classes.push('closed')
+  }
+
+  return '<a href="' + issue.path + '" class="' + classes.join(' ') + '" target="_blank">'
     + utils.htmlEntityEncode(issue ? issue.tracker.name : '-')
     + utils.htmlEntityEncode(issue ? ' #' + issue.id : '')
     + utils.htmlEntityEncode(issue.subject ? ': ' + issue.subject : '')

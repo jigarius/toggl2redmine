@@ -34,7 +34,7 @@ caused by the use of this plugin. In short, use it at your own risk.
 
 Here's a quick video to get you started.
 
-[![Toggl 2 Redmine Video Tutorial](https://img.youtube.com/vi/FdwWUYllop4/0.jpg)](https://www.youtube.com/watch?v=FdwWUYllop4)
+[![Toggl 2 Redmine Video Tutorial](https://img.youtube.com/vi/FdwWUYllop4/0.jpg)](https://www.youtube.com/watch?v=FdwWUYllop4&t=162)
 
 If a certain topic is not mentioned in the video, you can find more information on it by reading this document.
 

@@ -502,10 +502,10 @@ class TogglReport {
   }
 
   private init() {
-    var that = this
-    this.checkAll.tooltip()
+    const that = this
+    this.checkAll
       .on('change',() => {
-        const checked = $(this).prop('checked');
+        const checked = $(that.checkAll).prop('checked')
         that.element.find('tbody input.cb-import:enabled')
           .prop('checked', checked)
           .trigger('change')

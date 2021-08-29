@@ -12,7 +12,7 @@ export interface Issue {
   subject: string
   path: string
   tracker: Tracker
-  status: number // todo: Reveal this from server-side.
+  is_closed: boolean
 }
 
 export interface Project {

@@ -73,3 +73,6 @@
 #last-imported.t2r-loading {
   display: inline-block;
 }
+span.project {
+  font-weight: bold;
+}

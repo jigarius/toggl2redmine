@@ -1,3 +1,4 @@
+import * as models from "./models.js"
 import * as datetime from "./datetime.js"
 import {RedmineAPIService} from "./services.js";
 
@@ -6,12 +7,25 @@ declare const T2R_REDMINE_API_KEY: string;
 // Redmine service.
 const redmineService = new RedmineAPIService(T2R_REDMINE_API_KEY)
 
+interface DropdownOption {
+  id: number | string,
+  name: string
+}
+
+interface DropdownOptionDictionary {
+  [index:string]: string
+}
+
 /**
  * Toggl 2 Redmine widget manager.
  */
-export const Widget: any = {}
+export const Widget: { [index:string]: any } = {}
 
-function buildDropdownFromDictionary(data: any) {
+function buildDropdownFromDictionary(data: {
+  options: DropdownOptionDictionary,
+  attributes?: { [index:string]: string }
+  placeholder?: string
+}): JQuery<HTMLElement> {
   const $el = $('<select />')
   const placeholder = data.placeholder || null
   const attributes = data.attributes || null
@@ -21,7 +35,7 @@ function buildDropdownFromDictionary(data: any) {
   }
 
   if (attributes) {
-    $el.attr(data.attributes)
+    $el.attr(attributes)
   }
 
   for (const value in data.options) {
@@ -32,14 +46,21 @@ function buildDropdownFromDictionary(data: any) {
   return $el
 }
 
-function buildDropdownFromRecords(data: any) {
-  data.options = {}
+function buildDropdownFromRecords(data: {
+  records: DropdownOption[],
+  attributes?: { [index:string]: string },
+  placeholder?: string
+}) {
+  const options = {} as DropdownOptionDictionary
   for (const record of data.records) {
-    data.options[record.id] = record.name
+    options[record.id.toString()] = record.name
   }
 
-  delete data['records']
-  return buildDropdownFromDictionary(data)
+  return buildDropdownFromDictionary({
+    options: options,
+    attributes: data.attributes,
+    placeholder: data.placeholder
+  })
 }
 
 /**
@@ -47,7 +68,7 @@ function buildDropdownFromRecords(data: any) {
  *
  * @param {Object} el
  */
-Widget.initialize = function (el = document.body) {
+Widget.initialize = function (el = document.body): void {
   $(el).find('[data-t2r-widget]')
     .each(function () {
       const widgetList = this.getAttribute('data-t2r-widget')
@@ -73,11 +94,11 @@ Widget.initialize = function (el = document.body) {
     });
 }
 
-Widget.initTooltip = function(el: any) {
+Widget.initTooltip = function(el: HTMLElement) {
   $(el).tooltip();
 }
 
-Widget.initTogglRow = function(el: any) {
+Widget.initTogglRow = function(el: HTMLElement) {
   const $el = $(el);
 
   // If checkbox changes, update totals.
@@ -106,7 +127,7 @@ Widget.initTogglRow = function(el: any) {
   $el.find(':input').tooltip()
 }
 
-Widget.initDurationInput = function (el: any) {
+Widget.initDurationInput = function (el: HTMLInputElement) {
   var $el = $(el);
   $el
     .on('input', function() {
@@ -171,9 +192,11 @@ Widget.initDurationInput = function (el: any) {
     });
 }
 
-Widget.initRedmineActivityDropdown = function (el: any) {
+Widget.initRedmineActivityDropdown = function (el: HTMLElement) {
   const $el = $(el)
-  redmineService.getTimeEntryActivities((activities: any[] | null) => {
+  redmineService.getTimeEntryActivities((activities: DropdownOption[] | null) => {
+    if (activities === null) return
+
     // Generate a SELECT element and use it's options.
     const $select = buildDropdownFromRecords({
       placeholder: $el.data('placeholder'),
@@ -190,13 +213,15 @@ Widget.initRedmineActivityDropdown = function (el: any) {
   })
 }
 
-Widget.initTogglWorkspaceDropdown = function (el: any) {
+Widget.initTogglWorkspaceDropdown = function (el: HTMLElement) {
   const $el = $(el);
-  redmineService.getTogglWorkspaces((workspaces: any) => {
+  redmineService.getTogglWorkspaces((workspaces: models.TogglWorkspace[] | null) => {
+    if (workspaces === null) return
+
     // Generate a SELECT element and use its options.
     const $select = buildDropdownFromRecords({
-      placeholder: $el.data('placeholder'),
-      records: workspaces
+      placeholder: $el.data('placeholder') as string,
+      records: workspaces as DropdownOption[]
     })
 
     $el.append($select.find('option'))
@@ -208,11 +233,11 @@ Widget.initTogglWorkspaceDropdown = function (el: any) {
   });
 }
 
-Widget.initDurationRoundingDirection = function (el: any) {
+Widget.initDurationRoundingDirection = function (el: HTMLElement) {
   const $el = $(el);
 
   // Prepare rounding options.
-  const options: any = {}
+  const options: DropdownOptionDictionary = {}
   options[datetime.RoundingMethod.Regular] = 'Round off'
   options[datetime.RoundingMethod.Up] = 'Round up'
   options[datetime.RoundingMethod.Down] = 'Round down'

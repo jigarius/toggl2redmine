@@ -26,6 +26,7 @@ class T2rTogglController < T2rBaseController
               tracker: { only: %i[id name] }
             }
           )
+        item['issue']['is_closed'] = group.issue.closed?
         item['issue']['path'] = issue_path(group.issue)
       end
 

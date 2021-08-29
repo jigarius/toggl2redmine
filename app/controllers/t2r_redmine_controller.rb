@@ -26,7 +26,11 @@ class T2rRedmineController < T2rBaseController
         }
       )
 
-      item['issue']['path'] = issue_path(time_entry.issue) if item['issue']
+      if item['issue']
+        item['issue']['is_closed'] = time_entry.issue.closed?
+        item['issue']['path'] = issue_path(time_entry.issue)
+      end
+
       item['project']['path'] = project_path(time_entry.project) if item['project']
 
       item

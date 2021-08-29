@@ -42,6 +42,7 @@ class T2rRedmineControllerTest < T2r::IntegrationTest
             'id' => e3.issue.id,
             'subject' => 'Boil bananas',
             'tracker' => { 'id' => e3.issue.tracker.id, 'name' => 'Task' },
+            'is_closed' => e3.issue.closed?,
             'path' => issue_path(e3.issue)
           },
           'project' => {
@@ -60,6 +61,7 @@ class T2rRedmineControllerTest < T2r::IntegrationTest
             'id' => e4.issue.id,
             'subject' => 'Condition cherries',
             'tracker' => { 'id' => e4.issue.tracker.id, 'name' => 'Task' },
+            'is_closed' => e4.issue.closed?,
             'path' => issue_path(e4.issue)
           },
           'project' => {
@@ -78,6 +80,7 @@ class T2rRedmineControllerTest < T2r::IntegrationTest
             'id' => e1.issue.id,
             'subject' => 'Abstract apples',
             'tracker' => { 'id' => e1.issue.tracker.id, 'name' => 'Task' },
+            'is_closed' => e1.issue.closed?,
             'path' => issue_path(e1.issue)
           },
           'project' => {
@@ -96,6 +99,7 @@ class T2rRedmineControllerTest < T2r::IntegrationTest
             'id' => e2.issue.id,
             'subject' => 'Abstract apples',
             'tracker' => { 'id' => e2.issue.tracker.id, 'name' => 'Task' },
+            'is_closed' => e2.issue.closed?,
             'path' => issue_path(e2.issue)
           },
           'project' => {

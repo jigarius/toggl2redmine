@@ -16,11 +16,6 @@ interface DropdownOptionDictionary {
   [index:string]: string
 }
 
-/**
- * Toggl 2 Redmine widget manager.
- */
-export const Widget: { [index:string]: any } = {}
-
 function buildDropdownFromDictionary(data: {
   options: DropdownOptionDictionary,
   attributes?: { [index:string]: string }
@@ -63,42 +58,71 @@ function buildDropdownFromRecords(data: {
   })
 }
 
+interface WidgetInitCallback {
+  (el: HTMLElement | HTMLInputElement): void
+}
+
 /**
  * Initializes all widgets in the given element.
  *
- * @param {Object} el
+ * @param {HTMLElement} el
  */
-Widget.initialize = function (el = document.body): void {
+export function initialize(el = document.body): void {
   $(el).find('[data-t2r-widget]')
     .each(function () {
       const widgetList = this.getAttribute('data-t2r-widget')
       if (!widgetList) return
 
       for (const widget of widgetList.split(' ')) {
-        // Initialize the widget, if required.
-        const flag = 'Widget' + widget + 'Ready'
+        // Initialize one widget only once per element.
+        const flag = `Widget${widget}Ready`
         if (this.dataset[flag] == 'true') {
           continue
         }
 
-        const method = 'init' + widget;
-        if ('undefined' !== typeof Widget[method]) {
-          Widget[method](this);
-          this.dataset[flag] = 'true'
-          this.classList.add(`t2r-widget-${widget}`)
+
+        let initializer: WidgetInitCallback
+        switch (widget) {
+          case 'Tooltip':
+            initializer = initTooltip
+            break
+
+          case 'TogglRow':
+            initializer = initTogglRow
+            break
+
+          case 'DurationInput':
+            initializer = initDurationInput
+            break
+
+          case 'DurationRoundingMethodDropdown':
+            initializer = initDurationRoundingMethodDropdown
+            break
+
+          case 'RedmineActivityDropdown':
+            initializer = initRedmineActivityDropdown
+            break
+
+          case 'TogglWorkspaceDropdown':
+            initializer = initTogglWorkspaceDropdown
+            break
+
+          default:
+            throw `Unrecognized widget: ${widget}`
         }
-        else {
-          throw `To initialize "${widget}", please define "widgets.${method}"`
-        }
+
+        this.dataset[flag] = 'true'
+        this.classList.add(`t2r-widget-${widget}`)
+        initializer(this)
       }
     });
 }
 
-Widget.initTooltip = function(el: HTMLElement) {
+function initTooltip(el: HTMLElement): void {
   $(el).tooltip();
 }
 
-Widget.initTogglRow = function(el: HTMLElement) {
+function initTogglRow(el: HTMLElement): void {
   const $el = $(el);
 
   // If checkbox changes, update totals.
@@ -127,17 +151,19 @@ Widget.initTogglRow = function(el: HTMLElement) {
   $el.find(':input').tooltip()
 }
 
-Widget.initDurationInput = function (el: HTMLInputElement) {
-  var $el = $(el);
+function initDurationInput(el: HTMLElement): void {
+  const input = el as HTMLInputElement
+  const $el = $(el);
+
   $el
     .on('input', function() {
       const val = $el.val() as string
       try {
         // If a duration object could be created, then the the time is valid.
         new datetime.Duration(val)
-        el.setCustomValidity('')
+        input.setCustomValidity('')
       } catch (e) {
-        el.setCustomValidity(e)
+        input.setCustomValidity(e)
       }
     })
     // Update totals as the user updates hours.
@@ -192,7 +218,25 @@ Widget.initDurationInput = function (el: HTMLInputElement) {
     });
 }
 
-Widget.initRedmineActivityDropdown = function (el: HTMLElement) {
+function initDurationRoundingMethodDropdown(el: HTMLElement): void {
+  const $el = $(el);
+
+  // Prepare rounding options.
+  const options: DropdownOptionDictionary = {}
+  options[datetime.RoundingMethod.Regular] = 'Round off'
+  options[datetime.RoundingMethod.Up] = 'Round up'
+  options[datetime.RoundingMethod.Down] = 'Round down'
+
+  // Generate a SELECT element and use it's options.
+  const $select = buildDropdownFromDictionary({
+    placeholder: 'Don\'t round',
+    options: options
+  });
+
+  $el.append($select.find('option'));
+}
+
+function initRedmineActivityDropdown(el: HTMLElement): void {
   const $el = $(el)
   redmineService.getTimeEntryActivities((activities: DropdownOption[] | null) => {
     if (activities === null) return
@@ -213,7 +257,7 @@ Widget.initRedmineActivityDropdown = function (el: HTMLElement) {
   })
 }
 
-Widget.initTogglWorkspaceDropdown = function (el: HTMLElement) {
+function initTogglWorkspaceDropdown(el: HTMLElement): void {
   const $el = $(el);
   redmineService.getTogglWorkspaces((workspaces: models.TogglWorkspace[] | null) => {
     if (workspaces === null) return
@@ -231,22 +275,4 @@ Widget.initTogglWorkspaceDropdown = function (el: HTMLElement) {
       $el.val(value).data('selected', null)
     }
   });
-}
-
-Widget.initDurationRoundingDirection = function (el: HTMLElement) {
-  const $el = $(el);
-
-  // Prepare rounding options.
-  const options: DropdownOptionDictionary = {}
-  options[datetime.RoundingMethod.Regular] = 'Round off'
-  options[datetime.RoundingMethod.Up] = 'Round up'
-  options[datetime.RoundingMethod.Down] = 'Round down'
-
-  // Generate a SELECT element and use it's options.
-  const $select = buildDropdownFromDictionary({
-    placeholder: 'Don\'t round',
-    options: options
-  });
-
-  $el.append($select.find('option'));
 }

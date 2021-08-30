@@ -57,7 +57,7 @@ export class RequestQueue {
 
     const originalCallback = opts.complete as JQuery.Ajax.CompleteCallback<Element>
     opts.complete = function (xhr: JQuery.jqXHR, status: JQuery.Ajax.TextStatus) {
-      if (originalCallback !== undefined) {
+      if (typeof originalCallback !== 'undefined') {
         (originalCallback).call(this, xhr, status)
       }
 

@@ -49,14 +49,14 @@ class PublishForm {
     flash.clear()
 
     // If no entries are selected for import.
-    if (T2R.togglReport.element.find('tbody input.cb-import').filter(':checked').length === 0) {
+    if (Application.instance().togglReport.element.find('tbody input.cb-import').filter(':checked').length === 0) {
       flash.error('Please select the entries which you want to import to Redmine.');
       this.enable()
       return
     }
 
     console.info('Sending time entries to Redmine.')
-    T2R.togglReport.element.find('tbody tr').each(function (this: HTMLElement) {
+    Application.instance().togglReport.element.find('tbody tr').each(function (this: HTMLElement) {
       const $tr = $(this)
 
       // If the item is not marked for import, ignore it.
@@ -65,7 +65,7 @@ class PublishForm {
       }
 
       const timeEntry = {
-        spent_on: T2R.tempStorage.get('date') as string,
+        spent_on: Application.instance().tempStorage.get('date') as string,
         issue_id: parseInt($tr.find('[data-property="issue_id"]').val() as string),
         comments: $tr.find('[data-property="comments"]').val() as string,
         activity_id: parseInt($tr.find('[data-property="activity_id"]').val() as string),
@@ -88,10 +88,16 @@ class PublishForm {
         return
       }
 
-      T2R.redmineService.postTimeEntry({
+      Application.instance().redmineService.postTimeEntry({
         time_entry: timeEntry,
         toggl_ids: $tr.data('t2r.entry').ids
       }, (errors: string[]) => {
+        // If all requests have been processed.
+        if (Application.instance().redmineService.requestQueue.length === 0) {
+          Application.instance().publishForm.enable()
+          Application.instance().redmineReport.update()
+        }
+
         if (errors.length !== 0) {
           $tr.addClass('t2r-error')
           const statusLabel = renderers.renderImportStatusLabel('Failed', errors.join("\n"), 'error')
@@ -108,15 +114,6 @@ class PublishForm {
         $tr.find('td.status').html(statusLabel)
       })
     })
-
-    // Refresh the Redmine report when all items are processed.
-    T2R.__publishWatcher = setInterval(() => {
-      if (T2R.redmineService.requestQueue.length === 0) {
-        clearInterval(T2R.__publishWatcher);
-        T2R.publishForm.enable()
-        T2R.redmineReport.update()
-      }
-    }, 250);
   }
 
   /**
@@ -169,20 +166,20 @@ class FilterForm {
 
     values['date'] = (new datetime.DateTime).toHTMLDate()
 
-    const workspaceId = T2R.localStorage.get('toggl-workspace')
+    const workspaceId = Application.instance().localStorage.get('toggl-workspace') as string
     if (workspaceId) {
       values['toggl-workspace'] = parseInt(workspaceId)
     }
 
-    const defaultActivityId = T2R.localStorage.get('default-activity')
+    const defaultActivityId = Application.instance().localStorage.get('default-activity') as string
     if (defaultActivityId) {
       values['default-activity'] = parseInt(defaultActivityId)
     }
 
-    const roundingValue = T2R.localStorage.get('rounding-value') || '0'
+    const roundingValue = Application.instance().localStorage.get('rounding-value') as string || '0'
     values['rounding-value'] = parseInt(roundingValue)
 
-    const roundingDirection = T2R.localStorage.get('rounding-direction')
+    const roundingDirection = Application.instance().localStorage.get('rounding-direction') as RoundingMethod || undefined
     if (roundingDirection) {
       values['rounding-direction'] = roundingDirection
     }
@@ -330,6 +327,11 @@ class FilterForm {
   }
 
   public onSubmit() {
+    const localStorage = Application.instance().localStorage
+    const tempStorage = Application.instance().tempStorage
+    const redmineReport = Application.instance().redmineReport
+    const togglReport = Application.instance().togglReport
+    const publishForm = Application.instance().publishForm
     const values = this.getValues()
 
     if (!values['date']) {
@@ -345,29 +347,29 @@ class FilterForm {
       return false
     }
 
-    T2R.localStorage.set('default-activity', values['default-activity'])
-    T2R.localStorage.set('toggl-workspace', values['toggl-workspace'])
-    T2R.localStorage.set('rounding-value', values['rounding-value'])
-    T2R.localStorage.set('rounding-direction', values['rounding-direction'])
-    T2R.tempStorage.set('date', oDate.toHTMLDate())
+    localStorage.set('default-activity', values['default-activity'])
+    localStorage.set('toggl-workspace', values['toggl-workspace'])
+    localStorage.set('rounding-value', values['rounding-value'])
+    localStorage.set('rounding-direction', values['rounding-direction'])
+    tempStorage.set('date', oDate.toHTMLDate())
 
     console.info('Filter form submitted', {
-      'date': T2R.tempStorage.get('date'),
-      'default-activity': T2R.localStorage.get('default-activity'),
-      'toggl-workspace': T2R.localStorage.get('toggl-workspace'),
-      'rounding-value': T2R.localStorage.get('rounding-value'),
-      'rounding-direction': T2R.localStorage.get('rounding-direction')
+      'date': tempStorage.get('date'),
+      'default-activity': localStorage.get('default-activity'),
+      'toggl-workspace': localStorage.get('toggl-workspace'),
+      'rounding-value': localStorage.get('rounding-value'),
+      'rounding-direction': localStorage.get('rounding-direction')
     });
 
     window.location.hash = oDate.toHTMLDate()
     $('h2 .date').html('(' + oDate.date.toLocaleDateString() + ')')
 
     setTimeout(() => {
-      T2R.redmineReport.update()
-      T2R.togglReport.update()
+      redmineReport.update()
+      togglReport.update()
     }, 250);
 
-    T2R.publishForm.enable()
+    publishForm.enable()
     return false
   }
 }
@@ -382,7 +384,7 @@ class RedmineReport {
   public static instance(): RedmineReport {
     if (!RedmineReport._instance) {
       RedmineReport._instance = new RedmineReport(
-          document.getElementById('redmine-report') as HTMLElement
+        document.getElementById('redmine-report') as HTMLElement
       )
     }
 
@@ -399,14 +401,14 @@ class RedmineReport {
     this.showLoader()
     this.makeEmpty()
 
-    const sDate: string = T2R.tempStorage.get('date')
+    const sDate: string = Application.instance().tempStorage.get('date')
     const oDate = datetime.DateTime.fromString(sDate)
 
     this.updateLink(sDate)
     this.updateLastImportDate()
 
     const query = { from: oDate, till: oDate }
-    T2R.redmineService.getTimeEntries(query, (entries: models.TimeEntry[] | null) => {
+    Application.instance().redmineService.getTimeEntries(query, (entries: models.TimeEntry[] | null) => {
       if (entries === null) {
         flash.error('An error has occurred. Please try again after some time.')
         entries = []
@@ -454,7 +456,7 @@ class RedmineReport {
       .html('&nbsp;')
       .addClass('t2r-loading')
 
-    T2R.redmineService.getLastImportDate((lastImportDate: datetime.DateTime | null) => {
+    Application.instance().redmineService.getLastImportDate((lastImportDate: datetime.DateTime | null) => {
       const sDate = lastImportDate ? lastImportDate.date.toLocaleDateString() : 'Unknown'
       $el.text(sDate).removeClass('t2r-loading')
     })
@@ -515,13 +517,13 @@ class TogglReport {
   public update() {
     var that = this
 
-    T2R.publishForm.disable()
+    Application.instance().publishForm.disable()
     this.showLoader()
     this.makeEmpty()
 
     // Determine report date.
-    const sDate = T2R.tempStorage.get('date')
-    const workspaceId = T2R.localStorage.get('toggl-workspace') as number | null
+    const sDate = Application.instance().tempStorage.get('date')
+    const workspaceId = Application.instance().localStorage.get('toggl-workspace') as number | null
 
     this.updateLink(sDate, workspaceId)
 
@@ -534,14 +536,14 @@ class TogglReport {
     const query = {
       from: datetime.DateTime.fromString(sDate + ' 00:00:00'),
       till: datetime.DateTime.fromString(sDate + ' 23:59:59'),
-      workspace: workspaceId
+      workspaceId: workspaceId
     }
-    T2R.redmineService.getTogglTimeEntries(query, (entries: models.KeyedTogglTimeEntryCollection) => {
+    Application.instance().redmineService.getTogglTimeEntries(query, (entries: models.KeyedTogglTimeEntryCollection) => {
       let pendingEntriesExist = false
 
       // Prepare rounding rules.
-      const roundingValue = T2R.localStorage.get('rounding-value')
-      const roundingMethod = T2R.localStorage.get('rounding-direction')
+      const roundingValue = Application.instance().localStorage.get('rounding-value') as number
+      const roundingMethod = Application.instance().localStorage.get('rounding-direction') as RoundingMethod
 
       // TODO: Use entries.map() instead?
       for (const key in entries) {
@@ -551,7 +553,7 @@ class TogglReport {
         entry.roundedDuration = new datetime.Duration(entry.duration.seconds)
 
         // Prepare rounded duration as per rounding rules.
-        if (roundingMethod !== '' && roundingValue > 0) {
+        if (roundingMethod && roundingValue > 0) {
           entry.roundedDuration.roundTo(roundingValue, roundingMethod)
         }
         else {
@@ -586,14 +588,17 @@ class TogglReport {
           // TODO: Set default activity on activity dropdowns.
 
           $tr.find('input[data-property=hours]')
-            .on('input', T2R.updateTogglTotals)
-            .on('change', T2R.updateTogglTotals)
+            .on('input change', () => {
+              Application.instance().togglReport.updateTotal()
+            })
 
           $tr.find('select[data-property=activity_id]')
-            .attr('data-selected', T2R.localStorage.get('default-activity'))
+            .attr('data-selected', Application.instance().localStorage.get('default-activity'))
 
           $tr.find('.cb-import')
-            .on('change', T2R.updateTogglTotals)
+            .on('change', () => {
+              Application.instance().togglReport.updateTotal()
+            })
         }
       }
 
@@ -624,11 +629,11 @@ class TogglReport {
       }
 
       that.checkAll.removeAttr('disabled')
-      T2R.publishForm.enable()
+      Application.instance().publishForm.enable()
 
       // If the update was triggered from the filter form, then focus the
       // "check-all" button to allow easier keyboard navigation.
-      if (T2R.filterForm.element.has(':focus').length > 0) {
+      if (Application.instance().filterForm.element.has(':focus').length > 0) {
         that.checkAll.trigger('focus')
       }
     })
@@ -643,10 +648,10 @@ class TogglReport {
    *   Toggl workspace ID.
    */
   private updateLink(date: string, workspaceId: number | null) {
-    workspaceId = workspaceId || T2R.tempStorage.get('default_toggl_workspace', 0)
+    workspaceId = workspaceId || Application.instance().tempStorage.get('default_toggl_workspace', 0)
 
     const url = T2R_TOGGL_REPORT_URL_FORMAT
-      .replace(/\[@date\]/g, date)
+      .replace(/[@date]/g, date)
       .replace('[@workspace]', (workspaceId as number).toString());
     $('#toggl-report-link').attr('href', url);
   }
@@ -706,30 +711,86 @@ class TogglReport {
   }
 }
 
-/**
- * Toggl 2 Redmine Helper.
- *
- * @todo Remove the T2R constant.
- */
-const T2R: any = {
-  localStorage: new LocalStorage('t2r.'),
-  tempStorage: new TemporaryStorage(),
-  redmineService: new RedmineAPIService(T2R_REDMINE_API_KEY),
-  filterForm: null,
-  publishForm: null,
-  redmineReport: null,
-  togglReport: null
+class Application {
+
+  /**
+   * Browser storage.
+   */
+  readonly localStorage: LocalStorage
+
+  /**
+   * Temporary storage.
+   *
+   * Data is lost when the page is refreshed.
+   */
+  readonly tempStorage: TemporaryStorage
+
+  readonly redmineService: RedmineAPIService
+
+  /**
+   * The form containing filters and options.
+   *
+   * @todo Rename to OptionsForm.
+   */
+  readonly filterForm: FilterForm
+
+  /**
+   * The form containing the "import to redmine" button.
+   *
+   * @todo Rename to ImportForm.
+   */
+  readonly publishForm: PublishForm
+
+  /**
+   * The table containing Redmine time entries.
+   */
+  readonly redmineReport: RedmineReport
+
+  /**
+   * The table containing Toggl time entries.
+   */
+  readonly togglReport: TogglReport
+
+  static _instance?: Application
+
+  public constructor(
+    redmineService: RedmineAPIService,
+    redmineReport: RedmineReport | undefined = undefined,
+    togglReport: TogglReport | undefined = undefined,
+    publishForm: PublishForm | undefined = undefined,
+    filterForm: FilterForm | undefined = undefined,
+    localStorage: LocalStorage | undefined = undefined,
+    tempStorage: TemporaryStorage | undefined = undefined,
+  ) {
+    this.localStorage = localStorage || new LocalStorage('toggl2redmine.')
+    this.tempStorage = tempStorage || new TemporaryStorage()
+    this.redmineService = redmineService
+    this.togglReport = togglReport || TogglReport.instance()
+    this.filterForm = filterForm || FilterForm.instance()
+    this.redmineReport = redmineReport || RedmineReport.instance()
+    this.publishForm = publishForm || PublishForm.instance()
+  }
+
+  static instance(): Application {
+    if (!Application._instance) {
+      Application._instance = new Application(
+        new RedmineAPIService(T2R_REDMINE_API_KEY)
+      )
+    }
+
+    return Application._instance as Application
+  }
+
+  public initialize() {
+    this.filterForm.reset({ date: utils.getDateFromLocationHash() })
+  }
+
 }
 
 /**
- * This is where it starts.
+ * Execute the Toggl2Redmine application.
  */
 $(() => {
-  widget.initialize();
-  T2R.publishForm = PublishForm.instance()
-  T2R.filterForm = FilterForm.instance()
-  T2R.redmineReport = RedmineReport.instance()
-  T2R.togglReport = TogglReport.instance()
-
-  T2R.filterForm.reset({ date: utils.getDateFromLocationHash() })
-});
+  widget.initialize()
+  Application.instance().initialize()
+})

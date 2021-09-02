@@ -134,20 +134,11 @@ interface FilterFormValues {
 
 class FilterForm {
   readonly element: JQuery<HTMLElement>
-  static _instance: FilterForm | null
+  private localStorage: LocalStorage
 
-  public static instance(): FilterForm {
-    if (!FilterForm._instance) {
-      FilterForm._instance = new FilterForm(
-        document.getElementById('filter-form') as HTMLElement
-      )
-    }
-
-    return FilterForm._instance as FilterForm
-  }
-
-  private constructor(element: HTMLElement) {
+  public constructor(element: HTMLElement, localStorage: LocalStorage) {
     this.element = $(element)
+    this.localStorage = localStorage
     this.init()
   }
 
@@ -156,22 +147,22 @@ class FilterForm {
 
     values['date'] = (new datetime.DateTime).toHTMLDate()
 
-    const workspaceId = Application.instance().localStorage.get('toggl-workspace') as string
+    const workspaceId = this.localStorage.get('toggl-workspace') as string
     if (workspaceId) {
       values['toggl-workspace'] = parseInt(workspaceId)
     }
 
-    const defaultActivityId = Application.instance().localStorage.get('default-activity') as string
+    const defaultActivityId = this.localStorage.get('default-activity') as string
     if (defaultActivityId) {
       values['default-activity'] = parseInt(defaultActivityId)
     }
 
-    const roundingValue = Application.instance().localStorage.get('rounding-value') as string || '0'
+    const roundingValue = this.localStorage.get('rounding-value') as string || '0'
     values['rounding-value'] = parseInt(roundingValue)
 
-    const roundingDirection = Application.instance().localStorage.get('rounding-direction') as datetime.RoundingMethod || undefined
-    if (roundingDirection) {
-      values['rounding-direction'] = roundingDirection
+    const roundingDirection = this.localStorage.get('rounding-direction') as datetime.RoundingMethod || undefined
+    if (typeof roundingDirection !== 'undefined') {
+      values['rounding-direction'] = roundingDirection as datetime.RoundingMethod
     }
 
     return values
@@ -198,7 +189,7 @@ class FilterForm {
       values['rounding-value'] = parseInt(sRoundingValue)
     }
 
-    const roundingMethod = $('select#rounding-direction').val()
+    const roundingMethod = $('select#rounding-direction').val() as datetime.RoundingMethod
     if (roundingMethod) {
       values['rounding-direction'] = roundingMethod as datetime.RoundingMethod
     }
@@ -317,7 +308,6 @@ class FilterForm {
   }
 
   public onSubmit() {
-    const localStorage = Application.instance().localStorage
     const redmineReport = Application.instance().redmineReport
     const togglReport = Application.instance().togglReport
     const publishForm = Application.instance().publishForm
@@ -336,10 +326,10 @@ class FilterForm {
       return false
     }
 
-    localStorage.set('default-activity', values['default-activity'])
-    localStorage.set('toggl-workspace', values['toggl-workspace'])
-    localStorage.set('rounding-value', values['rounding-value'])
-    localStorage.set('rounding-direction', values['rounding-direction'])
+    this.localStorage.set('default-activity', values['default-activity'])
+    this.localStorage.set('toggl-workspace', values['toggl-workspace'])
+    this.localStorage.set('rounding-value', values['rounding-value'])
+    this.localStorage.set('rounding-direction', values['rounding-direction'])
 
     console.info('Filter updated', values);
 
@@ -486,15 +476,16 @@ class TogglReport {
 
   public update() {
     const that = this
+    const filterFormValues = this.filterForm.getValues()
 
     Application.instance().publishForm.disable()
     this.showLoader()
     this.makeEmpty()
 
     // Determine report date.
-    const sDate = this.filterForm.getValues()['date'] as string
+    const sDate = filterFormValues['date'] as string
     const oDate = datetime.DateTime.fromString(sDate)
-    const workspaceId = Application.instance().localStorage.get('toggl-workspace') as number | null
+    const workspaceId = filterFormValues['toggl-workspace'] as number | null
 
     this.updateLink(oDate, workspaceId)
 
@@ -513,8 +504,8 @@ class TogglReport {
       let pendingEntriesExist = false
 
       // Prepare rounding rules.
-      const roundingValue = Application.instance().localStorage.get('rounding-value') as number
-      const roundingMethod = Application.instance().localStorage.get('rounding-direction') as datetime.RoundingMethod
+      const roundingValue = filterFormValues['rounding-value'] as number
+      const roundingMethod = filterFormValues['rounding-direction'] as datetime.RoundingMethod
 
       // TODO: Use entries.map() instead?
       for (const key in entries) {
@@ -548,6 +539,9 @@ class TogglReport {
         }
       }
 
+      const sDefaultActivityId = filterFormValues['default-activity']
+        ? filterFormValues['default-activity'].toString() : ''
+
       // Display entries eligible for import.
       for (const key in entries) {
         const entry = entries[key];
@@ -562,7 +556,7 @@ class TogglReport {
             })
 
           $tr.find('select[data-property=activity_id]')
-            .attr('data-selected', Application.instance().localStorage.get('default-activity'))
+            .attr('data-selected', sDefaultActivityId)
 
           $tr.find('.cb-import')
             .on('change', () => {
@@ -722,7 +716,10 @@ class Application {
   ) {
     this.localStorage = localStorage || new LocalStorage('toggl2redmine.')
     this.redmineService = redmineService
-    this.filterForm = filterForm || FilterForm.instance()
+    this.filterForm = filterForm || new FilterForm(
+      document.getElementById('filter-form') as HTMLElement,
+      this.localStorage
+    )
     this.togglReport = togglReport || new TogglReport(
       document.getElementById('toggl-report') as HTMLElement,
       this.filterForm

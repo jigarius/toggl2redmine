@@ -485,21 +485,12 @@ class RedmineReport {
 class TogglReport {
   readonly element: JQuery<HTMLElement>
   readonly checkAll: JQuery<HTMLElement>
-  static _instance: TogglReport | null
+  private filterForm: FilterForm
 
-  public static instance(): TogglReport {
-    if (!TogglReport._instance) {
-      TogglReport._instance = new TogglReport(
-        document.getElementById('toggl-report') as HTMLElement
-      )
-    }
-
-    return TogglReport._instance as TogglReport
-  }
-
-  private constructor(element: HTMLElement) {
+  public constructor(element: HTMLElement, filterForm: FilterForm) {
     this.element = $(element)
     this.checkAll = this.element.find('input.check-all')
+    this.filterForm = filterForm
     this.init()
   }
 
@@ -515,14 +506,14 @@ class TogglReport {
   }
 
   public update() {
-    var that = this
+    const that = this
 
     Application.instance().publishForm.disable()
     this.showLoader()
     this.makeEmpty()
 
     // Determine report date.
-    const sDate = Application.instance().tempStorage.get('date')
+    const sDate = this.filterForm.getValues()['date'] as string
     const workspaceId = Application.instance().localStorage.get('toggl-workspace') as number | null
 
     this.updateLink(sDate, workspaceId)
@@ -584,8 +575,6 @@ class TogglReport {
           const $tr = renderers.renderTogglRow(entry);
           that.element.find('tbody').append($tr);
           pendingEntriesExist = true
-
-          // TODO: Set default activity on activity dropdowns.
 
           $tr.find('input[data-property=hours]')
             .on('input change', () => {
@@ -765,8 +754,11 @@ class Application {
     this.localStorage = localStorage || new LocalStorage('toggl2redmine.')
     this.tempStorage = tempStorage || new TemporaryStorage()
     this.redmineService = redmineService
-    this.togglReport = togglReport || TogglReport.instance()
     this.filterForm = filterForm || FilterForm.instance()
+    this.togglReport = togglReport || new TogglReport(
+      document.getElementById('toggl-report') as HTMLElement,
+      this.filterForm
+    )
     this.redmineReport = redmineReport || RedmineReport.instance()
     this.publishForm = publishForm || PublishForm.instance()
   }

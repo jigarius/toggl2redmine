@@ -1,5 +1,7 @@
 import * as datetime from "./datetime.js"
 import * as models from "./models.js"
+import * as flash from "./flash.js"
+import {translate as t} from "./i18n.js"
 import {RequestQueue} from "./request.js"
 import {TemporaryStorage} from "./storage.js"
 import {TimeEntryActivity} from "./models.js"
@@ -101,6 +103,7 @@ export class RedmineAPIService {
   }
 
   handleRequestError(type: string): void {
+    flash.error(t('t2r.error.ajax_load'))
     console.error(`Request failed: ${type}`)
   }
 

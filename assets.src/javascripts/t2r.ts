@@ -38,7 +38,7 @@ class PublishForm {
 
     // If no entries are selected for import.
     if (Application.instance().togglReport.element.find('tbody input.cb-import').filter(':checked').length === 0) {
-      flash.error('Please select the entries which you want to import to Redmine.');
+      flash.error(t('t2r.error.no_entries_selected'));
       this.enable()
       return
     }
@@ -384,7 +384,6 @@ class RedmineReport {
     const query = { from: oDate, till: oDate }
     Application.instance().redmineService.getTimeEntries(query, (entries: models.TimeEntry[] | null) => {
       if (entries === null) {
-        flash.error('An error has occurred. Please try again after some time.')
         entries = []
       }
 

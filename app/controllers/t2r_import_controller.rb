@@ -17,7 +17,8 @@ class T2rImportController < T2rBaseController
   def index
     @translations = translation_hash(
       't2r.error.ajax_load',
-      't2r.error.list_empty'
+      't2r.error.list_empty',
+      't2r.error.no_entries_selected'
     )
   end
 

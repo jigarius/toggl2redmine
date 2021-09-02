@@ -343,7 +343,7 @@ class FilterForm {
     localStorage.set('rounding-value', values['rounding-value'])
     localStorage.set('rounding-direction', values['rounding-direction'])
 
-    console.info('Filter form submitted', values);
+    console.info('Filter updated', values);
 
     window.location.hash = oDate.toHTMLDate()
     $('h2 .date').html('(' + oDate.date.toLocaleDateString() + ')')

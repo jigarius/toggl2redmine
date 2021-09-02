@@ -715,25 +715,25 @@ class Application {
 
   public constructor(
     redmineAPI: RedmineAPIService,
+    localStorage: LocalStorage | undefined = undefined,
+    filterForm: FilterForm | undefined = undefined,
     redmineReport: RedmineReport | undefined = undefined,
     togglReport: TogglReport | undefined = undefined,
-    publishForm: PublishForm | undefined = undefined,
-    filterForm: FilterForm | undefined = undefined,
-    localStorage: LocalStorage | undefined = undefined
+    publishForm: PublishForm | undefined = undefined
   ) {
-    this.localStorage = localStorage || new LocalStorage('toggl2redmine.')
     this.redmineAPI = redmineAPI
+    this.localStorage = localStorage || new LocalStorage('toggl2redmine.')
     this.filterForm = filterForm || new FilterForm(
       document.getElementById('filter-form') as HTMLElement,
       this.localStorage
     )
-    this.togglReport = togglReport || new TogglReport(
-      document.getElementById('toggl-report') as HTMLElement,
+    this.redmineReport = redmineReport || new RedmineReport(
+      document.getElementById('redmine-report') as HTMLElement,
       this.filterForm,
       this.redmineAPI
     )
-    this.redmineReport = redmineReport || new RedmineReport(
-      document.getElementById('redmine-report') as HTMLElement,
+    this.togglReport = togglReport || new TogglReport(
+      document.getElementById('toggl-report') as HTMLElement,
       this.filterForm,
       this.redmineAPI
     )

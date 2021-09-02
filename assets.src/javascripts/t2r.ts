@@ -380,7 +380,7 @@ class RedmineReport {
     const sDate: string = this.filterForm.getValues()['date'] as string
     const oDate = datetime.DateTime.fromString(sDate)
 
-    this.updateLink(sDate)
+    this.updateLink(oDate)
     this.updateLastImportDate()
 
     const query = { from: oDate, till: oDate }
@@ -404,8 +404,14 @@ class RedmineReport {
     });
   }
 
-  private updateLink(date: string) {
-    const url = T2R_REDMINE_REPORT_URL_FORMAT.replace('[@date]', date)
+  /**
+   * Updates the link to the Redmine report page.
+   *
+   * @param date
+   *   Report date.
+   */
+  private updateLink(date: datetime.DateTime) {
+    const url = T2R_REDMINE_REPORT_URL_FORMAT.replace('[@date]', date.toHTMLDate())
     $('#redmine-report-link').attr('href', url)
   }
 
@@ -490,9 +496,10 @@ class TogglReport {
 
     // Determine report date.
     const sDate = this.filterForm.getValues()['date'] as string
+    const oDate = datetime.DateTime.fromString(sDate)
     const workspaceId = Application.instance().localStorage.get('toggl-workspace') as number | null
 
-    this.updateLink(sDate, workspaceId)
+    this.updateLink(oDate, workspaceId)
 
     // Uncheck the "check all" checkbox.
     this.checkAll
@@ -605,18 +612,18 @@ class TogglReport {
   }
 
   /**
-   * Updates the Toggl report URL.
+   * Updates the link to the Toggl report page.
    *
-   * @param {date} date
+   * @param date
    *   Report date.
-   * @param {number|null} workspaceId
+   * @param workspaceId
    *   Toggl workspace ID.
    */
-  private updateLink(date: string, workspaceId: number | null) {
+  private updateLink(date: datetime.DateTime, workspaceId: number | null) {
     workspaceId = workspaceId || 0
 
     const url = T2R_TOGGL_REPORT_URL_FORMAT
-      .replace(/[@date]/g, date)
+      .replace(/\[@date\]/g, date.toHTMLDate())
       .replace('[@workspace]', (workspaceId as number).toString());
     $('#toggl-report-link').attr('href', url);
   }

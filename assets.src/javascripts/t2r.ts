@@ -19,25 +19,17 @@ import * as flash from "./t2r/flash.js"
  */
 class PublishForm {
   readonly element: JQuery<HTMLElement>
-  static _instance: PublishForm | null
+  private filterForm: FilterForm
 
-  private constructor(element: HTMLElement) {
+  public constructor(element: HTMLElement, filterForm: FilterForm) {
     const that = this
     this.element = $(element)
+    this.filterForm = filterForm
+
     this.element.on('submit', () => {
       that.onSubmit()
       return false
     })
-  }
-
-  public static instance(): PublishForm {
-    if (!PublishForm._instance) {
-      PublishForm._instance = new PublishForm(
-        document.getElementById('publish-form') as HTMLElement
-      )
-    }
-
-    return PublishForm._instance as PublishForm
   }
 
   public onSubmit() {
@@ -55,6 +47,8 @@ class PublishForm {
       return
     }
 
+    const filterFormValues = this.filterForm.getValues()
+
     console.info('Sending time entries to Redmine.')
     Application.instance().togglReport.element.find('tbody tr').each(function (this: HTMLElement) {
       const $tr = $(this)
@@ -65,7 +59,7 @@ class PublishForm {
       }
 
       const timeEntry = {
-        spent_on: Application.instance().tempStorage.get('date') as string,
+        spent_on: filterFormValues['date'] as string,
         issue_id: parseInt($tr.find('[data-property="issue_id"]').val() as string),
         comments: $tr.find('[data-property="comments"]').val() as string,
         activity_id: parseInt($tr.find('[data-property="activity_id"]').val() as string),
@@ -353,13 +347,7 @@ class FilterForm {
     localStorage.set('rounding-direction', values['rounding-direction'])
     tempStorage.set('date', oDate.toHTMLDate())
 
-    console.info('Filter form submitted', {
-      'date': tempStorage.get('date'),
-      'default-activity': localStorage.get('default-activity'),
-      'toggl-workspace': localStorage.get('toggl-workspace'),
-      'rounding-value': localStorage.get('rounding-value'),
-      'rounding-direction': localStorage.get('rounding-direction')
-    });
+    console.info('Filter form submitted', values);
 
     window.location.hash = oDate.toHTMLDate()
     $('h2 .date').html('(' + oDate.date.toLocaleDateString() + ')')
@@ -755,7 +743,10 @@ class Application {
       document.getElementById('redmine-report') as HTMLElement,
       this.filterForm
     )
-    this.publishForm = publishForm || PublishForm.instance()
+    this.publishForm = publishForm || new PublishForm(
+      document.getElementById('publish-form') as HTMLElement,
+      this.filterForm
+    )
   }
 
   static instance(): Application {

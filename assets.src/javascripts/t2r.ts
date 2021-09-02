@@ -4,7 +4,7 @@ declare const T2R_REDMINE_API_KEY: string;
 declare const T2R_REDMINE_REPORT_URL_FORMAT : string;
 declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
 
-import {LocalStorage, TemporaryStorage} from "./t2r/storage.js";
+import {LocalStorage} from "./t2r/storage.js";
 import {translate as t} from "./t2r/i18n.js";
 import {RedmineAPIService} from "./t2r/services.js";
 import * as widget from "./t2r/widgets.js";
@@ -322,7 +322,6 @@ class FilterForm {
 
   public onSubmit() {
     const localStorage = Application.instance().localStorage
-    const tempStorage = Application.instance().tempStorage
     const redmineReport = Application.instance().redmineReport
     const togglReport = Application.instance().togglReport
     const publishForm = Application.instance().publishForm
@@ -345,7 +344,6 @@ class FilterForm {
     localStorage.set('toggl-workspace', values['toggl-workspace'])
     localStorage.set('rounding-value', values['rounding-value'])
     localStorage.set('rounding-direction', values['rounding-direction'])
-    tempStorage.set('date', oDate.toHTMLDate())
 
     console.info('Filter form submitted', values);
 
@@ -617,7 +615,7 @@ class TogglReport {
    *   Toggl workspace ID.
    */
   private updateLink(date: string, workspaceId: number | null) {
-    workspaceId = workspaceId || Application.instance().tempStorage.get('default_toggl_workspace', 0)
+    workspaceId = workspaceId || 0
 
     const url = T2R_TOGGL_REPORT_URL_FORMAT
       .replace(/[@date]/g, date)
@@ -687,13 +685,6 @@ class Application {
    */
   readonly localStorage: LocalStorage
 
-  /**
-   * Temporary storage.
-   *
-   * Data is lost when the page is refreshed.
-   */
-  readonly tempStorage: TemporaryStorage
-
   readonly redmineService: RedmineAPIService
 
   /**
@@ -728,11 +719,9 @@ class Application {
     togglReport: TogglReport | undefined = undefined,
     publishForm: PublishForm | undefined = undefined,
     filterForm: FilterForm | undefined = undefined,
-    localStorage: LocalStorage | undefined = undefined,
-    tempStorage: TemporaryStorage | undefined = undefined,
+    localStorage: LocalStorage | undefined = undefined
   ) {
     this.localStorage = localStorage || new LocalStorage('toggl2redmine.')
-    this.tempStorage = tempStorage || new TemporaryStorage()
     this.redmineService = redmineService
     this.filterForm = filterForm || FilterForm.instance()
     this.togglReport = togglReport || new TogglReport(

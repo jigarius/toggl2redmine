@@ -16,11 +16,13 @@ import * as flash from "./t2r/flash.js"
 class PublishForm {
   readonly element: JQuery<HTMLElement>
   private filterForm: FilterForm
+  private redmineAPI: RedmineAPIService
 
-  public constructor(element: HTMLElement, filterForm: FilterForm) {
+  public constructor(element: HTMLElement, filterForm: FilterForm, redmineAPI: RedmineAPIService) {
     const that = this
     this.element = $(element)
     this.filterForm = filterForm
+    this.redmineAPI = redmineAPI
 
     this.element.on('submit', () => {
       that.onSubmit()
@@ -29,6 +31,9 @@ class PublishForm {
   }
 
   public onSubmit() {
+    const that = this
+    const filterFormValues = this.filterForm.getValues()
+
     if (!confirm('This action cannot be undone. Do you really want to continue?')) {
       return
     }
@@ -42,8 +47,6 @@ class PublishForm {
       this.enable()
       return
     }
-
-    const filterFormValues = this.filterForm.getValues()
 
     console.info('Sending time entries to Redmine.')
     Application.instance().togglReport.element.find('tbody tr').each(function (this: HTMLElement) {
@@ -78,12 +81,12 @@ class PublishForm {
         return
       }
 
-      Application.instance().redmineService.postTimeEntry({
+      that.redmineAPI.postTimeEntry({
         time_entry: timeEntry,
         toggl_ids: $tr.data('t2r.entry').ids
       }, (errors: string[]) => {
         // If all requests have been processed.
-        if (Application.instance().redmineService.requestQueue.length === 0) {
+        if (that.redmineAPI.requestQueue.length === 0) {
           Application.instance().publishForm.enable()
           Application.instance().redmineReport.update()
         }
@@ -353,10 +356,12 @@ class RedmineReport {
   readonly element: JQuery<HTMLElement>
   static _instance: RedmineReport | null
   private filterForm: FilterForm
+  private redmineAPI: RedmineAPIService
 
-  public constructor(element: HTMLElement, filterForm: FilterForm) {
+  public constructor(element: HTMLElement, filterForm: FilterForm, redmineAPI: RedmineAPIService) {
     this.element = $(element)
     this.filterForm = filterForm
+    this.redmineAPI = redmineAPI
   }
 
   public update() {
@@ -372,7 +377,7 @@ class RedmineReport {
     this.updateLastImportDate()
 
     const query = { from: oDate, till: oDate }
-    Application.instance().redmineService.getTimeEntries(query, (entries: models.TimeEntry[] | null) => {
+    this.redmineAPI.getTimeEntries(query, (entries: models.TimeEntry[] | null) => {
       if (entries === null) {
         entries = []
       }
@@ -425,7 +430,7 @@ class RedmineReport {
       .html('&nbsp;')
       .addClass('t2r-loading')
 
-    Application.instance().redmineService.getLastImportDate((lastImportDate: datetime.DateTime | null) => {
+    this.redmineAPI.getLastImportDate((lastImportDate: datetime.DateTime | null) => {
       const sDate = lastImportDate ? lastImportDate.date.toLocaleDateString() : 'Unknown'
       $el.text(sDate).removeClass('t2r-loading')
     })
@@ -455,11 +460,13 @@ class TogglReport {
   readonly element: JQuery<HTMLElement>
   readonly checkAll: JQuery<HTMLElement>
   private filterForm: FilterForm
+  private redmineAPI: RedmineAPIService
 
-  public constructor(element: HTMLElement, filterForm: FilterForm) {
+  public constructor(element: HTMLElement, filterForm: FilterForm, redmineAPI: RedmineAPIService) {
     this.element = $(element)
     this.checkAll = this.element.find('input.check-all')
     this.filterForm = filterForm
+    this.redmineAPI = redmineAPI
     this.init()
   }
 
@@ -500,7 +507,7 @@ class TogglReport {
       till: datetime.DateTime.fromString(sDate + ' 23:59:59'),
       workspaceId: workspaceId
     }
-    Application.instance().redmineService.getTogglTimeEntries(query, (entries: models.KeyedTogglTimeEntryCollection) => {
+    this.redmineAPI.getTogglTimeEntries(query, (entries: models.KeyedTogglTimeEntryCollection) => {
       let pendingEntriesExist = false
 
       // Prepare rounding rules.
@@ -678,7 +685,7 @@ class Application {
    */
   readonly localStorage: LocalStorage
 
-  readonly redmineService: RedmineAPIService
+  readonly redmineAPI: RedmineAPIService
 
   /**
    * The form containing filters and options.
@@ -707,7 +714,7 @@ class Application {
   static _instance?: Application
 
   public constructor(
-    redmineService: RedmineAPIService,
+    redmineAPI: RedmineAPIService,
     redmineReport: RedmineReport | undefined = undefined,
     togglReport: TogglReport | undefined = undefined,
     publishForm: PublishForm | undefined = undefined,
@@ -715,22 +722,25 @@ class Application {
     localStorage: LocalStorage | undefined = undefined
   ) {
     this.localStorage = localStorage || new LocalStorage('toggl2redmine.')
-    this.redmineService = redmineService
+    this.redmineAPI = redmineAPI
     this.filterForm = filterForm || new FilterForm(
       document.getElementById('filter-form') as HTMLElement,
       this.localStorage
     )
     this.togglReport = togglReport || new TogglReport(
       document.getElementById('toggl-report') as HTMLElement,
-      this.filterForm
+      this.filterForm,
+      this.redmineAPI
     )
     this.redmineReport = redmineReport || new RedmineReport(
       document.getElementById('redmine-report') as HTMLElement,
-      this.filterForm
+      this.filterForm,
+      this.redmineAPI
     )
     this.publishForm = publishForm || new PublishForm(
       document.getElementById('publish-form') as HTMLElement,
-      this.filterForm
+      this.filterForm,
+      this.redmineAPI
     )
   }
 

@@ -1,6 +1,4 @@
 declare const T2R_REDMINE_API_KEY: string
-declare const T2R_REDMINE_REPORT_URL_FORMAT : string
-declare const T2R_TOGGL_REPORT_URL_FORMAT: string
 
 import {LocalStorage} from "./t2r/storage.js"
 import {translate as t} from "./t2r/i18n.js"
@@ -411,7 +409,7 @@ class RedmineReport {
    *   Report date.
    */
   private updateLink(date: datetime.DateTime) {
-    const url = T2R_REDMINE_REPORT_URL_FORMAT.replace('[@date]', date.toHTMLDate())
+    const url = `/time_entries?utf8=✓&set_filter=1&sort=spent_on:desc&f[]=spent_on&op[spent_on]=%3D&v[spent_on][]=[${date.toHTMLDate()}]&f[]=user_id&op[user_id]=%3D&v[user_id][]=me&c[]=project&c[]=spent_on&c[]=user&c[]=activity&c[]=issue&c[]=comments&c[]=hours&group_by=spent_on&t[]=hours&t[]=`
     $('#redmine-report-link').attr('href', url)
   }
 
@@ -621,11 +619,8 @@ class TogglReport {
    */
   private updateLink(date: datetime.DateTime, workspaceId: number | null) {
     workspaceId = workspaceId || 0
-
-    const url = T2R_TOGGL_REPORT_URL_FORMAT
-      .replace(/\[@date\]/g, date.toHTMLDate())
-      .replace('[@workspace]', (workspaceId as number).toString());
-    $('#toggl-report-link').attr('href', url);
+    const url = `https://track.toggl.com/reports/summary/${workspaceId}/from/${date.toHTMLDate()}/to/${date.toHTMLDate()}`
+    $('#toggl-report-link').attr('href', url)
   }
 
   /**

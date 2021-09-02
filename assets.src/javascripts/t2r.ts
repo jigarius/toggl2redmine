@@ -1,16 +1,14 @@
-import {RoundingMethod} from "./t2r/datetime.js";
+declare const T2R_REDMINE_API_KEY: string
+declare const T2R_REDMINE_REPORT_URL_FORMAT : string
+declare const T2R_TOGGL_REPORT_URL_FORMAT: string
 
-declare const T2R_REDMINE_API_KEY: string;
-declare const T2R_REDMINE_REPORT_URL_FORMAT : string;
-declare const T2R_TOGGL_REPORT_URL_FORMAT: string;
-
-import {LocalStorage} from "./t2r/storage.js";
-import {translate as t} from "./t2r/i18n.js";
-import {RedmineAPIService} from "./t2r/services.js";
-import * as widget from "./t2r/widgets.js";
-import * as models from "./t2r/models.js";
-import * as renderers from "./t2r/renderers.js";
-import * as datetime from "./t2r/datetime.js";
+import {LocalStorage} from "./t2r/storage.js"
+import {translate as t} from "./t2r/i18n.js"
+import {RedmineAPIService} from "./t2r/services.js"
+import * as widget from "./t2r/widgets.js"
+import * as models from "./t2r/models.js"
+import * as renderers from "./t2r/renderers.js"
+import * as datetime from "./t2r/datetime.js"
 import * as utils from "./t2r/utils.js"
 import * as flash from "./t2r/flash.js"
 
@@ -133,7 +131,7 @@ interface FilterFormValues {
   'default-activity'?: number,
   'toggl-workspace'?: number,
   'rounding-value'?: number,
-  'rounding-direction'?: RoundingMethod
+  'rounding-direction'?: datetime.RoundingMethod
 }
 
 class FilterForm {
@@ -173,7 +171,7 @@ class FilterForm {
     const roundingValue = Application.instance().localStorage.get('rounding-value') as string || '0'
     values['rounding-value'] = parseInt(roundingValue)
 
-    const roundingDirection = Application.instance().localStorage.get('rounding-direction') as RoundingMethod || undefined
+    const roundingDirection = Application.instance().localStorage.get('rounding-direction') as datetime.RoundingMethod || undefined
     if (roundingDirection) {
       values['rounding-direction'] = roundingDirection
     }
@@ -204,7 +202,7 @@ class FilterForm {
 
     const roundingMethod = $('select#rounding-direction').val()
     if (roundingMethod) {
-      values['rounding-direction'] = roundingMethod as RoundingMethod
+      values['rounding-direction'] = roundingMethod as datetime.RoundingMethod
     }
 
     const sDate: string = $('#date').val() as string
@@ -512,7 +510,7 @@ class TogglReport {
 
       // Prepare rounding rules.
       const roundingValue = Application.instance().localStorage.get('rounding-value') as number
-      const roundingMethod = Application.instance().localStorage.get('rounding-direction') as RoundingMethod
+      const roundingMethod = Application.instance().localStorage.get('rounding-direction') as datetime.RoundingMethod
 
       // TODO: Use entries.map() instead?
       for (const key in entries) {

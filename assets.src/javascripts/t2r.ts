@@ -380,28 +380,20 @@ class FilterForm {
 class RedmineReport {
   readonly element: JQuery<HTMLElement>
   static _instance: RedmineReport | null
+  private filterForm: FilterForm
 
-  public static instance(): RedmineReport {
-    if (!RedmineReport._instance) {
-      RedmineReport._instance = new RedmineReport(
-        document.getElementById('redmine-report') as HTMLElement
-      )
-    }
-
-    return RedmineReport._instance as RedmineReport
-  }
-
-  private constructor(element: HTMLElement) {
+  public constructor(element: HTMLElement, filterForm: FilterForm) {
     this.element = $(element)
+    this.filterForm = filterForm
   }
 
   public update() {
-    var that = this
+    const that = this
 
     this.showLoader()
     this.makeEmpty()
 
-    const sDate: string = Application.instance().tempStorage.get('date')
+    const sDate: string = this.filterForm.getValues()['date'] as string
     const oDate = datetime.DateTime.fromString(sDate)
 
     this.updateLink(sDate)
@@ -759,7 +751,10 @@ class Application {
       document.getElementById('toggl-report') as HTMLElement,
       this.filterForm
     )
-    this.redmineReport = redmineReport || RedmineReport.instance()
+    this.redmineReport = redmineReport || new RedmineReport(
+      document.getElementById('redmine-report') as HTMLElement,
+      this.filterForm
+    )
     this.publishForm = publishForm || PublishForm.instance()
   }
 

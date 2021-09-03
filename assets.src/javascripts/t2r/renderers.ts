@@ -118,7 +118,7 @@ export function renderRedmineRow(data: models.TimeEntry): JQuery<HTMLElement> {
   const project = data.project
   const projectLabel = renderRedmineProjectLabel(project)
   const oDuration = data.duration
-  oDuration.roundTo(1, datetime.RoundingMethod.Up)
+  oDuration.roundTo(1, datetime.DurationRoundingMethod.Up)
 
   const markup = '<tr id="time-entry-' + data.id + '"  class="time-entry hascontextmenu">'
     + '<td class="subject">'

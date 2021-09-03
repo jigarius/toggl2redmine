@@ -223,9 +223,9 @@ function initDurationRoundingMethodDropdown(el: HTMLElement): void {
 
   // Prepare rounding options.
   const options: DropdownOptionDictionary = {}
-  options[datetime.RoundingMethod.Regular] = 'Round off'
-  options[datetime.RoundingMethod.Up] = 'Round up'
-  options[datetime.RoundingMethod.Down] = 'Round down'
+  options[datetime.DurationRoundingMethod.Regular] = 'Round off'
+  options[datetime.DurationRoundingMethod.Up] = 'Round up'
+  options[datetime.DurationRoundingMethod.Down] = 'Round down'
 
   // Generate a SELECT element and use it's options.
   const $select = buildDropdownFromDictionary({

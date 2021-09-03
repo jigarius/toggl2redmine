@@ -247,13 +247,10 @@ function initRedmineActivityDropdown(el: HTMLElement): void {
       records: activities
     });
 
-    $el.append($select.find('option'));
+    $el.append($select.find('option')).val('');
 
-    // Mark selection.
-    const value = $el.data('selected');
-    if ('undefined' !== typeof value) {
-      $el.val(value).data('selected', null);
-    }
+    const value = $el.data('selected') || '';
+    $el.val(value).removeAttr('selected');
   })
 }
 

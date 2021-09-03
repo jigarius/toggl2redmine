@@ -150,21 +150,21 @@ class FilterForm {
 
     values['date'] = (new datetime.DateTime).toHTMLDate()
 
-    const workspaceId = this.localStorage.get('toggl-workspace') as string
+    const workspaceId = this.localStorage.get('toggl-workspace')
     if (workspaceId) {
-      values['toggl-workspace'] = parseInt(workspaceId)
+      values['toggl-workspace'] = parseInt(workspaceId as string)
     }
 
-    const defaultActivityId = this.localStorage.get('default-activity') as string
+    const defaultActivityId = this.localStorage.get('default-activity')
     if (defaultActivityId) {
-      values['default-activity'] = parseInt(defaultActivityId)
+      values['default-activity'] = parseInt(defaultActivityId as string)
     }
 
     const roundingValue = this.localStorage.get('rounding-value') as string || '0'
     values['rounding-value'] = parseInt(roundingValue)
 
     const roundingDirection = this.localStorage.get('rounding-direction') as datetime.RoundingMethod || undefined
-    if (typeof roundingDirection !== 'undefined') {
+    if (roundingDirection) {
       values['rounding-direction'] = roundingDirection as datetime.RoundingMethod
     }
 
@@ -175,9 +175,9 @@ class FilterForm {
     const values: FilterFormValues = {}
 
     const $defaultActivityId = $('select#default-activity')
-    const defaultActivityId = $defaultActivityId.val() || $defaultActivityId.data('selected')
+    const defaultActivityId = $defaultActivityId.val()
     if (defaultActivityId) {
-      values['default-activity'] = parseInt(defaultActivityId)
+      values['default-activity'] = parseInt(defaultActivityId as string)
     }
 
     const $togglWorkspaceId = $('select#toggl-workspace')

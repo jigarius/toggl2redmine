@@ -49,7 +49,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
     data = {
       from: '2021-01-17T05:00:00.000Z',
       till: '2021-01-18T04:59:59.000Z',
-      workspaces: '607,619'
+      workspace_id: 619
     }
 
     TogglService
@@ -58,7 +58,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
       .with(
         start_date: DateTime.parse(data[:from]),
         end_date: DateTime.parse(data[:till]),
-        workspaces: [607, 619]
+        workspace_id: 619
       )
       .returns(time_entries)
 
@@ -170,7 +170,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
       .with(
         start_date: DateTime.parse(data[:from]),
         end_date: DateTime.parse(data[:till]),
-        workspaces: []
+        workspace_id: nil
       )
       .returns(time_entries)
 
@@ -231,7 +231,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
       .with(
         start_date: DateTime.parse(data[:from]),
         end_date: DateTime.parse(data[:till]),
-        workspaces: []
+        workspace_id: nil
       )
       .returns(time_entries)
 
@@ -280,7 +280,7 @@ class T2rTogglControllerTest < T2r::IntegrationTest
       .with(
         start_date: DateTime.parse(data[:from]),
         end_date: DateTime.parse(data[:till]),
-        workspaces: []
+        workspace_id: nil
       )
       .returns(time_entries)
 

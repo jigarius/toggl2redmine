@@ -59,7 +59,6 @@ export class DateTime {
 
     // Must have at least the "date" part.
     if (dateParts.length < 3) {
-      console.error('Invalid date', date)
       throw `Invalid date: ${date}`
     }
 

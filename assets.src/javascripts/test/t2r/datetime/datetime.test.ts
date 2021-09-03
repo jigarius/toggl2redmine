@@ -1,7 +1,7 @@
 import {expect} from 'chai'
 import * as datetime from '../../../t2r/datetime'
 
-describe('class t2r.DateTime', () => {
+describe('class t2r.datetime.DateTime', () => {
   it('.constructor()', () => {
     const nativeDate = new Date(2021, 12, 16)
     const dt = new datetime.DateTime(nativeDate)

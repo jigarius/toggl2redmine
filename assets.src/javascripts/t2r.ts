@@ -500,8 +500,6 @@ class TogglReport {
     const that = this
     const filterFormValues = this.filterForm.getValues()
 
-    // TODO: Must not depend on PublishForm.
-    Application.instance().publishForm.disable()
     this.showLoader()
     this.makeEmpty()
 
@@ -615,9 +613,6 @@ class TogglReport {
       }
 
       that.checkAll.removeAttr('disabled')
-
-      // TODO: Must not depend on PublishForm.
-      Application.instance().publishForm.enable()
 
       // If the update was triggered from the filter form, then focus the
       // "check-all" button to allow easier keyboard navigation.

@@ -150,7 +150,7 @@ interface FilterFormValues {
   'default-activity'?: number,
   'toggl-workspace'?: number,
   'rounding-value'?: number,
-  'rounding-method'?: datetime.RoundingMethod
+  'rounding-method'?: datetime.DurationRoundingMethod
 }
 
 class FilterForm {
@@ -202,9 +202,9 @@ class FilterForm {
     const roundingValue = this.localStorage.get('rounding-value') as string || '0'
     values['rounding-value'] = parseInt(roundingValue)
 
-    const roundingMethod = this.localStorage.get('rounding-method') as datetime.RoundingMethod
+    const roundingMethod = this.localStorage.get('rounding-method') as datetime.DurationRoundingMethod
     if (roundingMethod) {
-      values['rounding-method'] = roundingMethod as datetime.RoundingMethod
+      values['rounding-method'] = roundingMethod as datetime.DurationRoundingMethod
     }
 
     return values
@@ -231,9 +231,9 @@ class FilterForm {
       values['rounding-value'] = parseInt(sRoundingValue)
     }
 
-    const roundingMethod = $('select#rounding-method').val() as datetime.RoundingMethod
+    const roundingMethod = $('select#rounding-method').val() as datetime.DurationRoundingMethod
     if (roundingMethod) {
-      values['rounding-method'] = roundingMethod as datetime.RoundingMethod
+      values['rounding-method'] = roundingMethod as datetime.DurationRoundingMethod
     }
 
     const sDate: string = $('#date').val() as string
@@ -526,7 +526,7 @@ class TogglReport {
 
       // Prepare rounding rules.
       const roundingValue = filterFormValues['rounding-value'] as number
-      const roundingMethod = filterFormValues['rounding-method'] as datetime.RoundingMethod
+      const roundingMethod = filterFormValues['rounding-method'] as datetime.DurationRoundingMethod
 
       // TODO: Use entries.map() instead?
       for (const key in entries) {
@@ -540,7 +540,7 @@ class TogglReport {
           entry.roundedDuration.roundTo(roundingValue, roundingMethod)
         }
         else {
-          entry.roundedDuration.roundTo(1, datetime.RoundingMethod.Regular)
+          entry.roundedDuration.roundTo(1, datetime.DurationRoundingMethod.Regular)
         }
 
         entries[key] = entry

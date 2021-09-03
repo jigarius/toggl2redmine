@@ -96,7 +96,7 @@ export class DateTime {
 
 }
 
-export enum RoundingMethod {
+export enum DurationRoundingMethod {
   Up = 'U',
   Down = 'D',
   Regular = 'R'
@@ -265,10 +265,10 @@ export class Duration {
    *
    * @param {*} minutes
    *   Number of minutes to round to. Ex: 5, 10 or 15.
-   * @param {RoundingMethod} method
+   * @param {DurationRoundingMethod} method
    *   Rounding logic.
    */
-  roundTo(minutes: number, method: RoundingMethod): void {
+  roundTo(minutes: number, method: DurationRoundingMethod): void {
     if (0 === minutes) return
     const seconds: number = minutes * 60;
 
@@ -278,20 +278,20 @@ export class Duration {
 
     // Round according to rounding method.
     switch (method) {
-      case RoundingMethod.Regular:
+      case DurationRoundingMethod.Regular:
         if (correction >= seconds / 2) {
-          this.roundTo(minutes, RoundingMethod.Up);
+          this.roundTo(minutes, DurationRoundingMethod.Up);
         }
         else {
-          this.roundTo(minutes, RoundingMethod.Down);
+          this.roundTo(minutes, DurationRoundingMethod.Down);
         }
         break;
 
-      case RoundingMethod.Up:
+      case DurationRoundingMethod.Up:
         this.add(new Duration(seconds - correction));
         break;
 
-      case RoundingMethod.Down:
+      case DurationRoundingMethod.Down:
         this.sub(new Duration(correction));
         break;
 

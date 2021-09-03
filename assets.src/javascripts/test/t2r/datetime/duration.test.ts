@@ -152,22 +152,22 @@ describe('class t2r.datetime.Duration', () => {
 
     // 5m to the nearest 5 minute.
     dur = new datetime.Duration('00:05')
-    dur.roundTo(5, datetime.RoundingMethod.Regular)
+    dur.roundTo(5, datetime.DurationRoundingMethod.Regular)
     expect(dur.asHHMM()).to.equal('00:05')
 
     // 7m 29s to the nearest 5 minute.
     dur = new datetime.Duration(7 * 60 + 29)
-    dur.roundTo(5, datetime.RoundingMethod.Regular)
+    dur.roundTo(5, datetime.DurationRoundingMethod.Regular)
     expect(dur.asHHMM()).to.equal('00:05')
 
     // 7m 30s to the nearest 5 minute.
     dur = new datetime.Duration(7.5 * 60)
-    dur.roundTo(5, datetime.RoundingMethod.Regular)
+    dur.roundTo(5, datetime.DurationRoundingMethod.Regular)
     expect(dur.asHHMM()).to.equal('00:10')
 
     // 7m 31s to the nearest 5 minute.
     dur = new datetime.Duration(7 * 60 + 31)
-    dur.roundTo(5, datetime.RoundingMethod.Regular)
+    dur.roundTo(5, datetime.DurationRoundingMethod.Regular)
     expect(dur.asHHMM()).to.equal('00:10')
   })
 
@@ -176,22 +176,22 @@ describe('class t2r.datetime.Duration', () => {
 
     // 5m to the nearest 5 minute.
     dur = new datetime.Duration('00:05')
-    dur.roundTo(5, datetime.RoundingMethod.Up)
+    dur.roundTo(5, datetime.DurationRoundingMethod.Up)
     expect(dur.asHHMM()).to.equal('00:05')
 
     // 7m 29s to the nearest 5 minute.
     dur = new datetime.Duration(7 * 60 + 29)
-    dur.roundTo(5, datetime.RoundingMethod.Up)
+    dur.roundTo(5, datetime.DurationRoundingMethod.Up)
     expect(dur.asHHMM()).to.equal('00:10')
 
     // 7m 30s to the nearest 5 minute.
     dur = new datetime.Duration(7.5 * 60)
-    dur.roundTo(5, datetime.RoundingMethod.Up)
+    dur.roundTo(5, datetime.DurationRoundingMethod.Up)
     expect(dur.asHHMM()).to.equal('00:10')
 
     // 7m 31s to the nearest 5 minute.
     dur = new datetime.Duration(7 * 60 + 31)
-    dur.roundTo(5, datetime.RoundingMethod.Up)
+    dur.roundTo(5, datetime.DurationRoundingMethod.Up)
     expect(dur.asHHMM()).to.equal('00:10')
   })
 
@@ -200,22 +200,22 @@ describe('class t2r.datetime.Duration', () => {
 
     // 5m to the nearest 5 minute.
     dur = new datetime.Duration('00:05')
-    dur.roundTo(5, datetime.RoundingMethod.Down)
+    dur.roundTo(5, datetime.DurationRoundingMethod.Down)
     expect(dur.asHHMM()).to.equal('00:05')
 
     // 7m 29s to the nearest 5 minute.
     dur = new datetime.Duration(7 * 60 + 29)
-    dur.roundTo(5, datetime.RoundingMethod.Down)
+    dur.roundTo(5, datetime.DurationRoundingMethod.Down)
     expect(dur.asHHMM()).to.equal('00:05')
 
     // 7m 30s to the nearest 5 minute.
     dur = new datetime.Duration(7.5 * 60)
-    dur.roundTo(5, datetime.RoundingMethod.Down)
+    dur.roundTo(5, datetime.DurationRoundingMethod.Down)
     expect(dur.asHHMM()).to.equal('00:05')
 
     // 7m 31s to the nearest 5 minute.
     dur = new datetime.Duration(7 * 60 + 31)
-    dur.roundTo(5, datetime.RoundingMethod.Down)
+    dur.roundTo(5, datetime.DurationRoundingMethod.Down)
     expect(dur.asHHMM()).to.equal('00:05')
   })
 })

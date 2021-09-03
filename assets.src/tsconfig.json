@@ -15,6 +15,6 @@
     ]
   },
   "exclude": [
-    "test/**/*.test.ts"
+    "javascripts/test"
   ]
 }

@@ -59,7 +59,7 @@ export class TemporaryStorage {
     this.data = {}
   }
 
-  get(key: string, fallback: any = null): any {
+  get(key: string, fallback: any = undefined): any {
     if (typeof this.data[key] !== 'undefined') {
       return this.data[key]
     }
@@ -68,7 +68,22 @@ export class TemporaryStorage {
   }
 
   set<Type>(key: string, value: Type): Type {
-    this.data[key] = value || null
+    if (value === null || typeof value === 'undefined') {
+      this.delete(key)
+      return value
+    }
+
+    this.data[key] = value
     return this.data[key]
+  }
+
+  delete(key: string): any {
+    const value = this.get(key)
+
+    if (key in this.data) {
+      delete this.data[key]
+    }
+
+    return value
   }
 }

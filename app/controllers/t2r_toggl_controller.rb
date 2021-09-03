@@ -9,7 +9,7 @@ class T2rTogglController < T2rBaseController
     time_entries = toggl_service.load_time_entries(
       start_date: params[:from],
       end_date: params[:till],
-      workspaces: params[:workspaces]
+      workspace_id: params[:workspace_id]
     )
     groups = TogglTimeEntryGroup.group(time_entries)
 
@@ -58,7 +58,7 @@ class T2rTogglController < T2rBaseController
     params[:from] = Time.parse(params.require(:from))
     params[:till] = Time.parse(params.require(:till))
 
-    params[:workspaces] =
-      params.fetch(:workspaces, '').split(',').map(&:to_i)
+    wid = params.fetch(:workspace_id, nil)
+    params[:workspace_id] = wid ? wid&.to_i : nil
   end
 end

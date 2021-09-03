@@ -80,11 +80,11 @@ class TogglServiceTest < ActiveSupport::TestCase
     assert_equal(expected, result)
   end
 
-  test '.load_time_entries filters entries by workspace' do
+  test '.load_time_entries filters entries by workspace ID' do
     query = {
       start_date: Time.now,
       end_date: Time.now - 24.hours,
-      workspaces: [99]
+      workspace_id: 99
     }
 
     mock_response =
@@ -112,14 +112,35 @@ class TogglServiceTest < ActiveSupport::TestCase
     subject = TogglService.new(TOGGL_API_KEY)
     result = subject.load_time_entries(query)
 
-    # rubocop:disable Layout/LineLength
     expected = [
-      { id: 1_844_093_947, wid: 99, duration: 1200, description: '#2 Reticulating splines', at: '2021-01-17T21:21:01+00:00' },
-      { id: 1_844_094_084, wid: 99, duration: 600, description: '#2 Reticulating splines', at: '2021-01-17T21:21:34+00:00' }
+      {
+        id: 1_844_093_947,
+        wid: 99,
+        duration: 1200,
+        description: '#2 Reticulating splines',
+        at: '2021-01-17T21:21:01+00:00'
+      },
+      {
+        id: 1_844_094_084,
+        wid: 99,
+        duration: 600,
+        description: '#2 Reticulating splines',
+        at: '2021-01-17T21:21:34+00:00'
+      }
     ].map { |r| TogglTimeEntry.new(r) }
-    # rubocop:enable Layout/LineLength
 
     assert_equal(expected, result)
+  end
+
+  test '.load_time_entries fails if workspace ID is not numeric' do
+    query = {
+      start_date: Time.now,
+      end_date: Time.now - 24.hours,
+      workspaceId: 'a'
+    }
+
+    subject = TogglService.new(TOGGL_API_KEY)
+    assert_raises(ArgumentError) { subject.load_time_entries(query) }
   end
 
   test '.load_workspaces raises Error on failure' do

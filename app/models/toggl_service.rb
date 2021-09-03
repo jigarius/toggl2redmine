@@ -27,21 +27,21 @@ class TogglService
   def load_time_entries(
     start_date:,
     end_date:,
-    workspaces: []
+    workspace_id: nil
   )
-    raise ArgumentError, "'workspaces' must be an Array" unless Array === workspaces
+    unless workspace_id.nil?
+      raise ArgumentError, "Workspace ID must be a valid integer" unless Integer === workspace_id
+    end
 
-    query = {
+    raw_entries = get('/api/v8/time_entries', {
       start_date: start_date.iso8601,
       end_date: end_date.iso8601
-    }
-
-    raw_entries = get('/api/v8/time_entries', query)
+    })
 
     # The workspace filter is only supported on certain versions of the
     # Toggl API. Thus, it is easier to filter out such records ourselves.
-    filter_by_workspaces(raw_entries, workspaces)
-      .map { |e| TogglTimeEntry.new(e.symbolize_keys) }
+    raw_entries = raw_entries.keep_if { |r| workspace_id == r['wid'] } if workspace_id
+    raw_entries.map { |e| TogglTimeEntry.new(e.symbolize_keys) }
   end
 
   # Loads workspaces from Toggl.
@@ -68,12 +68,6 @@ class TogglService
     raise_on_error(request, response)
 
     JSON.parse(response.body)
-  end
-
-  def filter_by_workspaces(records, workspaces)
-    return records if workspaces.empty?
-
-    records.keep_if { |r| workspaces.include? r['wid'] }
   end
 
   def raise_on_error(request, response)

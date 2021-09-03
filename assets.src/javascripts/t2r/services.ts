@@ -228,8 +228,7 @@ export class RedmineAPIService {
     const data = {
       from: params.from.toISOString(),
       till: params.till.toISOString(),
-      // @todo Rename workspaces to workspaceId
-      workspaces: params.workspaceId || null
+      workspace_id: params.workspaceId || null
     }
 
     this.request({

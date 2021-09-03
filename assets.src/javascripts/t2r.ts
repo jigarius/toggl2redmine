@@ -34,11 +34,11 @@ class PublishForm {
     this.redmineReport = redmineReport
     this.togglReport = togglReport
 
-    this.filterForm.eventManager.on('validate', function() {
+    this.filterForm.eventManager.on('preSubmit', function() {
       that.disable()
     })
 
-    this.filterForm.eventManager.on('submit', function() {
+    this.filterForm.eventManager.on('postSubmit', function() {
       that.enable()
     })
 
@@ -326,7 +326,7 @@ class FilterForm {
   }
 
   public onSubmit() {
-    this.eventManager.trigger('validate')
+    this.eventManager.trigger('preSubmit')
     const values = this.getValues()
 
     if (!values['date']) {
@@ -352,7 +352,7 @@ class FilterForm {
     window.location.hash = oDate.toHTMLDate()
     $('h2 .date').html('(' + oDate.date.toLocaleDateString() + ')')
 
-    this.eventManager.trigger('submit')
+    this.eventManager.trigger('postSubmit')
 
     return false
   }
@@ -373,7 +373,7 @@ class RedmineReport {
     this.filterForm = filterForm
     this.redmineAPI = redmineAPI
 
-    this.filterForm.eventManager.on('submit', function() {
+    this.filterForm.eventManager.on('postSubmit', function() {
       that.update()
     })
   }
@@ -483,7 +483,7 @@ class TogglReport {
     this.filterForm = filterForm
     this.redmineAPI = redmineAPI
 
-    this.filterForm.eventManager.on('submit', function() {
+    this.filterForm.eventManager.on('postSubmit', function() {
       that.update()
     })
 

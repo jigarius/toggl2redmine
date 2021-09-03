@@ -1,7 +1,7 @@
 import {expect} from 'chai'
 import * as datetime from '../../../t2r/datetime'
 
-describe('class t2r.Duration', () => {
+describe('class t2r.datetime.Duration', () => {
   it('.constructor()', () => {
     let dur: datetime.Duration
 

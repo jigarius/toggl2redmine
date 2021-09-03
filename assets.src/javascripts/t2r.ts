@@ -24,6 +24,14 @@ class PublishForm {
     this.filterForm = filterForm
     this.redmineAPI = redmineAPI
 
+    this.filterForm.eventManager.on('validate', function() {
+      that.disable()
+    })
+
+    this.filterForm.eventManager.on('submit', function() {
+      that.enable()
+    })
+
     this.element.on('submit', () => {
       that.onSubmit()
       return false
@@ -137,12 +145,33 @@ interface FilterFormValues {
 
 class FilterForm {
   readonly element: JQuery<HTMLElement>
+  readonly eventManager: utils.EventManager
   private localStorage: LocalStorage
 
   public constructor(element: HTMLElement, localStorage: LocalStorage) {
+    const that = this
     this.element = $(element)
     this.localStorage = localStorage
-    this.init()
+    this.eventManager = new utils.EventManager()
+
+    // Initialize apply filters button.
+    this.element.find('#btn-apply-filters')
+      .on('click', () => {
+        return that.onSubmit()
+      })
+
+    // Initialize reset filters button.
+    this.element.find('#btn-reset-filters')
+      .on('click',() => {
+        that.reset()
+        return false
+      })
+
+    // Handle filter form submission.
+    this.element.on('submit',(e) => {
+      e.preventDefault()
+      return that.onSubmit()
+    });
   }
 
   public getDefaults(): FilterFormValues {
@@ -258,30 +287,6 @@ class FilterForm {
       })
   }
 
-  private init() {
-    const $form = this.element
-    const that = this
-
-    // Initialize apply filters button.
-    $form.find('#btn-apply-filters')
-      .on('click', () => {
-        return that.onSubmit()
-      })
-
-    // Initialize reset filters button.
-    $form.find('#btn-reset-filters')
-      .on('click',() => {
-        that.reset()
-        return false
-      })
-
-    // Handle filter form submission.
-    $form.on('submit',(e) => {
-      e.preventDefault()
-      return that.onSubmit()
-    });
-  }
-
   public reset(values: FilterFormValues = {}) {
     const defaults = this.getDefaults()
 
@@ -311,9 +316,7 @@ class FilterForm {
   }
 
   public onSubmit() {
-    const redmineReport = Application.instance().redmineReport
-    const togglReport = Application.instance().togglReport
-    const publishForm = Application.instance().publishForm
+    this.eventManager.trigger('validate')
     const values = this.getValues()
 
     if (!values['date']) {
@@ -339,12 +342,8 @@ class FilterForm {
     window.location.hash = oDate.toHTMLDate()
     $('h2 .date').html('(' + oDate.date.toLocaleDateString() + ')')
 
-    setTimeout(() => {
-      redmineReport.update()
-      togglReport.update()
-    }, 250);
+    this.eventManager.trigger('submit')
 
-    publishForm.enable()
     return false
   }
 }
@@ -359,9 +358,14 @@ class RedmineReport {
   private redmineAPI: RedmineAPIService
 
   public constructor(element: HTMLElement, filterForm: FilterForm, redmineAPI: RedmineAPIService) {
+    const that = this
     this.element = $(element)
     this.filterForm = filterForm
     this.redmineAPI = redmineAPI
+
+    this.filterForm.eventManager.on('submit', function() {
+      that.update()
+    })
   }
 
   public update() {
@@ -463,15 +467,16 @@ class TogglReport {
   private redmineAPI: RedmineAPIService
 
   public constructor(element: HTMLElement, filterForm: FilterForm, redmineAPI: RedmineAPIService) {
+    const that = this
     this.element = $(element)
     this.checkAll = this.element.find('input.check-all')
     this.filterForm = filterForm
     this.redmineAPI = redmineAPI
-    this.init()
-  }
 
-  private init() {
-    const that = this
+    this.filterForm.eventManager.on('submit', function() {
+      that.update()
+    })
+
     this.checkAll
       .on('change',() => {
         const checked = $(that.checkAll).prop('checked')

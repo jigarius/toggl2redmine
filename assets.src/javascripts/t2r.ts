@@ -17,12 +17,22 @@ class PublishForm {
   readonly element: JQuery<HTMLElement>
   private filterForm: FilterForm
   private redmineAPI: RedmineAPIService
+  private redmineReport: RedmineReport
+  private togglReport: TogglReport
 
-  public constructor(element: HTMLElement, filterForm: FilterForm, redmineAPI: RedmineAPIService) {
+  public constructor(
+    element: HTMLElement,
+    filterForm: FilterForm,
+    redmineAPI: RedmineAPIService,
+    redmineReport: RedmineReport,
+    togglReport: TogglReport
+  ) {
     const that = this
     this.element = $(element)
     this.filterForm = filterForm
     this.redmineAPI = redmineAPI
+    this.redmineReport = redmineReport
+    this.togglReport = togglReport
 
     this.filterForm.eventManager.on('validate', function() {
       that.disable()
@@ -50,14 +60,14 @@ class PublishForm {
     flash.clear()
 
     // If no entries are selected for import.
-    if (Application.instance().togglReport.element.find('tbody input.cb-import').filter(':checked').length === 0) {
+    if (this.togglReport.element.find('tbody input.cb-import').filter(':checked').length === 0) {
       flash.error(t('t2r.error.no_entries_selected'));
       this.enable()
       return
     }
 
     console.info('Sending time entries to Redmine.')
-    Application.instance().togglReport.element.find('tbody tr').each(function (this: HTMLElement) {
+    this.togglReport.element.find('tbody tr').each(function (this: HTMLElement) {
       const $tr = $(this)
 
       // If the item is not marked for import, ignore it.
@@ -95,8 +105,8 @@ class PublishForm {
       }, (errors: string[]) => {
         // If all requests have been processed.
         if (that.redmineAPI.requestQueue.length === 0) {
-          Application.instance().publishForm.enable()
-          Application.instance().redmineReport.update()
+          that.enable()
+          that.redmineReport.update()
         }
 
         if (errors.length !== 0) {
@@ -490,6 +500,7 @@ class TogglReport {
     const that = this
     const filterFormValues = this.filterForm.getValues()
 
+    // TODO: Must not depend on PublishForm.
     Application.instance().publishForm.disable()
     this.showLoader()
     this.makeEmpty()
@@ -564,7 +575,7 @@ class TogglReport {
 
           $tr.find('input[data-property=hours]')
             .on('input change', () => {
-              Application.instance().togglReport.updateTotal()
+              that.updateTotal()
             })
 
           $tr.find('select[data-property=activity_id]')
@@ -572,7 +583,7 @@ class TogglReport {
 
           $tr.find('.cb-import')
             .on('change', () => {
-              Application.instance().togglReport.updateTotal()
+              that.updateTotal()
             })
         }
       }
@@ -604,11 +615,13 @@ class TogglReport {
       }
 
       that.checkAll.removeAttr('disabled')
+
+      // TODO: Must not depend on PublishForm.
       Application.instance().publishForm.enable()
 
       // If the update was triggered from the filter form, then focus the
       // "check-all" button to allow easier keyboard navigation.
-      if (Application.instance().filterForm.element.has(':focus').length > 0) {
+      if (that.filterForm.element.has(':focus').length > 0) {
         that.checkAll.trigger('focus')
       }
     })
@@ -745,7 +758,9 @@ class Application {
     this.publishForm = publishForm || new PublishForm(
       document.getElementById('publish-form') as HTMLElement,
       this.filterForm,
-      this.redmineAPI
+      this.redmineAPI,
+      this.redmineReport,
+      this.togglReport
     )
   }
 

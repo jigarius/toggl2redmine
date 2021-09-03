@@ -18,7 +18,7 @@ export class LocalStorage {
     return this._prefix
   }
 
-  get<Type>(key: string, fallback: Type | null = null): string | Type | null {
+  get<Type>(key: string, fallback: Type | undefined = undefined): string | Type | undefined {
     const value = window.localStorage.getItem(this.prefix + key)
     if (value !== null) {
       return value
@@ -29,7 +29,7 @@ export class LocalStorage {
 
   set<Type>(key: string, value: Type): Type {
     if (value === null || typeof value === 'undefined') {
-      return this.delete(this.prefix + key)
+      return this.delete(key)
     }
 
     try {
@@ -42,7 +42,7 @@ export class LocalStorage {
   }
 
   delete(key: string): any {
-    const value = this.get(this.prefix + key)
+    const value = this.get(key)
     window.localStorage.removeItem(this.prefix + key)
     return value
   }

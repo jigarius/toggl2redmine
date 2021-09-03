@@ -150,7 +150,7 @@ interface FilterFormValues {
   'default-activity'?: number,
   'toggl-workspace'?: number,
   'rounding-value'?: number,
-  'rounding-direction'?: datetime.RoundingMethod
+  'rounding-method'?: datetime.RoundingMethod
 }
 
 class FilterForm {
@@ -202,9 +202,9 @@ class FilterForm {
     const roundingValue = this.localStorage.get('rounding-value') as string || '0'
     values['rounding-value'] = parseInt(roundingValue)
 
-    const roundingDirection = this.localStorage.get('rounding-direction') as datetime.RoundingMethod || undefined
-    if (roundingDirection) {
-      values['rounding-direction'] = roundingDirection as datetime.RoundingMethod
+    const roundingMethod = this.localStorage.get('rounding-method') as datetime.RoundingMethod
+    if (roundingMethod) {
+      values['rounding-method'] = roundingMethod as datetime.RoundingMethod
     }
 
     return values
@@ -231,9 +231,9 @@ class FilterForm {
       values['rounding-value'] = parseInt(sRoundingValue)
     }
 
-    const roundingMethod = $('select#rounding-direction').val() as datetime.RoundingMethod
+    const roundingMethod = $('select#rounding-method').val() as datetime.RoundingMethod
     if (roundingMethod) {
-      values['rounding-direction'] = roundingMethod as datetime.RoundingMethod
+      values['rounding-method'] = roundingMethod as datetime.RoundingMethod
     }
 
     const sDate: string = $('#date').val() as string
@@ -279,10 +279,10 @@ class FilterForm {
               .val(values['toggl-workspace'] as number)
             break
 
-          case 'rounding-direction':
-            if (!values['rounding-direction']) return
+          case 'rounding-method':
+            if (!values['rounding-method']) return
 
-            $field.val(values['rounding-direction'] as string)
+            $field.val(values['rounding-method'] as string)
             break
 
           case 'rounding-value':
@@ -312,8 +312,8 @@ class FilterForm {
       values['toggl-workspace'] = defaults['toggl-workspace']
     }
 
-    if (!values['rounding-direction']) {
-      values['rounding-direction'] = defaults['rounding-direction']
+    if (!values['rounding-method']) {
+      values['rounding-method'] = defaults['rounding-method']
     }
 
     if (!values['rounding-value']) {
@@ -345,7 +345,7 @@ class FilterForm {
     this.localStorage.set('default-activity', values['default-activity'])
     this.localStorage.set('toggl-workspace', values['toggl-workspace'])
     this.localStorage.set('rounding-value', values['rounding-value'])
-    this.localStorage.set('rounding-direction', values['rounding-direction'])
+    this.localStorage.set('rounding-method', values['rounding-method'])
 
     console.info('Filter updated', values);
 
@@ -526,7 +526,7 @@ class TogglReport {
 
       // Prepare rounding rules.
       const roundingValue = filterFormValues['rounding-value'] as number
-      const roundingMethod = filterFormValues['rounding-direction'] as datetime.RoundingMethod
+      const roundingMethod = filterFormValues['rounding-method'] as datetime.RoundingMethod
 
       // TODO: Use entries.map() instead?
       for (const key in entries) {

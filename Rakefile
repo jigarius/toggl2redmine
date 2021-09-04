@@ -54,7 +54,8 @@ desc 'Provision the environment.'
 task :provision do
   puts 'Installing dev packages...'
   sleep(2)
-  sh 'docker compose exec redmine bundle install --with default dev test'
+  sh 'docker compose exec redmine bundle config set with "default dev test"'
+  sh 'docker compose exec redmine bundle install'
 
   puts 'Preparing database...'
   sleep(2)

@@ -13,7 +13,7 @@ import * as flash from "./t2r/flash.js"
 /**
  * The 'Import to Redmine' form.
  */
-class PublishForm {
+class ImportForm {
   readonly element: JQuery<HTMLElement>
   private filterForm: FilterForm
   private redmineAPI: RedmineAPIService
@@ -131,14 +131,14 @@ class PublishForm {
    * Disables form submission.
    */
   public disable() {
-    this.element.find('#btn-publish').attr('disabled', 'disabled')
+    this.element.find('#btn-import').attr('disabled', 'disabled')
   }
 
   /**
    * Enables form submission.
    */
   public enable() {
-    this.element.find('#btn-publish').removeAttr('disabled')
+    this.element.find('#btn-import').removeAttr('disabled')
   }
 }
 
@@ -702,17 +702,13 @@ class Application {
 
   /**
    * The form containing filters and options.
-   *
-   * @todo Rename to OptionsForm.
    */
   readonly filterForm: FilterForm
 
   /**
    * The form containing the "import to redmine" button.
-   *
-   * @todo Rename to ImportForm.
    */
-  readonly publishForm: PublishForm
+  readonly importForm: ImportForm
 
   /**
    * The table containing Redmine time entries.
@@ -732,7 +728,7 @@ class Application {
     filterForm: FilterForm | undefined = undefined,
     redmineReport: RedmineReport | undefined = undefined,
     togglReport: TogglReport | undefined = undefined,
-    publishForm: PublishForm | undefined = undefined
+    importForm: ImportForm | undefined = undefined
   ) {
     this.redmineAPI = redmineAPI
     this.localStorage = localStorage || new LocalStorage('toggl2redmine.')
@@ -750,8 +746,8 @@ class Application {
       this.filterForm,
       this.redmineAPI
     )
-    this.publishForm = publishForm || new PublishForm(
-      document.getElementById('publish-form') as HTMLElement,
+    this.importForm = importForm || new ImportForm(
+      document.getElementById('import-form') as HTMLElement,
       this.filterForm,
       this.redmineAPI,
       this.redmineReport,

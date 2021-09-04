@@ -147,7 +147,7 @@ class PublishForm {
  */
 interface FilterFormValues {
   date?: string,
-  'default-activity'?: number,
+  'default-activity-id'?: number,
   'toggl-workspace'?: number,
   'rounding-value'?: number,
   'rounding-method'?: datetime.DurationRoundingMethod
@@ -194,9 +194,9 @@ class FilterForm {
       values['toggl-workspace'] = parseInt(workspaceId as string)
     }
 
-    const defaultActivityId = this.localStorage.get('default-activity')
+    const defaultActivityId = this.localStorage.get('default-activity-id')
     if (defaultActivityId) {
-      values['default-activity'] = parseInt(defaultActivityId as string)
+      values['default-activity-id'] = parseInt(defaultActivityId as string)
     }
 
     const roundingValue = this.localStorage.get('rounding-value') as string || '0'
@@ -213,10 +213,10 @@ class FilterForm {
   public getValues(): FilterFormValues {
     const values: FilterFormValues = {}
 
-    const $defaultActivityId = $('select#default-activity')
+    const $defaultActivityId = $('select#default-activity-id')
     const defaultActivityId = $defaultActivityId.val()
     if (defaultActivityId) {
-      values['default-activity'] = parseInt(defaultActivityId as string)
+      values['default-activity-id'] = parseInt(defaultActivityId as string)
     }
 
     const $togglWorkspaceId = $('select#toggl-workspace')
@@ -263,12 +263,12 @@ class FilterForm {
             $field.val(values['date'] as string)
             break
 
-          case 'default-activity':
-            if (!values['default-activity']) return
+          case 'default-activity-id':
+            if (!values['default-activity-id']) return
 
             $field
-              .data('selected', values['default-activity'] as number)
-              .val(values['default-activity'] as number)
+              .data('selected', values['default-activity-id'] as number)
+              .val(values['default-activity-id'] as number)
             break
 
           case 'toggl-workspace':
@@ -304,8 +304,8 @@ class FilterForm {
       values['date'] = defaults['date']
     }
 
-    if (!values['default-activity']) {
-      values['default-activity'] = defaults['default-activity']
+    if (!values['default-activity-id']) {
+      values['default-activity-id'] = defaults['default-activity-id']
     }
 
     if (!values['toggl-workspace']) {
@@ -342,7 +342,7 @@ class FilterForm {
       return false
     }
 
-    this.localStorage.set('default-activity', values['default-activity'])
+    this.localStorage.set('default-activity-id', values['default-activity-id'])
     this.localStorage.set('toggl-workspace', values['toggl-workspace'])
     this.localStorage.set('rounding-value', values['rounding-value'])
     this.localStorage.set('rounding-method', values['rounding-method'])
@@ -560,8 +560,8 @@ class TogglReport {
         }
       }
 
-      const sDefaultActivityId = filterFormValues['default-activity']
-        ? filterFormValues['default-activity'].toString() : ''
+      const sDefaultActivityId = filterFormValues['default-activity-id']
+        ? filterFormValues['default-activity-id'].toString() : ''
 
       // Display entries eligible for import.
       for (const key in entries) {

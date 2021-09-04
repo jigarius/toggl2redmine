@@ -366,6 +366,7 @@ class FilterForm {
  */
 class RedmineReport {
   readonly element: JQuery<HTMLElement>
+  readonly lastImported: JQuery<HTMLElement>
   static _instance: RedmineReport | null
   private filterForm: FilterForm
   private redmineAPI: RedmineAPIService
@@ -373,6 +374,7 @@ class RedmineReport {
   public constructor(element: HTMLElement, filterForm: FilterForm, redmineAPI: RedmineAPIService) {
     const that = this
     this.element = $(element)
+    this.lastImported = $('#last-imported')
     this.filterForm = filterForm
     this.redmineAPI = redmineAPI
 
@@ -443,13 +445,15 @@ class RedmineReport {
    * Updates the date of the latest time entry on Redmine.
    */
   public updateLastImportDate() {
-    const $el = $('#last-imported')
+    const that = this
+
+    this.lastImported
       .html('&nbsp;')
       .addClass('t2r-loading')
 
     this.redmineAPI.getLastImportDate((lastImportDate: datetime.DateTime | null) => {
       const sDate = lastImportDate ? lastImportDate.date.toLocaleDateString() : 'Unknown'
-      $el.text(sDate).removeClass('t2r-loading')
+      that.lastImported.text(sDate).removeClass('t2r-loading')
     })
   }
 

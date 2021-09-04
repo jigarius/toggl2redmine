@@ -31,3 +31,7 @@ es:
       ajax_load: 'No se pudieron leer los datos del servidor. Actualice la página para volver a intentarlo.'
       list_empty: 'No hay elementos para mostrar aquí.'
       project_closed: 'El proyecto está cerrado.'
+      issue_id_missing: 'Mencione el ID de la petición de Redmine en la descripción de la tarea de Toggl. Ejemplo: #1919 Alimentar al bunny wabbit.'
+      issue_not_found: "Esta petición no se encontró en Redmine o no tienes acceso a ella. Asegúrese de estar utilizando la ID de petición correcta y de ser miembro del proyecto."
+      no_entries_selected: 'Seleccione las entradas que desea importar a Redmine y vuelva a intentarlo.'
+      date_invalid: 'Por favor introduzca una fecha valida.'

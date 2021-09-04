@@ -6,7 +6,6 @@ ja:
         toggl_id: 'Toggl ID'
         time_entry_id: 'タイムエントリーID'
   t2r:
-    button_help: 'ヘルプ'
     button_import_to_redmine: 'Redmineにインポート'
     caption_redmine_report: 'Redmineに記録されている時間'
     caption_toggl_report: 'Togglに記録されている時間'

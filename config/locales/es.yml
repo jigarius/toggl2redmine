@@ -6,7 +6,6 @@ es:
         toggl_id: 'Toggl ID'
         time_entry_id: 'ID del registro de tiempo'
   t2r:
-    button_help: 'Ayuda'
     button_import_to_redmine: 'Importar a Redmine'
     caption_redmine_report: 'Tiempo registrado en Redmine'
     caption_toggl_report: 'Tiempo registrado en Toggl'
@@ -32,6 +31,6 @@ es:
       list_empty: 'No hay elementos para mostrar aquí.'
       project_closed: 'El proyecto está cerrado.'
       issue_id_missing: 'Mencione el ID de la petición de Redmine en la descripción de la tarea de Toggl. Ejemplo: #1919 Alimentar al bunny wabbit.'
-      issue_not_found: "Esta petición no se encontró en Redmine o no tienes acceso a ella. Asegúrese de estar utilizando la ID de petición correcta y de ser miembro del proyecto."
+      issue_not_found: "O esta petición no se encontró en Redmine o no tienes acceso a ella. Asegúrese de estar utilizando la ID de petición correcta y de ser miembro del proyecto."
       no_entries_selected: 'Seleccione las entradas que desea importar a Redmine y vuelva a intentarlo.'
       date_invalid: 'Por favor introduzca una fecha valida.'

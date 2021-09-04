@@ -8,7 +8,6 @@ en:
         toggl_id: 'Toggl ID'
         time_entry_id: 'Time entry ID'
   t2r:
-    button_help: 'Help'
     button_import_to_redmine: 'Import to Redmine'
     caption_redmine_report: 'Time logged on Redmine'
     caption_toggl_report: 'Time logged on Toggl'
@@ -26,7 +25,7 @@ en:
     tooltip_duration_rounding_logic: 'Choose a logic for rounding Toggl durations.'
     tooltip_duration_rounding_value: 'All time entries from Toggl will be rounded to this number (minutes).'
     tooltip_hours_column_header: "1:50 means 1 hour 50 minutes. Press 'Up' or 'Down' to round the nearest 5 minutes. Combine with 'Shift' to round to the nearest 15 minutes."
-    tooltip_status_column_header: "Put your mouse on the icon for a row to see it's status. Example: Imported, Failed, Error."
+    tooltip_status_column_header: "Put your mouse on the icon for a row to see its status. Example: Imported, Failed, Error."
     tooltip_help: 'Confused? Watch a short video tutorial.'
     redmine_report_footer: 'Time already logged'
     toggl_report_footer: 'Time to be imported'

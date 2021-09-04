@@ -1,0 +1,39 @@
+en:
+  activerecord:
+    models:
+      toggl_mapping: 'Toggl mapping'
+    attributes:
+      toggl_mapping:
+        id: 'ID'
+        toggl_id: 'ID de Toggl'
+        time_entry_id: 'ID de temps passé'
+  t2r:
+    button_import_to_redmine: 'Importer vers Redmine'
+    caption_redmine_report: 'Temps passé sur Redmine'
+    caption_toggl_report: 'Temps passé sur Toggl'
+    label_default_activity: 'Activité par défaut'
+    label_basic_options: 'Options de base'
+    label_advanced_options: 'Options avancées'
+    label_toggl_workspace: 'Toggl workspace'
+    label_duration_rounding: 'Arrondissement de durée'
+    label_hour_plural: 'Heures'
+    label_last_imported: 'Dernière importation le %{date}'
+    label_status: 'État'
+    text_add_toggl_api_key: 'Pour utiliser Toggl 2 Redmine, veuillez ajouter un jeton API Toggl à votre compte.'
+    text_db_transaction_warning: "Votre base de données ne permet pas les transactions. Veuillez demander à votre administrateur système de lire le README de Toggl 2 Redmine."
+    tooltip_date_filter: 'Choisissez la date pour laquelle vous souhaitez importer les entrées de temps.'
+    tooltip_duration_rounding_logic: 'Choisissez une logique pour arrondir les durées de Toggl.'
+    tooltip_duration_rounding_value: 'Toutes les entrées de temps de Toggl seront arrondies à ce nombre (minutes).'
+    tooltip_hours_column_header: "1:50 signifie 1 heure 50 minutes. Appuyez sur 'Up' ou 'Down' pour arrondir aux 5 minutes les plus proches. Combinez avec 'Shift' pour arrondir aux 15 minutes les plus proches."
+    tooltip_status_column_header: "Placez votre souris sur l'icône d'une ligne pour voir son statut. Exemple : Importation, Échec, Erreur."
+    tooltip_help: 'Confus ? Regardez un court tutoriel vidéo.'
+    redmine_report_footer: 'Temps déjà enregistré'
+    toggl_report_footer: 'Temps à importer'
+    error:
+      ajax_load: 'Impossible de récupérer les données du serveur. Veuillez rafraîchir la page et réessayer.'
+      list_empty: "Il n'y a aucun élément à afficher ici."
+      project_closed: 'Le projet est fermé.'
+      issue_id_missing: 'Please mention the Redmine issue ID in your Toggl task description. Example: #1919 Feed the bunny wabbit.'
+      issue_not_found: "Soit cette pétition n'a pas été trouvée dans Redmine soit vous n'y avez pas accès. Assurez-vous que vous utilisez un ID de pétition correct et que vous êtes membre du projet."
+      no_entries_selected: 'Veuillez sélectionner les entrées que vous souhaitez importer dans Redmine et réessayer.'
+      date_invalid: 'Veuillez entrer une date valide.'

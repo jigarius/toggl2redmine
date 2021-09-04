@@ -15,6 +15,7 @@ import * as flash from "./t2r/flash.js"
  */
 class ImportForm {
   readonly element: JQuery<HTMLElement>
+  readonly importButton: JQuery<HTMLElement>
   private filterForm: FilterForm
   private redmineAPI: RedmineAPIService
   private redmineReport: RedmineReport
@@ -29,6 +30,8 @@ class ImportForm {
   ) {
     const that = this
     this.element = $(element)
+    this.importButton = this.element.find('#btn-import')
+
     this.filterForm = filterForm
     this.redmineAPI = redmineAPI
     this.redmineReport = redmineReport
@@ -131,14 +134,14 @@ class ImportForm {
    * Disables form submission.
    */
   public disable() {
-    this.element.find('#btn-import').attr('disabled', 'disabled')
+    this.importButton.attr('disabled', 'disabled')
   }
 
   /**
    * Enables form submission.
    */
   public enable() {
-    this.element.find('#btn-import').removeAttr('disabled')
+    this.importButton.removeAttr('disabled')
   }
 }
 

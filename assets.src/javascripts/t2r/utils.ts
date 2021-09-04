@@ -22,7 +22,7 @@ export function getDateFromLocationHash(): string | undefined {
 
   const match: string = matches.pop() as string
   try {
-    return datetime.DateTime.fromString(match).toHTMLDate()
+    return datetime.DateTime.fromString(match).toHTMLDateString()
   } catch(e) {
     console.debug('Date not detected in URL fragment')
   }

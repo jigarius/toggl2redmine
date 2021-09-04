@@ -1,4 +1,4 @@
 spec: './javascripts/test/**/*.test.ts'
 require:
   - './javascripts/test/register.js'
-timeout: 5000
+timeout: 10000

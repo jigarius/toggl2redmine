@@ -18,7 +18,7 @@ export class DateTime {
    * @returns {String}
    *   HTML-friendly date, e.g. 2021-02-28.
    */
-  toHTMLDate(): string {
+  toHTMLDateString(): string {
     const yyyy = this.date.getFullYear();
     const mm = (this.date.getMonth() + 1).toString().padStart(2, '0')
     const dd = this.date.getDate().toString().padStart(2, '0')

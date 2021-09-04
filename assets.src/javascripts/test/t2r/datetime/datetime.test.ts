@@ -11,7 +11,7 @@ describe('class t2r.datetime.DateTime', () => {
 
   it('.fromString()', () => {
     const dt = datetime.DateTime.fromString('2021-12-16')
-    expect(dt.toHTMLDate()).to.equal('2021-12-16')
+    expect(dt.toHTMLDateString()).to.equal('2021-12-16')
   })
 
   it('.fromString() fails for invalid dates', () => {
@@ -30,7 +30,7 @@ describe('class t2r.datetime.DateTime', () => {
   it('.toHTMLDateString()', () => {
     const oDate = new datetime.DateTime(new Date(2021, 11, 16))
 
-    expect(oDate.toHTMLDate()).to.equal('2021-12-16')
+    expect(oDate.toHTMLDateString()).to.equal('2021-12-16')
   })
 
   it('.toISOString()', () => {

@@ -190,7 +190,7 @@ class FilterForm {
   public getDefaults(): FilterFormValues {
     const values: FilterFormValues = {}
 
-    values['date'] = (new datetime.DateTime).toHTMLDate()
+    values['date'] = (new datetime.DateTime).toHTMLDateString()
 
     const workspaceId = this.localStorage.get('toggl-workspace-id')
     if (workspaceId) {
@@ -352,7 +352,7 @@ class FilterForm {
 
     console.info('Filter updated', values);
 
-    window.location.hash = oDate.toHTMLDate()
+    window.location.hash = oDate.toHTMLDateString()
     $('h2 .date').html('(' + oDate.date.toLocaleDateString() + ')')
 
     this.eventManager.trigger('postSubmit')
@@ -420,7 +420,7 @@ class RedmineReport {
    *   Report date.
    */
   private updateLink(date: datetime.DateTime) {
-    const url = `/time_entries?utf8=✓&set_filter=1&sort=spent_on:desc&f[]=spent_on&op[spent_on]=%3D&v[spent_on][]=[${date.toHTMLDate()}]&f[]=user_id&op[user_id]=%3D&v[user_id][]=me&c[]=project&c[]=spent_on&c[]=user&c[]=activity&c[]=issue&c[]=comments&c[]=hours&group_by=spent_on&t[]=hours&t[]=`
+    const url = `/time_entries?utf8=✓&set_filter=1&sort=spent_on:desc&f[]=spent_on&op[spent_on]=%3D&v[spent_on][]=[${date.toHTMLDateString()}]&f[]=user_id&op[user_id]=%3D&v[user_id][]=me&c[]=project&c[]=spent_on&c[]=user&c[]=activity&c[]=issue&c[]=comments&c[]=hours&group_by=spent_on&t[]=hours&t[]=`
     $('#redmine-report-link').attr('href', url)
   }
 
@@ -635,7 +635,7 @@ class TogglReport {
    */
   private updateLink(date: datetime.DateTime, workspaceId: number | null) {
     workspaceId = workspaceId || 0
-    const url = `https://track.toggl.com/reports/summary/${workspaceId}/from/${date.toHTMLDate()}/to/${date.toHTMLDate()}`
+    const url = `https://track.toggl.com/reports/summary/${workspaceId}/from/${date.toHTMLDateString()}/to/${date.toHTMLDateString()}`
     $('#toggl-report-link').attr('href', url)
   }
 

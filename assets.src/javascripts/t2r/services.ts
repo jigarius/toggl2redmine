@@ -193,7 +193,7 @@ export class RedmineAPIService {
       user_id: 'me',
       limit: 1,
       // Ignore entries made in the future.
-      to: (new datetime.DateTime()).toHTMLDate()
+      to: (new datetime.DateTime()).toHTMLDateString()
     }
 
     const that = this

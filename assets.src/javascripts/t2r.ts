@@ -148,7 +148,7 @@ class PublishForm {
 interface FilterFormValues {
   date?: string,
   'default-activity-id'?: number,
-  'toggl-workspace'?: number,
+  'toggl-workspace-id'?: number,
   'rounding-value'?: number,
   'rounding-method'?: datetime.DurationRoundingMethod
 }
@@ -189,9 +189,9 @@ class FilterForm {
 
     values['date'] = (new datetime.DateTime).toHTMLDate()
 
-    const workspaceId = this.localStorage.get('toggl-workspace')
+    const workspaceId = this.localStorage.get('toggl-workspace-id')
     if (workspaceId) {
-      values['toggl-workspace'] = parseInt(workspaceId as string)
+      values['toggl-workspace-id'] = parseInt(workspaceId as string)
     }
 
     const defaultActivityId = this.localStorage.get('default-activity-id')
@@ -219,10 +219,10 @@ class FilterForm {
       values['default-activity-id'] = parseInt(defaultActivityId as string)
     }
 
-    const $togglWorkspaceId = $('select#toggl-workspace')
+    const $togglWorkspaceId = $('select#toggl-workspace-id')
     const togglWorkspaceId = $togglWorkspaceId.val() || $togglWorkspaceId.data('selected')
     if (togglWorkspaceId) {
-      values['toggl-workspace'] = togglWorkspaceId
+      values['toggl-workspace-id'] = togglWorkspaceId
     }
 
     const sRoundingValue = $('input#rounding-value').val() as string
@@ -271,12 +271,12 @@ class FilterForm {
               .val(values['default-activity-id'] as number)
             break
 
-          case 'toggl-workspace':
-            if (!values['toggl-workspace']) return
+          case 'toggl-workspace-id':
+            if (!values['toggl-workspace-id']) return
 
             $field
-              .data('selected', values['toggl-workspace'] as number)
-              .val(values['toggl-workspace'] as number)
+              .data('selected', values['toggl-workspace-id'] as number)
+              .val(values['toggl-workspace-id'] as number)
             break
 
           case 'rounding-method':
@@ -308,8 +308,8 @@ class FilterForm {
       values['default-activity-id'] = defaults['default-activity-id']
     }
 
-    if (!values['toggl-workspace']) {
-      values['toggl-workspace'] = defaults['toggl-workspace']
+    if (!values['toggl-workspace-id']) {
+      values['toggl-workspace-id'] = defaults['toggl-workspace-id']
     }
 
     if (!values['rounding-method']) {
@@ -343,7 +343,7 @@ class FilterForm {
     }
 
     this.localStorage.set('default-activity-id', values['default-activity-id'])
-    this.localStorage.set('toggl-workspace', values['toggl-workspace'])
+    this.localStorage.set('toggl-workspace-id', values['toggl-workspace-id'])
     this.localStorage.set('rounding-value', values['rounding-value'])
     this.localStorage.set('rounding-method', values['rounding-method'])
 
@@ -506,7 +506,7 @@ class TogglReport {
     // Determine report date.
     const sDate = filterFormValues['date'] as string
     const oDate = datetime.DateTime.fromString(sDate)
-    const workspaceId = filterFormValues['toggl-workspace'] as number | null
+    const workspaceId = filterFormValues['toggl-workspace-id'] as number | null
 
     this.updateLink(oDate, workspaceId)
 

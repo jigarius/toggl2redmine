@@ -30,6 +30,7 @@ en:
     tooltip_help: 'Confused? Watch a short video tutorial.'
     redmine_report_footer: 'Time already logged'
     toggl_report_footer: 'Time to be imported'
+    import_confirmation: 'This action cannot be undone. Do you really want to continue?'
     error:
       ajax_load: 'Could not retrieve data from server. Please refresh the page and try again.'
       list_empty: 'There are no items to display here.'
@@ -37,3 +38,4 @@ en:
       issue_id_missing: 'Please mention the Redmine issue ID in your Toggl task description. Example: #1919 Feed the bunny wabbit.'
       issue_not_found: "This issue was either not found on Redmine or you don't have access to it. Make sure you're using a correct issue ID and that you're a member of the project."
       no_entries_selected: 'Please select the entries that you want to import to Redmine and try again.'
+      date_invalid: 'Please enter a valid date.'

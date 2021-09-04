@@ -55,7 +55,7 @@ class ImportForm {
     const that = this
     const filterFormValues = this.filterForm.getValues()
 
-    if (!confirm('This action cannot be undone. Do you really want to continue?')) {
+    if (!confirm(t('t2r.import_confirmation'))) {
       return
     }
 
@@ -340,7 +340,7 @@ class FilterForm {
     // Store date and update URL hash.
     const oDate = datetime.DateTime.fromString(values['date'])
     if (!oDate) {
-      alert('Please enter a valid date.')
+      flash.error(t('t2r.error.date_invalid'))
       this.element.find('#date').trigger('focus')
       return false
     }

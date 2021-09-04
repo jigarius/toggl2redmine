@@ -29,14 +29,11 @@ class TogglService
     end_date:,
     workspace_id: nil
   )
-    unless workspace_id.nil?
-      raise ArgumentError, "Workspace ID must be a valid integer" unless Integer === workspace_id
+    if workspace_id && !workspace_id.is_a?(Integer)
+      raise ArgumentError, 'Workspace ID must be a valid integer'
     end
 
-    raw_entries = get('/api/v8/time_entries', {
-      start_date: start_date.iso8601,
-      end_date: end_date.iso8601
-    })
+    raw_entries = get('/api/v8/time_entries', { start_date: start_date.iso8601, end_date: end_date.iso8601 })
 
     # The workspace filter is only supported on certain versions of the
     # Toggl API. Thus, it is easier to filter out such records ourselves.

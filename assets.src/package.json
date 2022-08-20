@@ -30,7 +30,6 @@
     "chai": "^4.3.4",
     "eslint": "^7.31.0",
     "mocha": "^9.2.2",
-    "mocha-jsdom": "^2.0.0",
     "ts-node": "^10.1.0",
     "typescript": "^4.3.5"
   }

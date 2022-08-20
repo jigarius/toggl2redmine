@@ -1,8 +1,5 @@
-import jsdom from 'mocha-jsdom'
 import {expect} from 'chai'
 import {LocalStorage} from '../../../t2r/storage'
-
-jsdom({ url: 'https://localhost' })
 
 describe('class t2r.storage.LocalStorage', () => {
   it('prefix is respected', () => {

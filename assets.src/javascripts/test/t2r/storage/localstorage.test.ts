@@ -1,5 +1,15 @@
+import jsdom from 'jsdom-global'
 import {expect} from 'chai'
 import {LocalStorage} from '../../../t2r/storage'
+
+before(() => {
+  jsdom(``, {url: 'https://localhost'});
+})
+
+after(() => {
+  // Though it might look strange, this performs cleanup.
+  jsdom()
+})
 
 describe('class t2r.storage.LocalStorage', () => {
   it('prefix is respected', () => {

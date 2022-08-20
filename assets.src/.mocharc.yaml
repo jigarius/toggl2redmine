@@ -1,4 +1,5 @@
 spec: './javascripts/test/**/*.test.ts'
 require:
   - './javascripts/test/register.js'
+  - 'jsdom-global/register.js'
 timeout: 10000

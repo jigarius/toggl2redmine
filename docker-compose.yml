@@ -3,6 +3,7 @@ services:
   redmine:
     image: redmine:4.x-toggl2redmine
     container_name: t2r-4x-appserver
+    platform: linux/x86_64
     hostname: appserver
     build: .docker/redmine
     ports:
@@ -25,7 +26,7 @@ services:
       - ./.docker/redmine/database.yml:/usr/src/redmine/config/database.yml
       - ./.docker/redmine/additional_environment.rb:/usr/src/redmine/config/additional_environment.rb
   mysql:
-    image: mysql:5.7
+    image: mariadb:10.6
     container_name: t2r-4x-mysql
     hostname: mysql
     environment:
@@ -40,6 +41,7 @@ services:
   node:
     image: node:16.x-toggl2redmine
     container_name: t2r-4x-node
+    platform: linux/x86_64
     hostname: node
     build: .docker/node
     command: ['tail', '-f', '/dev/null']
@@ -48,6 +50,7 @@ services:
   mailhog:
     image: mailhog/mailhog:v1.0.0
     container_name: t2r-4x-mailhog
+    platform: linux/x86_64
     hostname: mailhog
     ports:
       - "8025:8025"

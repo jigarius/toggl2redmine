@@ -173,7 +173,7 @@ function initRedmineActivityDropdown(el) {
         });
         $el.append($select.find('option')).val('');
         const value = $el.data('selected') || '';
-        $el.val(value).removeAttr('selected');
+        $el.val(value).removeData('selected');
     });
 }
 function initTogglWorkspaceDropdown(el) {

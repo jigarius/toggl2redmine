@@ -55,11 +55,11 @@ export class EventManager {
     this.listeners[eventName].push(callback)
   }
 
-  public trigger<Type>(eventName: string): void {
+  public trigger(eventName: string): void {
     if (typeof this.listeners[eventName] === 'undefined') return
 
     for (const listener of this.listeners[eventName]) {
-      const result = listener()
+      listener()
     }
   }
 }

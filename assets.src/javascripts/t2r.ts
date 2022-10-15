@@ -217,7 +217,7 @@ class FilterForm {
     const values: FilterFormValues = {}
 
     const $defaultActivityId = $('select#default-activity-id')
-    const defaultActivityId = $defaultActivityId.val()
+    const defaultActivityId = $defaultActivityId.val() || $defaultActivityId.data('selected')
     if (defaultActivityId) {
       values['default-activity-id'] = parseInt(defaultActivityId as string)
     }

@@ -6,6 +6,7 @@
   "scripts": {
     "lint": "eslint javascripts --ext .ts",
     "test": "mocha",
+    "compile": "tsc",
     "watch": "tsc -w"
   },
   "repository": {
@@ -33,6 +34,6 @@
     "jsdom-global": "^3.0.2",
     "mocha": "^9.2.2",
     "ts-node": "^10.1.0",
-    "typescript": "^4.3.5"
+    "typescript": "^4.8.4"
   }
 }

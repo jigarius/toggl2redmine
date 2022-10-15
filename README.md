@@ -159,3 +159,5 @@ your password or test Toggl 2 Redmine with more than one user accounts.
   development of this plugin.
 * Thanks [Jigar Mehta (Jigarius)](https://jigarius.com/about) (that's me)
   for spending many evenings and weekends to make this plugin possible.
+* Thanks [JetBrains](https://jetbrains.com/) for their Open Source License,
+  without which development would have been very difficult

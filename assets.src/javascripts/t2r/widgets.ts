@@ -159,11 +159,15 @@ function initDurationInput(el: HTMLElement): void {
     .on('input', function() {
       const val = $el.val() as string
       try {
-        // If a duration object could be created, then the the time is valid.
+        // If a duration object could be created, then the time is valid.
         new datetime.Duration(val)
         input.setCustomValidity('')
       } catch (e) {
-        input.setCustomValidity(e)
+        if (e instanceof Error) {
+          input.setCustomValidity(e.toString())
+        } else {
+          throw e
+        }
       }
     })
     // Update totals as the user updates hours.
@@ -241,7 +245,7 @@ function initRedmineActivityDropdown(el: HTMLElement): void {
   redmineService.getTimeEntryActivities((activities: DropdownOption[] | null) => {
     if (activities === null) return
 
-    // Generate a SELECT element and use it's options.
+    // Generate a SELECT element and use its options.
     const $select = buildDropdownFromRecords({
       placeholder: $el.data('placeholder'),
       records: activities

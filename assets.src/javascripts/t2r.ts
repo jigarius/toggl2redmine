@@ -553,7 +553,7 @@ class TogglReport {
         entries[key] = entry
       }
 
-      if (entries === {}) {
+      if (Object.keys(entries).length === 0) {
         this.showEmptyMessage()
       }
 

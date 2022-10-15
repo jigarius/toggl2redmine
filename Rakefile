@@ -54,6 +54,7 @@ desc 'Provision the environment.'
 task :provision do
   puts 'Installing dev packages...'
   sleep(2)
+  sh 'docker compose exec redmine bundle lock --add-platform x86-mingw32 x64-mingw32 x86-mswin32'
   sh 'docker compose exec redmine bundle config set with "default dev test"'
   sh 'docker compose exec redmine bundle install'
 

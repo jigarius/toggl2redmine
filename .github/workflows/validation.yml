@@ -22,7 +22,7 @@ jobs:
         with:
           plugin_name: toggl2redmine
           redmine_version: v4.0
-          ruby_version: v2.6
+          ruby_version: v2.7
           database: mysql
   check_javascript:
     runs-on: ubuntu-latest
